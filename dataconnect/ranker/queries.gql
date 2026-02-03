@@ -1,0 +1,54 @@
+# Queries for Star Ranker
+
+# Get all categories
+query listCategories {
+  categories(where: { isActive: { eq: true } }) {
+    id
+    title
+    slug
+    description
+  }
+}
+
+# Get a category and its ranked items
+query getCategoryRankings($slug: String!) {
+  categories(where: { slug: { eq: $slug } }) {
+    id
+    title
+    description
+    items_on_category(orderBy: [{ score: DESC }]) {
+      id
+      name
+      imageUrl
+      score
+      momentum
+      velocity
+      rankPosition
+      totalVotes
+    }
+  }
+}
+
+# Get user reputation and details
+query getUserProfile($id: String!) {
+  user(id: $id) {
+    id
+    username
+    reputation
+    tier
+    createdAt
+  }
+}
+
+# Get latest snapshot for a category
+query getLatestSnapshot($categoryId: UUID!) {
+  snapshots(
+    where: { categoryId: { eq: $categoryId } },
+    orderBy: [{ timestamp: DESC }],
+    limit: 1
+  ) {
+    id
+    timestamp
+    rankData
+  }
+}

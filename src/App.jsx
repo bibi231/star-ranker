@@ -1,0 +1,88 @@
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useStore } from "./store/useStore";
+import { Loader2, ShieldCheck, Info } from "lucide-react";
+
+// Layouts
+import { MainLayout } from "./components/layout/MainLayout";
+
+// High-Level Pages
+import { LandingPage } from "./pages/LandingPage";
+import { MarketPage } from "./pages/MarketPage";
+import { MarketDetailPage } from "./pages/MarketDetailPage";
+import {
+  DashboardPage,
+  AdminPage,
+  HealthPage,
+  SettingsPage,
+  AlertsPage
+} from "./pages/wrappers";
+
+// Auth & Social
+import { SignInPage, SignUpPage } from "./pages/AuthPages";
+import { ActivityPage, LeaderboardPage, StaticInfoPage } from "./pages/StaticPages";
+import { UserProfilePage } from "./pages/UserProfilePage";
+
+function App() {
+  const {
+    isAuthLoading,
+    syncUser,
+    user,
+    tier
+  } = useStore();
+
+  useEffect(() => {
+    syncUser();
+  }, [syncUser]);
+
+  if (isAuthLoading) {
+    return (
+      <div className="h-screen w-full bg-brand-bg flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-10 h-10 text-[#38bdf8] animate-spin" />
+        <div className="text-[#38bdf8] font-black tracking-widest text-[10px] uppercase animate-pulse">
+          Establishing Secure Link...
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Landing Page is Standalone */}
+        <Route path="/" element={<LandingPage />} />
+
+        {/* Console Surfaces (Inside MainLayout) */}
+        <Route element={<MainLayout />}>
+          <Route path="/markets" element={<MarketPage />} />
+          <Route path="/market/:id" element={<MarketDetailPage />} />
+          <Route path="/category/:slug" element={<MarketPage />} />
+
+          <Route path="/activity" element={<ActivityPage />} />
+          <Route path="/leaderboards" element={<LeaderboardPage />} />
+          <Route path="/notifications" element={<AlertsPage />} />
+
+          <Route path="/how-it-works" element={<StaticInfoPage title="How It Works" icon={Info} />} />
+          <Route path="/transparency" element={<StaticInfoPage title="System Transparency" icon={ShieldCheck} />} />
+
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+
+          {/* User Protected Surfaces */}
+          <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/signin" replace />} />
+          <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to="/signin" replace />} />
+          <Route path="/profile/:username" element={<UserProfilePage />} />
+
+          {/* Operational Overwatch (Admin) */}
+          <Route path="/admin" element={user && tier === 'Oracle' ? <AdminPage /> : <Navigate to="/markets" replace />} />
+          <Route path="/health" element={user ? <HealthPage /> : <Navigate to="/markets" replace />} />
+        </Route>
+
+        {/* Global Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;

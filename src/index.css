@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #020617;
+  --color-brand-surface: #0f172a;
+  --color-brand-border: #1e293b;
+  --color-brand-accent: #38bdf8;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --animate-pulse-subtle: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @keyframes pulse-subtle {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.8;
+    }
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-brand-bg text-slate-200 antialiased font-sans;
+}
+
+.dark body {
+  @apply bg-slate-950 text-slate-50;
+}
+
+/* Custom Utilities */
+.glass {
+  @apply bg-white/80 backdrop-blur-md border border-white/20;
+}
+
+.dark .glass {
+  @apply bg-slate-900/80 border-slate-800/50;
+}
+
+.table-row-hover {
+  @apply hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-colors duration-150;
+}
+
+.momentum-up {
+  @apply text-success animate-pulse-subtle;
+}
+
+.momentum-down {
+  @apply text-danger animate-pulse-subtle;
+}

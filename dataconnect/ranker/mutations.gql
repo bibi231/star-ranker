@@ -1,0 +1,49 @@
+# Mutations for Star Ranker
+
+# Initialize or update a user profile
+mutation upsertUser($username: String!) @auth(level: USER) {
+  user_upsert(data: {
+    username: $username
+  })
+}
+
+# Create a new ranking category
+mutation createCategory($title: String!, $slug: String!, $description: String) @auth(level: USER_EMAIL_VERIFIED) {
+  category_insert(data: {
+    title: $title,
+    slug: $slug,
+    description: $description
+  })
+}
+
+# Add an item to a category
+mutation createItem($categoryId: UUID!, $name: String!, $imageUrl: String) @auth(level: USER_EMAIL_VERIFIED) {
+  item_insert(data: {
+    categoryId: $categoryId,
+    name: $name,
+    imageUrl: $imageUrl,
+    score: 0.0,
+    momentum: 0.0,
+    velocity: 0.0,
+    totalVotes: 0
+  })
+}
+
+# Record a vote in the ledger
+mutation recordVote($itemId: UUID!, $direction: Int!, $weight: Float!) @auth(level: USER) {
+  vote_insert(data: {
+    itemId: $itemId,
+    direction: $direction,
+    weight: $weight
+  })
+}
+
+# Update item score and momentum (typically called by a background process/Cloud Function)
+mutation updateItemMetrics($id: UUID!, $score: Float!, $momentum: Float!, $velocity: Float!, $rankPosition: Int) @auth(level: NO_AUTH) {
+  item_update(id: $id, data: {
+    score: $score,
+    momentum: $momentum,
+    velocity: $velocity,
+    rankPosition: $rankPosition
+  })
+}
