@@ -6,6 +6,7 @@ import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getFunctions } from "firebase/functions";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -17,8 +18,20 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
+
+
+// Debug: Validate config presence
+if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes("\"")) {
+  console.error("❌ Firebase API Key is missing or incorrectly quoted in .env");
+}
+
+if (firebaseConfig.projectId !== "star-ranker") {
+  console.warn(`⚠️ Project ID mismatch: Expected star-ranker, got ${firebaseConfig.projectId}`);
+}
+
 // Initialize Firebase app
 const app = initializeApp(firebaseConfig);
+
 
 // Analytics only runs in the browser environment
 let analytics = null;
@@ -37,4 +50,5 @@ export const analyticsInstance = analytics;
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+export const functions = getFunctions(app);
 

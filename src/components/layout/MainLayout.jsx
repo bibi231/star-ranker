@@ -18,17 +18,20 @@ import {
     LogOut,
     ChevronDown,
     Activity,
-    Award
+    Award,
+    Terminal,
+    History
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store/useStore';
 import { cn } from '../../lib/utils';
+import EpochIndicator from '../epochs/EpochIndicator';
 
 export function MainLayout() {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const [isUserMenuOpen, setUserMenuOpen] = useState(false);
     const [isNotifOpen, setNotifOpen] = useState(false);
-    const { user, login, logout, balance, reputation, tier, notifications, markNotificationAsRead } = useStore();
+    const { user, login, logout, balance, reputation, tier, notifications, markNotificationAsRead, searchQuery, setSearchQuery } = useStore();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -47,6 +50,7 @@ export function MainLayout() {
     const infoNav = [
         { to: "/how-it-works", icon: <Info size={18} />, label: "How it Works" },
         { to: "/transparency", icon: <ShieldCheck size={18} />, label: "Transparency" },
+        { to: "/history", icon: <History size={18} />, label: "Epoch History" },
     ];
 
     const unreadCount = notifications.filter(n => !n.read).length;
@@ -81,7 +85,10 @@ export function MainLayout() {
                             <NavItem key={item.to} {...item} isOpen={isSidebarOpen} />
                         ))}
                         {tier === 'Oracle' && (
-                            <NavItem to="/admin" icon={<ShieldCheck size={18} />} label="Admin Ops" isOpen={isSidebarOpen} />
+                            <NavItem to="/admin/zmg" icon={<ShieldCheck size={18} />} label="Admin ZMG" isOpen={isSidebarOpen} />
+                        )}
+                        {(user?.isAdmin || user?.isModerator) && (
+                            <NavItem to="/admin/ops" icon={<Terminal size={18} />} label="Overwatch" isOpen={isSidebarOpen} />
                         )}
                     </NavSection>
 
@@ -124,13 +131,20 @@ export function MainLayout() {
                             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-accent transition-colors" />
                             <input
                                 type="text"
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    if (location.pathname !== '/markets') navigate('/markets');
+                                }}
                                 placeholder="Search markets (Cmd+K)..."
                                 className="w-full bg-slate-900/50 border border-brand-border rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-accent/50 focus:bg-slate-900 transition-all font-medium font-mono"
                             />
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-6">
+                        <EpochIndicator />
+
                         {/* Notification Hub */}
                         <div className="relative">
                             <button

@@ -12,7 +12,9 @@ import {
     Layers,
     Zap,
     Filter,
-    Search
+    Search,
+    TrendingUp,
+    ZapOff
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -99,6 +101,18 @@ export function MarketPage() {
                                 onClick={() => setActiveFilter('losers')}
                                 icon={<ArrowDownRight size={14} className="text-rose-500" />}
                                 label="Losers"
+                            />
+                            <FilterButton
+                                active={activeFilter === 'movers'}
+                                onClick={() => setActiveFilter('movers')}
+                                icon={<TrendingUp size={14} className="text-brand-accent" />}
+                                label="Movers"
+                            />
+                            <FilterButton
+                                active={activeFilter === 'sleepers'}
+                                onClick={() => setActiveFilter('sleepers')}
+                                icon={<ZapOff size={14} className="text-slate-500" />}
+                                label="Sleepers"
                             />
                         </div>
                     </div>

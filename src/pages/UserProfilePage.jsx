@@ -144,3 +144,5 @@ function ProfileStat({ title, value, icon }) {
         </div>
     );
 }
+
+export default UserProfilePage;

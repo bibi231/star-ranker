@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import {
@@ -11,15 +11,40 @@ import {
     ShieldCheck,
     Clock,
     ChevronRight,
-    Briefcase
+    Briefcase,
+    Mail,
+    AlertTriangle,
+    Loader2,
+    RefreshCw
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export function UserDashboard() {
-    const { user, balance, reputation, stakes, reputationHistory, tier } = useStore();
+    const { user, balance, reputation, stakes, reputationHistory, tier, emailVerified, sendVerificationEmail, refreshUser } = useStore();
+    const [isResending, setIsResending] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const handleResendVerification = async () => {
+        setIsResending(true);
+        try {
+            await sendVerificationEmail();
+        } finally {
+            setIsResending(false);
+        }
+    };
+
+    const handleRefreshStatus = async () => {
+        setIsRefreshing(true);
+        try {
+            await refreshUser();
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
 
     return (
         <div className="p-8 space-y-8 bg-[#020617] min-h-screen">
+
             {/* Header / Stats Bar */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-4">
                 <div className="space-y-2">

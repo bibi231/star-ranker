@@ -11,6 +11,7 @@ export interface UserStats {
     accountAgeDays: number;
     voteCount24h: number;
     providerLinked: boolean;
+    isShadowBanned: boolean;
 }
 
 const VELOCITY_THRESHOLD_1H = 20; // Reduced from 50: Max votes per hour for a single item
@@ -44,6 +45,11 @@ export function calculateConfidenceScore(vote: VoteCapture, user: UserStats, his
     const ipMatches = historicalVotes.filter(v => v.ip === vote.ip && v.timestamp > vote.timestamp - 600000);
     if (ipMatches.length > 5) {
         score *= 0.4; // Multiple votes from same IP in 10 mins
+    }
+
+    // 5. Shadow Ban Check
+    if (user.isShadowBanned) {
+        score = 0.0; // Force zero confidence
     }
 
     return Math.max(0, Math.min(1.0, score));

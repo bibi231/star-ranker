@@ -9,7 +9,18 @@ import {
     Scale,
     FileText,
     Lock,
-    Search
+    Search,
+    TrendingUp,
+    Users,
+    Target,
+    AlertTriangle,
+    BarChart3,
+    Shield,
+    Eye,
+    Calculator,
+    Coins,
+    BookOpen,
+    ArrowRight
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { cn } from '../lib/utils';
@@ -86,66 +97,251 @@ export function LeaderboardPage() {
     );
 }
 
-export function StaticInfoPage({ title, icon: Icon }) {
+// ============================================
+// HOW IT WORKS - User-facing explanation
+// ============================================
+export function HowItWorksPage() {
     return (
         <div className="min-h-screen bg-[#020617] p-8 md:p-16">
             <div className="max-w-4xl mx-auto space-y-12">
                 <header className="space-y-4 border-b border-slate-800 pb-12">
                     <div className="flex items-center gap-6">
                         <div className="p-4 rounded-3xl bg-brand-accent/10 text-brand-accent border border-brand-accent/20 shadow-xl shadow-brand-accent/5">
-                            <Icon size={48} />
+                            <BookOpen size={48} />
                         </div>
-                        <h1 className="text-6xl font-black text-white uppercase tracking-tighter leading-none">{title}</h1>
+                        <h1 className="text-6xl font-black text-white uppercase tracking-tighter leading-none">How It Works</h1>
                     </div>
+                    <p className="text-slate-400 text-sm font-medium max-w-2xl">
+                        Star Ranker is a real-time ranking and staking platform where your predictions shape the market.
+                    </p>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 py-8">
-                    <div className="space-y-6">
-                        <SectionHeader title="Settlement Protocol" icon={<Scale size={20} />} />
-                        <p className="text-slate-400 text-sm leading-relaxed font-medium">
-                            Star Ranker utilizes a deterministic reification engine. Every 30 minutes (an "Epoch"), the system aggregates weighted influence across all active nodes. Settlement is finalized only when consensus exceeds the 60% confidence threshold.
-                        </p>
-                    </div>
-
-                    <div className="space-y-6">
-                        <SectionHeader title="AVD Security" icon={<Lock size={20} />} />
-                        <p className="text-slate-400 text-sm leading-relaxed font-medium">
-                            Anomalous Velocity Detection (AVD) is our proprietary defense layer. It monitors the Z-score of incoming influence clusters. Votes that deviate significantly from historical behavioral norms are automatically dampened to prevent market manipulation.
-                        </p>
-                    </div>
+                {/* Step-by-step guide */}
+                <div className="space-y-8">
+                    <StepCard
+                        number={1}
+                        icon={<Users size={24} />}
+                        title="Create Your Oracle Identity"
+                        description="Sign up and verify your email to establish your Oracle identity. Your reputation starts at Newbie and grows with accurate predictions."
+                    />
+                    <StepCard
+                        number={2}
+                        icon={<TrendingUp size={24} />}
+                        title="Explore Markets"
+                        description="Browse categories like Crypto, Tech Giants, Smartphones, and more. Each market contains items ranked by community sentiment."
+                    />
+                    <StepCard
+                        number={3}
+                        icon={<Zap size={24} />}
+                        title="Cast Your Influence"
+                        description="Vote on items to influence their ranking. Your vote weight depends on your Oracle tier — higher tiers have more influence."
+                    />
+                    <StepCard
+                        number={4}
+                        icon={<Target size={24} />}
+                        title="Stake Your Prediction"
+                        description="Believe an item will reach a specific rank? Deploy capital to back your prediction. Accurate predictions earn multiplied returns."
+                    />
+                    <StepCard
+                        number={5}
+                        icon={<Coins size={24} />}
+                        title="Collect Your Payout"
+                        description="When the market settles (every 30 minutes), the Oracle compares actual ranks to predictions. Exact matches earn 5x, close calls earn 1.5x."
+                    />
                 </div>
 
-                <div className="p-12 rounded-[3rem] bg-slate-900 border border-slate-800 shadow-3xl space-y-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-accent/5 rounded-full blur-[80px]" />
-
-                    <h2 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3 relative z-10">
-                        <FileText className="text-brand-accent" /> Governance & Risk Attributes
+                {/* Tier System */}
+                <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 space-y-6">
+                    <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-3">
+                        <Award className="text-brand-accent" /> Oracle Tier System
                     </h2>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 relative z-10">
-                        <DocItem
-                            title="Stake Finality"
-                            desc="Once deployed, stakes are non-custodial and locked until the market event reification is confirmed by the Oracle."
-                        />
-                        <DocItem
-                            title="Reputation Slashing"
-                            desc="Attempting to sybil or brigade the consensus leads to a permanent reputation burn and AVD blacklisting."
-                        />
-                        <DocItem
-                            title="Capital Exposure"
-                            desc="Users take full responsibility for stake selection. The Oracle does not guarantee specific market outcomes."
-                        />
-                        <DocItem
-                            title="Snapshot Integrity"
-                            desc="Snapshots are timestamped and cryptographically linked to prevent retroactive influence injection."
-                        />
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <TierCard tier="Newbie" influence="1x" requirement="New account" color="text-slate-400" />
+                        <TierCard tier="Peer" influence="1.5x" requirement="Email verified" color="text-blue-400" />
+                        <TierCard tier="Sage" influence="2x" requirement="500+ reputation" color="text-purple-400" />
+                        <TierCard tier="Oracle" influence="5x" requirement="10,000+ reputation" color="text-amber-400" />
                     </div>
                 </div>
 
-                <footer className="text-center pt-12">
-                    <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">Protocol Hardware: Operational • Network Load: Nominal</p>
-                </footer>
+                {/* Quick FAQ */}
+                <div className="space-y-4">
+                    <h2 className="text-lg font-black text-white uppercase tracking-tight">Quick Questions</h2>
+                    <FAQItem
+                        question="How often do rankings update?"
+                        answer="Rankings reify every 30 minutes in an 'Epoch'. Votes cast during an epoch affect the next settlement."
+                    />
+                    <FAQItem
+                        question="Can I lose my stake?"
+                        answer="Yes. If the item doesn't reach your predicted rank, you lose the staked amount. Only stake what you can afford to lose."
+                    />
+                    <FAQItem
+                        question="How do I increase my tier?"
+                        answer="Earn reputation through accurate voting and successful stake predictions. Higher accuracy = faster progression."
+                    />
+                </div>
             </div>
+        </div>
+    );
+}
+
+// ============================================
+// TRANSPARENCY - Technical & Risk Disclosure
+// ============================================
+export function TransparencyPage() {
+    return (
+        <div className="min-h-screen bg-[#020617] p-8 md:p-16">
+            <div className="max-w-4xl mx-auto space-y-12">
+                <header className="space-y-4 border-b border-slate-800 pb-12">
+                    <div className="flex items-center gap-6">
+                        <div className="p-4 rounded-3xl bg-brand-accent/10 text-brand-accent border border-brand-accent/20 shadow-xl shadow-brand-accent/5">
+                            <ShieldCheck size={48} />
+                        </div>
+                        <h1 className="text-6xl font-black text-white uppercase tracking-tighter leading-none">System Transparency</h1>
+                    </div>
+                    <p className="text-slate-400 text-sm font-medium max-w-2xl">
+                        Full disclosure of algorithms, anti-manipulation measures, settlement logic, and risk factors.
+                    </p>
+                </header>
+
+                {/* Algorithm Section */}
+                <div className="space-y-6">
+                    <SectionHeader title="Ranking Algorithm (MWR)" icon={<Calculator size={20} />} />
+                    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+                        <p className="text-slate-400 text-sm leading-relaxed">
+                            Star Ranker uses <strong className="text-white">Momentum-Weighted Ranking (MWR)</strong>, a physics-inspired algorithm
+                            where votes act as forces that accelerate items up or down the rankings.
+                        </p>
+                        <div className="p-4 rounded-xl bg-slate-950 font-mono text-xs text-slate-300 overflow-x-auto">
+                            <pre>{`Score = Baseline + (Momentum × 0.1)
+Momentum(t) = Momentum(t-1) × e^(-γ × Δt) + VoteVelocity
+VoteVelocity = (Weight × Direction) / Viscosity
+
+Where:
+  γ (decay constant) = 0.05
+  Viscosity = 1.0 (default)`}</pre>
+                        </div>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-widest">
+                            Momentum decays exponentially — old votes lose influence over time, keeping rankings fresh.
+                        </p>
+                    </div>
+                </div>
+
+                {/* AVD Anti-Bot */}
+                <div className="space-y-6">
+                    <SectionHeader title="Anti-Bot Logic (AVD)" icon={<Shield size={20} />} />
+                    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+                        <p className="text-slate-400 text-sm leading-relaxed">
+                            <strong className="text-white">Anomalous Velocity Detection (AVD)</strong> protects market integrity by
+                            dampening suspicious voting patterns in real-time.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <AVDRule trigger="> 20 votes/hour on single item" action="50% dampening" />
+                            <AVDRule trigger="Account age < 7 days" action="30% dampening" />
+                            <AVDRule trigger="No social provider linked" action="50% dampening" />
+                            <AVDRule trigger="> 50 votes/day per user" action="90% dampening" />
+                            <AVDRule trigger="> 5 votes from same IP in 10 min" action="60% dampening" />
+                            <AVDRule trigger="Confidence score < 0.2" action="Shadow ban (0% effect)" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Settlement Oracle */}
+                <div className="space-y-6">
+                    <SectionHeader title="Settlement Oracle" icon={<Scale size={20} />} />
+                    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+                        <p className="text-slate-400 text-sm leading-relaxed">
+                            Stakes are settled automatically by comparing predicted ranks against actual ranks at the deadline.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <PayoutCard outcome="Exact Match" multiplier="5.0x" example="Predicted #3 → Actual #3" color="text-emerald-400" />
+                            <PayoutCard outcome="Off by 1" multiplier="1.5x" example="Predicted #3 → Actual #2 or #4" color="text-amber-400" />
+                            <PayoutCard outcome="Miss" multiplier="0x" example="Predicted #3 → Actual #8" color="text-rose-400" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Risk Disclosures */}
+                <div className="p-8 rounded-3xl bg-rose-500/5 border border-rose-500/20 space-y-6">
+                    <h2 className="text-xl font-black text-rose-500 uppercase tracking-tight flex items-center gap-3">
+                        <AlertTriangle /> Risk Disclosures
+                    </h2>
+                    <div className="space-y-4 text-sm text-rose-200/80">
+                        <RiskItem title="Capital Loss">
+                            Stakes are non-refundable. You may lose your entire stake if predictions are incorrect.
+                        </RiskItem>
+                        <RiskItem title="Market Manipulation">
+                            Despite AVD protections, coordinated attacks by malicious actors may temporarily affect rankings.
+                        </RiskItem>
+                        <RiskItem title="System Availability">
+                            Settlement depends on Cloud Functions reliability. Downtime may delay payouts.
+                        </RiskItem>
+                        <RiskItem title="Regulatory">
+                            This platform may be subject to prediction market or gambling regulations in your jurisdiction.
+                        </RiskItem>
+                    </div>
+                    <p className="text-[10px] text-rose-400/60 uppercase tracking-widest font-black">
+                        By using Star Ranker, you acknowledge these risks and agree to our Terms of Service.
+                    </p>
+                </div>
+
+                {/* Data Integrity */}
+                <div className="space-y-6">
+                    <SectionHeader title="Snapshot Integrity" icon={<Eye size={20} />} />
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                        Every 30 minutes, the system creates an immutable snapshot of all rankings. Snapshots are timestamped
+                        and used for settlement verification. Historical snapshots are retained for audit purposes.
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Legacy component for backward compatibility
+export function StaticInfoPage({ title, icon: Icon }) {
+    // Redirect based on title
+    if (title === "How It Works") {
+        return <HowItWorksPage />;
+    }
+    return <TransparencyPage />;
+}
+
+// ============================================
+// Helper Components
+// ============================================
+
+function StepCard({ number, icon, title, description }) {
+    return (
+        <div className="flex gap-6 items-start group">
+            <div className="w-12 h-12 rounded-2xl bg-brand-accent/10 border border-brand-accent/20 flex items-center justify-center text-brand-accent shrink-0 group-hover:bg-brand-accent group-hover:text-slate-950 transition-all">
+                {icon}
+            </div>
+            <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-mono text-brand-accent font-black">STEP {number}</span>
+                    <h3 className="text-lg font-black text-white uppercase tracking-tight">{title}</h3>
+                </div>
+                <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
+            </div>
+        </div>
+    );
+}
+
+function TierCard({ tier, influence, requirement, color }) {
+    return (
+        <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <h4 className={cn("text-sm font-black uppercase", color)}>{tier}</h4>
+            <p className="text-xl font-mono font-black text-white">{influence}</p>
+            <p className="text-[10px] text-slate-600 uppercase">{requirement}</p>
+        </div>
+    );
+}
+
+function FAQItem({ question, answer }) {
+    return (
+        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800">
+            <h4 className="text-sm font-black text-white mb-2">{question}</h4>
+            <p className="text-xs text-slate-400 leading-relaxed">{answer}</p>
         </div>
     );
 }
@@ -158,11 +354,31 @@ function SectionHeader({ title, icon }) {
     );
 }
 
-function DocItem({ title, desc }) {
+function AVDRule({ trigger, action }) {
     return (
-        <div className="space-y-2">
-            <h4 className="text-xs font-black text-white uppercase tracking-wider">{title}</h4>
-            <p className="text-[11px] text-slate-500 leading-relaxed font-medium">{desc}</p>
+        <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+            <p className="text-[10px] text-slate-500 uppercase mb-1">Trigger</p>
+            <p className="text-xs text-slate-300 font-medium mb-2">{trigger}</p>
+            <p className="text-[10px] text-amber-500 font-black uppercase">{action}</p>
+        </div>
+    );
+}
+
+function PayoutCard({ outcome, multiplier, example, color }) {
+    return (
+        <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-center">
+            <p className="text-[10px] text-slate-500 uppercase mb-1">{outcome}</p>
+            <p className={cn("text-2xl font-mono font-black", color)}>{multiplier}</p>
+            <p className="text-[10px] text-slate-600 mt-2">{example}</p>
+        </div>
+    );
+}
+
+function RiskItem({ title, children }) {
+    return (
+        <div>
+            <h4 className="text-sm font-black text-rose-300 uppercase mb-1">{title}</h4>
+            <p className="text-rose-200/70">{children}</p>
         </div>
     );
 }

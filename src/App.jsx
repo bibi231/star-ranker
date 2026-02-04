@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useStore } from "./store/useStore";
-import { Loader2, ShieldCheck, Info } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 // Layouts
 import { MainLayout } from "./components/layout/MainLayout";
@@ -19,9 +19,13 @@ import {
 } from "./pages/wrappers";
 
 // Auth & Social
-import { SignInPage, SignUpPage } from "./pages/AuthPages";
-import { ActivityPage, LeaderboardPage, StaticInfoPage } from "./pages/StaticPages";
-import { UserProfilePage } from "./pages/UserProfilePage";
+import { SignInPage, SignUpPage, EmailVerificationPrompt } from "./pages/AuthPages";
+import { ActivityPage, LeaderboardPage, HowItWorksPage, TransparencyPage } from "./pages/StaticPages";
+import UserProfilePage from "./pages/UserProfilePage";
+import AdminZMGPage from "./pages/AdminZMGPage";
+import AdminOpsPage from "./pages/AdminOpsPage";
+import EpochHistoryPage from "./pages/EpochHistoryPage";
+import { EmailVerificationGuard } from "./components/auth/EmailVerificationGuard";
 
 function App() {
   const {
@@ -62,19 +66,34 @@ function App() {
           <Route path="/leaderboards" element={<LeaderboardPage />} />
           <Route path="/notifications" element={<AlertsPage />} />
 
-          <Route path="/how-it-works" element={<StaticInfoPage title="How It Works" icon={Info} />} />
-          <Route path="/transparency" element={<StaticInfoPage title="System Transparency" icon={ShieldCheck} />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/transparency" element={<TransparencyPage />} />
+          <Route path="/history" element={<EpochHistoryPage />} />
 
           <Route path="/signin" element={<SignInPage />} />
           <Route path="/signup" element={<SignUpPage />} />
 
           {/* User Protected Surfaces */}
-          <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/signin" replace />} />
-          <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to="/signin" replace />} />
+          <Route path="/dashboard" element={
+            user ? (
+              <EmailVerificationGuard>
+                <DashboardPage />
+              </EmailVerificationGuard>
+            ) : <Navigate to="/signin" replace />
+          } />
+          <Route path="/settings" element={
+            user ? (
+              <EmailVerificationGuard>
+                <SettingsPage />
+              </EmailVerificationGuard>
+            ) : <Navigate to="/signin" replace />
+          } />
           <Route path="/profile/:username" element={<UserProfilePage />} />
 
           {/* Operational Overwatch (Admin) */}
           <Route path="/admin" element={user && tier === 'Oracle' ? <AdminPage /> : <Navigate to="/markets" replace />} />
+          <Route path="/admin/zmg" element={user && tier === 'Oracle' ? <AdminZMGPage /> : <Navigate to="/markets" replace />} />
+          <Route path="/admin/ops" element={user && (user.isAdmin || user.isModerator) ? <AdminOpsPage /> : <Navigate to="/markets" replace />} />
           <Route path="/health" element={user ? <HealthPage /> : <Navigate to="/markets" replace />} />
         </Route>
 

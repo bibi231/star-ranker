@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import {
     ShieldAlert,
     Activity,
@@ -9,12 +10,104 @@ import {
     AlertTriangle,
     RefreshCw,
     Terminal,
-    Lock
+    Lock,
+    Loader2,
+    Play,
+    Pause,
+    Eye,
+    UserX,
+    Camera,
+    BarChart3,
+    CheckCircle,
+    XCircle,
+    Clock
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useStore } from '../store/useStore';
+
+const functions = getFunctions();
 
 export function AdminPage() {
+    const { user, tier } = useStore();
     const [isKillswitchArmed, setKillswitchArmed] = useState(false);
+    const [stats, setStats] = useState(null);
+    const [auditLogs, setAuditLogs] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(null);
+    const [actionResult, setActionResult] = useState(null);
+
+    // Fetch system stats on mount
+    useEffect(() => {
+        fetchSystemStats();
+        fetchAuditLogs();
+    }, []);
+
+    const fetchSystemStats = async () => {
+        try {
+            const getSystemStats = httpsCallable(functions, 'getSystemStats');
+            const result = await getSystemStats();
+            setStats(result.data);
+        } catch (error) {
+            console.error('Failed to fetch system stats:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchAuditLogs = async () => {
+        try {
+            const getAuditLogs = httpsCallable(functions, 'getAuditLogs');
+            const result = await getAuditLogs({ limit: 20 });
+            setAuditLogs(result.data.logs || []);
+        } catch (error) {
+            console.error('Failed to fetch audit logs:', error);
+        }
+    };
+
+    const handleTriggerIngestor = async (ingestorType) => {
+        setActionLoading(`ingestor-${ingestorType}`);
+        setActionResult(null);
+        try {
+            const triggerIngestor = httpsCallable(functions, 'triggerIngestor');
+            await triggerIngestor({ ingestorType });
+            setActionResult({ success: true, message: `${ingestorType} ingestor triggered` });
+            fetchAuditLogs();
+        } catch (error) {
+            setActionResult({ success: false, message: error.message });
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleTriggerSnapshot = async (categorySlug) => {
+        setActionLoading(`snapshot-${categorySlug}`);
+        setActionResult(null);
+        try {
+            const triggerSnapshot = httpsCallable(functions, 'triggerSnapshot');
+            await triggerSnapshot({ categorySlug });
+            setActionResult({ success: true, message: `Snapshot triggered for ${categorySlug}` });
+            fetchAuditLogs();
+        } catch (error) {
+            setActionResult({ success: false, message: error.message });
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleFreezeMarket = async (categorySlug, freeze) => {
+        setActionLoading(`freeze-${categorySlug}`);
+        setActionResult(null);
+        try {
+            const setMarketStatus = httpsCallable(functions, 'setMarketStatus');
+            await setMarketStatus({ categorySlug, frozen: freeze, reason: 'Admin action' });
+            setActionResult({ success: true, message: `${categorySlug} ${freeze ? 'frozen' : 'unfrozen'}` });
+            fetchAuditLogs();
+        } catch (error) {
+            setActionResult({ success: false, message: error.message });
+        } finally {
+            setActionLoading(null);
+        }
+    };
 
     return (
         <div className="p-8 space-y-12 bg-[#020617] min-h-screen">
@@ -26,11 +119,20 @@ export function AdminPage() {
                         </div>
                         <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Ops Overwatch</h1>
                     </div>
-                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Restricted Management Surface • Clearance Level: Oracle Alpha</p>
+                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">
+                        Restricted Management Surface • Clearance: {tier}
+                    </p>
                 </div>
 
-                {/* Emergency Controls */}
                 <div className="flex gap-4">
+                    <button
+                        onClick={() => fetchSystemStats()}
+                        disabled={isLoading}
+                        className="px-4 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-white hover:border-slate-700 transition-all flex items-center gap-2"
+                    >
+                        {isLoading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                        Refresh
+                    </button>
                     <button
                         onClick={() => setKillswitchArmed(!isKillswitchArmed)}
                         className={cn(
@@ -38,43 +140,144 @@ export function AdminPage() {
                             isKillswitchArmed ? "bg-rose-500 text-white animate-pulse" : "bg-slate-900 border border-slate-800 text-rose-500 hover:bg-rose-500/10"
                         )}
                     >
-                        <AlertTriangle size={16} /> {isKillswitchArmed ? 'Global Killswitch Prime' : 'Emergency Stop'}
+                        <AlertTriangle size={16} /> {isKillswitchArmed ? 'ARMED' : 'Emergency Stop'}
                     </button>
-                    {isKillswitchArmed && (
-                        <button className="px-6 py-3 rounded-2xl bg-white text-rose-600 font-black text-[10px] uppercase tracking-widest hover:bg-rose-50 transition-all border-4 border-rose-600">
-                            Execute Circuit Break
-                        </button>
-                    )}
                 </div>
             </header>
 
+            {/* Action Result Toast */}
+            {actionResult && (
+                <div className={cn(
+                    "p-4 rounded-2xl flex items-center gap-4 animate-in slide-in-from-top-2",
+                    actionResult.success ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-rose-500/10 border border-rose-500/20"
+                )}>
+                    {actionResult.success ? <CheckCircle className="text-emerald-500" /> : <XCircle className="text-rose-500" />}
+                    <span className={cn("text-xs font-bold uppercase", actionResult.success ? "text-emerald-400" : "text-rose-400")}>
+                        {actionResult.message}
+                    </span>
+                    <button onClick={() => setActionResult(null)} className="ml-auto text-slate-500 hover:text-white">×</button>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                {/* System Vital Stats */}
+                {/* System Stats */}
                 <div className="lg:col-span-1 space-y-4">
-                    <AdminStat label="Network Status" value="Nominal" icon={<Wifi size={14} />} color="text-emerald-400" />
-                    <AdminStat label="Settlement Nodes" value="12/12" icon={<Database size={14} />} color="text-brand-accent" />
-                    <AdminStat label="Active Oracles" value="4,281" icon={<Users size={14} />} color="text-slate-300" />
-                    <AdminStat label="AVD Dampening" value="8.2%" icon={<AlertTriangle size={14} />} color="text-amber-500" />
+                    <AdminStat
+                        label="Network Status"
+                        value={isLoading ? "..." : "Nominal"}
+                        icon={<Wifi size={14} />}
+                        color="text-emerald-400"
+                    />
+                    <AdminStat
+                        label="Total Users"
+                        value={isLoading ? "..." : (stats?.userCount || 0).toLocaleString()}
+                        icon={<Users size={14} />}
+                        color="text-brand-accent"
+                    />
+                    <AdminStat
+                        label="Markets"
+                        value={isLoading ? "..." : stats?.categoryCount || 0}
+                        icon={<Database size={14} />}
+                        color="text-slate-300"
+                    />
+                    <AdminStat
+                        label="Total Items"
+                        value={isLoading ? "..." : (stats?.itemCount || 0).toLocaleString()}
+                        icon={<BarChart3 size={14} />}
+                        color="text-purple-400"
+                    />
+                    <AdminStat
+                        label="Active Stakes"
+                        value={isLoading ? "..." : (stats?.stakeCount || 0).toLocaleString()}
+                        icon={<Zap size={14} />}
+                        color="text-amber-400"
+                    />
+                    <AdminStat
+                        label="Admin Actions (24h)"
+                        value={isLoading ? "..." : stats?.adminActionsToday || 0}
+                        icon={<Activity size={14} />}
+                        color="text-rose-400"
+                    />
                 </div>
 
-                {/* Automation & Ingestors */}
+                {/* Main Content */}
                 <div className="lg:col-span-3 space-y-8">
-                    <AdminBox title="Data Ingestors" icon={<RefreshCw size={16} />}>
+                    {/* Market Operations */}
+                    <AdminBox title="Market Operations" icon={<BarChart3 size={16} />}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <IngestorCard name="CoinGecko Mainnet" status="Syncing" frequency="60s" latency="42ms" />
-                            <IngestorCard name="Star Oracle v2" status="Nominal" frequency="30m" latency="1.2s" />
-                            <IngestorCard name="AVD Anomaly Scanner" status="Monitoring" frequency="Real-time" latency="4ms" />
-                            <IngestorCard name="Social Sentiment Agg" status="Error" frequency="5m" latency="N/A" error />
+                            {['crypto', 'smartphones', 'music', 'websites', 'tech'].map(market => (
+                                <div key={market} className="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex justify-between items-center">
+                                    <div>
+                                        <h4 className="text-xs font-black text-white uppercase">{market}</h4>
+                                        <span className="text-[9px] text-slate-500">Active Market</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleTriggerSnapshot(market)}
+                                            disabled={actionLoading === `snapshot-${market}`}
+                                            className="p-2 rounded-lg bg-brand-accent/10 text-brand-accent hover:bg-brand-accent/20 transition-all"
+                                            title="Trigger Snapshot"
+                                        >
+                                            {actionLoading === `snapshot-${market}` ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                                        </button>
+                                        <button
+                                            onClick={() => handleFreezeMarket(market, true)}
+                                            disabled={actionLoading === `freeze-${market}`}
+                                            className="p-2 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all"
+                                            title="Freeze Market"
+                                        >
+                                            {actionLoading === `freeze-${market}` ? <Loader2 size={14} className="animate-spin" /> : <Pause size={14} />}
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </AdminBox>
 
+                    {/* Data Ingestors */}
+                    <AdminBox title="Data Ingestors" icon={<RefreshCw size={16} />}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {[
+                                { type: 'crypto', name: 'CoinGecko API', status: 'Ready' },
+                                { type: 'smartphones', name: 'GSMArena Scraper', status: 'Ready' },
+                                { type: 'music', name: 'Billboard API', status: 'Ready' },
+                                { type: 'websites', name: 'SimilarWeb API', status: 'Ready' },
+                                { type: 'tech', name: 'Crunchbase API', status: 'Ready' }
+                            ].map(ingestor => (
+                                <IngestorCard
+                                    key={ingestor.type}
+                                    name={ingestor.name}
+                                    type={ingestor.type}
+                                    status={ingestor.status}
+                                    onTrigger={() => handleTriggerIngestor(ingestor.type)}
+                                    isLoading={actionLoading === `ingestor-${ingestor.type}`}
+                                />
+                            ))}
+                        </div>
+                    </AdminBox>
+
+                    {/* Audit Log */}
                     <AdminBox title="Security Registry" icon={<Terminal size={16} />}>
-                        <div className="bg-slate-950 rounded-2xl border border-slate-800 p-4 font-mono text-[10px] space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
-                            <p className="text-slate-500">[12:44:01] AVD: High-velocity cluster detected in Category: Crypto -&gt; Item: Dogecoin</p>
-                            <p className="text-emerald-500">[12:44:05] SYSTEM: Weighted dampening (0.42x) applied to Epoch #4201</p>
-                            <p className="text-slate-500">[12:45:12] AUTH: New Oracle promotion request from user_8829</p>
-                            <p className="text-rose-500">[12:45:30] WARN: Rate limit exceeded on Ingestor: Sentiment_Agg</p>
-                            <p className="text-slate-500">[12:46:00] CRON: Triggering automated snapshot reification...</p>
+                        <div className="bg-slate-950 rounded-2xl border border-slate-800 p-4 font-mono text-[10px] space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
+                            {auditLogs.length === 0 ? (
+                                <p className="text-slate-600 text-center py-4">No audit logs available</p>
+                            ) : (
+                                auditLogs.map((log, i) => (
+                                    <div key={log.id || i} className="flex gap-3">
+                                        <span className="text-slate-600 shrink-0">
+                                            [{new Date(log.timestamp).toLocaleTimeString()}]
+                                        </span>
+                                        <span className={cn(
+                                            log.success ? "text-emerald-500" : "text-rose-500"
+                                        )}>
+                                            {log.action}:
+                                        </span>
+                                        <span className="text-slate-400">
+                                            {log.targetType}/{log.targetId} by {log.actorEmail?.split('@')[0]}
+                                        </span>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </AdminBox>
                 </div>
@@ -108,26 +311,26 @@ function AdminBox({ title, icon, children }) {
     );
 }
 
-function IngestorCard({ name, status, frequency, latency, error }) {
+function IngestorCard({ name, type, status, onTrigger, isLoading }) {
     return (
-        <div className={cn(
-            "p-5 rounded-2xl bg-slate-950 border transition-all flex justify-between items-center",
-            error ? "border-rose-500/50 bg-rose-500/5" : "border-slate-800 hover:border-slate-600"
-        )}>
+        <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-600 transition-all flex justify-between items-center">
             <div className="space-y-1">
                 <h4 className="text-[11px] font-black text-white uppercase">{name}</h4>
                 <div className="flex gap-3 text-[9px] font-black uppercase text-slate-500">
-                    <span>Freq: {frequency}</span>
-                    <span>Lat: {latency}</span>
+                    <span>Type: {type}</span>
                 </div>
             </div>
-            <div className="text-right">
-                <div className={cn(
-                    "px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter",
-                    error ? "bg-rose-500/20 text-rose-500" : "bg-emerald-500/20 text-emerald-500"
-                )}>
+            <div className="flex items-center gap-3">
+                <div className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter bg-emerald-500/20 text-emerald-500">
                     {status}
                 </div>
+                <button
+                    onClick={onTrigger}
+                    disabled={isLoading}
+                    className="p-2 rounded-lg bg-brand-accent/10 text-brand-accent hover:bg-brand-accent/20 transition-all"
+                >
+                    {isLoading ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+                </button>
             </div>
         </div>
     );

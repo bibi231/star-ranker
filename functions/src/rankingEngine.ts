@@ -6,12 +6,13 @@
  * triggered by new votes or on a periodic schedule.
  */
 
-interface RankingItem {
+export interface RankingItem {
     id: string;
     score: number;
     momentum: number;
     velocity: number;
     lastUpdated: number; // timestamp
+    name?: string;
 }
 
 interface VoteEvent {

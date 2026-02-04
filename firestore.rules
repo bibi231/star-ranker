@@ -1,26 +1,208 @@
-rules_version='2'
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      // Basic protection: Only authenticated users can read/write.
-      // In production, you would want more granular rules per collection.
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.resource.size < 5 * 1024; // Limit document size to 5KB
+    
+    // ==========================================
+    // Helper Functions
+    // ==========================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
     }
     
-    // Explicitly lock down sensitive collections if they exist
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             (request.auth.token.admin == true || 
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tier == 'Oracle');
+    }
+
+    function isModerator() {
+      return isAuthenticated() && 
+             (request.auth.token.admin == true || 
+              request.auth.token.moderator == true ||
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tier in ['Sage', 'Oracle']);
+    }
+
+    function isOperator() {
+      return isAuthenticated() && 
+             (request.auth.token.admin == true || 
+              request.auth.token.moderator == true ||
+              request.auth.token.operator == true ||
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tier in ['Peer', 'Sage', 'Oracle']);
+    }
+    
+    function isSageOrHigher() {
+      return isModerator();
+    }
+    
+    // ==========================================
+    // PUBLIC DATA - Rankings visible to everyone
+    // ==========================================
+    
+    // Categories (Markets) - PUBLIC READ
+    match /categories/{categoryId} {
+      // Anyone can read categories (including guests)
+      allow read: if true;
+      
+      // Only admins can write
+      allow write: if isAdmin();
+    }
+    
+    // Items (Rankable Entities) - PUBLIC READ
+    match /items/{itemId} {
+      // Anyone can read items (including guests)
+      allow read: if true;
+      
+      // Only admins can create/update/delete items directly
+      allow write: if isAdmin();
+    }
+    
+    // Snapshots (Immutable History) - PUBLIC READ
+    match /snapshots/{snapshotId} {
+      // Anyone can read snapshots
+      allow read: if true;
+      
+      // Only admin/functions can create
+      allow create: if isAdmin();
+      
+      // Snapshots are immutable
+      allow update, delete: if false;
+    }
+    
+    // ==========================================
+    // PROTECTED DATA - Requires authentication
+    // ==========================================
+    
+    // User Collection
+    match /users/{userId} {
+      // Users can read their own profile, admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can create their own profile
+      allow create: if isOwner(userId);
+      
+      // Users can update their own non-sensitive fields
+      allow update: if isOwner(userId) && 
+                       !request.resource.data.diff(resource.data).affectedKeys()
+                         .hasAny(['tier', 'isBanned', 'dampeningFactor', 'reputation']);
+      
+      // Only admins can update sensitive fields or delete
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Votes - Protected
+    match /votes/{voteId} {
+      // Users can read their own votes
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Admins can read all votes
+      allow read: if isAdmin();
+      
+      // Users can create votes (with size limit)
+      allow create: if isAuthenticated() && 
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.size() < 1024;
+      
+      // Votes are immutable - no updates or deletes
+      allow update, delete: if false;
+    }
+    
+    // Stakes - Protected
+    match /stakes/{stakeId} {
+      // Users can read their own stakes
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Admins can read all stakes
+      allow read: if isAdmin();
+      
+      // Users can create stakes
+      allow create: if isAuthenticated() && 
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.amount > 0;
+      
+      // Only settlement oracle (admin/functions) can update stakes
+      allow update: if isAdmin();
+      
+      // Stakes cannot be deleted
+      allow delete: if false;
+    }
+    
+    // ==========================================
+    // ADMIN ONLY DATA
+    // ==========================================
+    
+    // Admin Audit Logs
+    match /admin_audit_logs/{logId} {
+      // Only admins can read audit logs
+      allow read: if isAdmin();
+      
+      // Only functions can write (no client writes)
+      allow write: if false;
+    }
+    
+    // User Flags (Moderation)
+    match /user_flags/{flagId} {
+      // Only sage+ can read/write flags
+      allow read, write: if isSageOrHigher();
+    }
+    
+    // Ingestor Runs
+    match /ingestor_runs/{runId} {
+      // Only admins can read ingestor status
+      allow read: if isAdmin();
+      
+      // Only functions can write
+      allow write: if false;
+    }
+    
+    // Settings (System Config)
     match /settings/{document} {
-      allow read, write: if false; // Only manageable via Admin SDK/Functions
+      // Only accessible via Admin SDK
+      allow read, write: if false;
+    }
+    
+    // ==========================================
+    // ZEITGEIST MARKET GENERATOR DATA
+    // ==========================================
+    
+    // ZMG Run History
+    match /zmg_runs/{runId} {
+      // Only admins can read run history
+      allow read: if isAdmin();
+      
+      // Only functions can write
+      allow write: if false;
+    }
+    
+    // ZMG Errors
+    match /zmg_errors/{errorId} {
+      // Only admins can read errors
+      allow read: if isAdmin();
+      
+      // Only functions can write
+      allow write: if false;
+    }
+    
+    // Admin Overrides (pins, boosts, etc.)
+    match /admin_overrides/{overrideId} {
+      // Only admins can read/write overrides
+      allow read, write: if isAdmin();
+    }
+    
+    // Zeitgeist Signals (temporary signal storage)
+    match /zeitgeist_signals/{signalId} {
+      // Only admins can read signals
+      allow read: if isAdmin();
+      
+      // Only functions can write
+      allow write: if false;
     }
   }
 }
+
