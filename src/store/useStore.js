@@ -12,17 +12,7 @@ import {
     updateProfile
 } from "firebase/auth";
 import { MOCK_DATA } from "../data/mockData";
-import {
-    onAuthStateChanged,
-    signInWithPopup,
-    GoogleAuthProvider,
-    signOut,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    sendPasswordResetEmail,
-    sendEmailVerification,
-    updateProfile
-} from "firebase/auth";
+
 import {
     collection,
     doc,
