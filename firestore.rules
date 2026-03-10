@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users can only read/write their own profile
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Stakes: users read their own, write goes through server only
+    match /stakes/{stakeId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow write: if false; // Server-side only via Admin SDK
+    }
+    
+    // Rankings and categories: public read, server-only write
+    match /categories/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /items/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /rankings/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Platform revenue: admin read only, never client write
+    match /platform/{doc} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow write: if false;
+    }
+    
+    // Epochs: public read (for timer), server-only write
+    match /epochs/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

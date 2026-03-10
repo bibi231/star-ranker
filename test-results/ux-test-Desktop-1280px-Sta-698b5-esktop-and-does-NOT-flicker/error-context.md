@@ -1,0 +1,2830 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - heading "Jurisdictional Protocols" [level=2] [ref=e10]
+      - paragraph [ref=e11]: System Access Verification Required
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - img [ref=e14]
+        - generic [ref=e18]:
+          - heading "Platform Nature" [level=4] [ref=e19]
+          - paragraph [ref=e20]: Star Ranker is a cultural popularity engine. All "Stakes" represent reputation units and do not constitute financial derivatives or investment products.
+      - generic [ref=e21]:
+        - img [ref=e22]
+        - generic [ref=e25]:
+          - heading "Gated Jurisdictions" [level=4] [ref=e26]
+          - paragraph [ref=e27]: Staking is disabled in sanctioned regions and locations where predictive markets are restricted. You certify you are not accessing from such a region.
+      - generic [ref=e28]:
+        - img [ref=e29]
+        - generic [ref=e31]:
+          - heading "Beta Protocol" [level=4] [ref=e32]
+          - paragraph [ref=e33]: This terminal is in active BETA. Systems are subject to reset and volatility dampening based on oracle oversight.
+    - generic [ref=e34]:
+      - button "Synchronize Agreement" [ref=e35]:
+        - text: Synchronize Agreement
+        - img [ref=e36]
+      - paragraph [ref=e38]: By entering, you agree to the terms in LEGAL.md
+  - generic [ref=e39]:
+    - complementary [ref=e40]:
+      - generic [ref=e42] [cursor=pointer]:
+        - img [ref=e44]
+        - generic [ref=e46]: STAR RANKER
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - heading "Terminal" [level=3] [ref=e49]
+          - link "Markets" [ref=e50] [cursor=pointer]:
+            - /url: /markets
+            - img [ref=e52]
+            - generic [ref=e54]: Markets
+          - link "Activity" [ref=e55] [cursor=pointer]:
+            - /url: /activity
+            - img [ref=e57]
+            - generic [ref=e59]: Activity
+          - link "Leaderboards" [ref=e60] [cursor=pointer]:
+            - /url: /leaderboards
+            - img [ref=e62]
+            - generic [ref=e65]: Leaderboards
+        - generic [ref=e66]:
+          - heading "Personal" [level=3] [ref=e67]
+          - link "Portfolio" [ref=e68] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e70]
+            - generic [ref=e75]: Portfolio
+          - link "Alerts 2" [ref=e76] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e78]
+            - generic [ref=e81]: Alerts
+            - generic [ref=e82]: "2"
+          - link "Settings" [ref=e83] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e85]
+            - generic [ref=e88]: Settings
+          - link "Admin ZMG" [ref=e89] [cursor=pointer]:
+            - /url: /admin/zmg
+            - img [ref=e91]
+            - generic [ref=e94]: Admin ZMG
+          - link "Overwatch" [ref=e95] [cursor=pointer]:
+            - /url: /admin/ops
+            - img [ref=e97]
+            - generic [ref=e99]: Overwatch
+        - generic [ref=e100]:
+          - heading "Resources" [level=3] [ref=e101]
+          - link "How it Works" [ref=e102] [cursor=pointer]:
+            - /url: /how-it-works
+            - img [ref=e104]
+            - generic [ref=e106]: How it Works
+          - link "Transparency" [ref=e107] [cursor=pointer]:
+            - /url: /transparency
+            - img [ref=e109]
+            - generic [ref=e112]: Transparency
+          - link "Epoch History" [ref=e113] [cursor=pointer]:
+            - /url: /history
+            - img [ref=e115]
+            - generic [ref=e119]: Epoch History
+      - generic [ref=e120]:
+        - generic [ref=e122]:
+          - generic [ref=e123]: Bankroll
+          - generic [ref=e124]: $10,000
+        - generic [ref=e127]:
+          - button "+ Fund Wallet" [ref=e128]
+          - button "GET POWER VOTES" [ref=e129]:
+            - img [ref=e130]
+            - text: GET POWER VOTES
+        - button [ref=e132]:
+          - img [ref=e133]
+    - main [ref=e136]:
+      - generic [ref=e137]:
+        - generic [ref=e139]:
+          - img [ref=e140]
+          - textbox "Search markets (Cmd+K)..." [ref=e143]
+        - generic [ref=e144]:
+          - generic [ref=e145]:
+            - img [ref=e146]
+            - text: Web3 Missing
+          - generic [ref=e148]:
+            - button "USD" [ref=e149]
+            - button "NGN" [ref=e150]
+            - button "EUR" [ref=e151]
+          - generic [ref=e153]:
+            - generic [ref=e154]:
+              - generic [ref=e155]: "Epoch #1"
+              - generic [ref=e156]:
+                - img [ref=e157]
+                - generic [ref=e160]: 29:31
+            - generic [ref=e162]:
+              - generic [ref=e163]: Status
+              - generic [ref=e164]: stable
+              - generic:
+                - generic:
+                  - img
+                  - text: Accumulation Phase
+                - paragraph: Rankings are evolving smoothly. All actions permitted.
+          - button "2" [ref=e166]:
+            - img [ref=e167]
+            - generic [ref=e170]: "2"
+          - generic [ref=e171]:
+            - generic [ref=e172]:
+              - generic [ref=e173]: Oracle
+              - generic [ref=e174]: $10,000
+            - button [ref=e175]:
+              - img [ref=e176]
+      - generic [ref=e179]:
+        - generic [ref=e181]:
+          - generic [ref=e182]:
+            - generic [ref=e183]:
+              - button "Crypto Assets" [ref=e184]
+              - button "Smartphones" [ref=e185]
+              - button "Music Artists" [ref=e186]
+              - button "Websites & Apps" [ref=e187]
+              - button "Tech Companies" [ref=e188]
+              - button "Movies & TV" [ref=e189]
+              - button "Athletes" [ref=e190]
+              - button "Fashion & Brands" [ref=e191]
+              - button "Video Games" [ref=e192]
+              - button "Creators & Influencers" [ref=e193]
+              - button "Cultural Zeitgeist" [ref=e194]
+            - generic [ref=e195]:
+              - generic [ref=e196]:
+                - generic [ref=e197]:
+                  - heading "Crypto Assets" [level=1] [ref=e198]
+                  - generic [ref=e199]: Live Oracle Feed
+                - paragraph [ref=e200]: Top cryptocurrencies ranked by market sentiment and oracle velocity. Rankings are reified every 30 minutes via the Star Oracle protocol.
+              - generic [ref=e201]:
+                - generic [ref=e202]:
+                  - img [ref=e203]
+                  - textbox "Search inventory..." [ref=e206]
+                - generic [ref=e207]:
+                  - button "All" [ref=e208]
+                  - button "Gainers" [ref=e209]:
+                    - img [ref=e210]
+                    - text: Gainers
+                  - button "Losers" [ref=e213]:
+                    - img [ref=e214]
+                    - text: Losers
+                  - button "Movers" [ref=e217]:
+                    - img [ref=e218]
+                    - text: Movers
+                  - button "Sleepers" [ref=e221]:
+                    - img [ref=e222]
+                    - text: Sleepers
+          - generic [ref=e228]:
+            - generic [ref=e229]:
+              - generic [ref=e230]: Rank
+              - generic [ref=e231]: Oracle Context
+              - generic [ref=e232]: Score
+              - generic [ref=e233]: Velocity
+              - generic [ref=e234]: Operations
+            - generic [ref=e235]:
+              - generic [ref=e237] [cursor=pointer]:
+                - generic [ref=e239]: "#1"
+                - generic [ref=e240]:
+                  - generic [ref=e241]:
+                    - img [ref=e242]
+                    - img [ref=e245]
+                  - generic [ref=e247]:
+                    - generic [ref=e248]:
+                      - generic [ref=e249]: Bitcoin
+                      - generic [ref=e250]: BTC
+                    - generic [ref=e251]:
+                      - generic [ref=e252]: "Vol: 1,488"
+                      - img [ref=e253]
+                - generic [ref=e255]: 12,127
+                - generic [ref=e257]:
+                  - img [ref=e258]
+                  - text: 1.3%
+                - generic [ref=e261]:
+                  - generic [ref=e263]:
+                    - button [ref=e264]:
+                      - img [ref=e265]
+                    - button [ref=e267]:
+                      - img [ref=e268]
+                  - button "Stake" [ref=e270]:
+                    - img [ref=e271]
+                    - text: Stake
+              - generic [ref=e274] [cursor=pointer]:
+                - generic [ref=e276]: "#2"
+                - generic [ref=e277]:
+                  - img [ref=e279]
+                  - generic [ref=e281]:
+                    - generic [ref=e282]:
+                      - generic [ref=e283]: Ethereum
+                      - generic [ref=e284]: ETH
+                    - generic [ref=e285]:
+                      - generic [ref=e286]: "Vol: 514"
+                      - img [ref=e287]
+                - generic [ref=e289]: 11,369
+                - generic [ref=e291]:
+                  - img [ref=e292]
+                  - text: 2.3%
+                - generic [ref=e295]:
+                  - generic [ref=e297]:
+                    - button [ref=e298]:
+                      - img [ref=e299]
+                    - button [ref=e301]:
+                      - img [ref=e302]
+                  - button "Stake" [ref=e304]:
+                    - img [ref=e305]
+                    - text: Stake
+              - generic [ref=e308] [cursor=pointer]:
+                - generic [ref=e310]: "#3"
+                - generic [ref=e311]:
+                  - img [ref=e313]
+                  - generic [ref=e315]:
+                    - generic [ref=e316]:
+                      - generic [ref=e317]: XRP
+                      - generic [ref=e318]: XRP
+                    - generic [ref=e319]:
+                      - generic [ref=e320]: "Vol: 2,449"
+                      - img [ref=e321]
+                - generic [ref=e322]: 10,916
+                - generic [ref=e324]:
+                  - img [ref=e325]
+                  - text: 1.3%
+                - generic [ref=e328]:
+                  - generic [ref=e330]:
+                    - button [ref=e331]:
+                      - img [ref=e332]
+                    - button [ref=e334]:
+                      - img [ref=e335]
+                  - button "Stake" [ref=e337]:
+                    - img [ref=e338]
+                    - text: Stake
+              - generic [ref=e341] [cursor=pointer]:
+                - generic [ref=e343]: "#4"
+                - generic [ref=e344]:
+                  - img [ref=e346]
+                  - generic [ref=e348]:
+                    - generic [ref=e349]:
+                      - generic [ref=e350]: Solana
+                      - generic [ref=e351]: SOL
+                    - generic [ref=e352]:
+                      - generic [ref=e353]: "Vol: 5,442"
+                      - img [ref=e354]
+                - generic [ref=e356]: 10,670
+                - generic [ref=e358]:
+                  - img [ref=e359]
+                  - text: 2.5%
+                - generic [ref=e362]:
+                  - generic [ref=e364]:
+                    - button [ref=e365]:
+                      - img [ref=e366]
+                    - button [ref=e368]:
+                      - img [ref=e369]
+                  - button "Stake" [ref=e371]:
+                    - img [ref=e372]
+                    - text: Stake
+              - generic [ref=e375] [cursor=pointer]:
+                - generic [ref=e377]: "#5"
+                - generic [ref=e378]:
+                  - img [ref=e380]
+                  - generic [ref=e382]:
+                    - generic [ref=e383]:
+                      - generic [ref=e384]: Dogecoin
+                      - generic [ref=e385]: DOGE
+                    - generic [ref=e386]:
+                      - generic [ref=e387]: "Vol: 4,054"
+                      - img [ref=e388]
+                - generic [ref=e389]: 10,134
+                - generic [ref=e391]:
+                  - img [ref=e392]
+                  - text: 1.5%
+                - generic [ref=e395]:
+                  - generic [ref=e397]:
+                    - button [ref=e398]:
+                      - img [ref=e399]
+                    - button [ref=e401]:
+                      - img [ref=e402]
+                  - button "Stake" [ref=e404]:
+                    - img [ref=e405]
+                    - text: Stake
+              - generic [ref=e408] [cursor=pointer]:
+                - generic [ref=e410]: "#6"
+                - generic [ref=e411]:
+                  - img [ref=e413]
+                  - generic [ref=e415]:
+                    - generic [ref=e416]:
+                      - generic [ref=e417]: Mina Protocol
+                      - generic [ref=e418]: MINA
+                    - generic [ref=e419]:
+                      - generic [ref=e420]: "Vol: 2,564"
+                      - img [ref=e421]
+                - generic [ref=e423]: 9,998
+                - generic [ref=e425]:
+                  - img [ref=e426]
+                  - text: 0.0%
+                - generic [ref=e429]:
+                  - generic [ref=e431]:
+                    - button [ref=e432]:
+                      - img [ref=e433]
+                    - button [ref=e435]:
+                      - img [ref=e436]
+                  - button "Stake" [ref=e438]:
+                    - img [ref=e439]
+                    - text: Stake
+              - generic [ref=e442] [cursor=pointer]:
+                - generic [ref=e444]: "#7"
+                - generic [ref=e445]:
+                  - img [ref=e447]
+                  - generic [ref=e449]:
+                    - generic [ref=e450]:
+                      - generic [ref=e451]: Cardano
+                      - generic [ref=e452]: ADA
+                    - generic [ref=e453]:
+                      - generic [ref=e454]: "Vol: 4,714"
+                      - img [ref=e455]
+                - generic [ref=e456]: 9,965
+                - generic [ref=e458]:
+                  - img [ref=e459]
+                  - text: 1.8%
+                - generic [ref=e462]:
+                  - generic [ref=e464]:
+                    - button [ref=e465]:
+                      - img [ref=e466]
+                    - button [ref=e468]:
+                      - img [ref=e469]
+                  - button "Stake" [ref=e471]:
+                    - img [ref=e472]
+                    - text: Stake
+              - generic [ref=e475] [cursor=pointer]:
+                - generic [ref=e477]: "#8"
+                - generic [ref=e478]:
+                  - img [ref=e480]
+                  - generic [ref=e482]:
+                    - generic [ref=e483]:
+                      - generic [ref=e484]: Chainlink
+                      - generic [ref=e485]: LINK
+                    - generic [ref=e486]:
+                      - generic [ref=e487]: "Vol: 1,727"
+                      - img [ref=e488]
+                - generic [ref=e489]: 9,782
+                - generic [ref=e491]:
+                  - img [ref=e492]
+                  - text: 2.6%
+                - generic [ref=e495]:
+                  - generic [ref=e497]:
+                    - button [ref=e498]:
+                      - img [ref=e499]
+                    - button [ref=e501]:
+                      - img [ref=e502]
+                  - button "Stake" [ref=e504]:
+                    - img [ref=e505]
+                    - text: Stake
+              - generic [ref=e508] [cursor=pointer]:
+                - generic [ref=e510]: "#9"
+                - generic [ref=e511]:
+                  - img [ref=e513]
+                  - generic [ref=e515]:
+                    - generic [ref=e516]:
+                      - generic [ref=e517]: Rocket Pool
+                      - generic [ref=e518]: RPL
+                    - generic [ref=e519]:
+                      - generic [ref=e520]: "Vol: 1,030"
+                      - img [ref=e521]
+                - generic [ref=e523]: 9,734
+                - generic [ref=e525]:
+                  - img [ref=e526]
+                  - text: 0.0%
+                - generic [ref=e529]:
+                  - generic [ref=e531]:
+                    - button [ref=e532]:
+                      - img [ref=e533]
+                    - button [ref=e535]:
+                      - img [ref=e536]
+                  - button "Stake" [ref=e538]:
+                    - img [ref=e539]
+                    - text: Stake
+              - generic [ref=e542] [cursor=pointer]:
+                - generic [ref=e544]: "#10"
+                - generic [ref=e545]:
+                  - img [ref=e547]
+                  - generic [ref=e549]:
+                    - generic [ref=e550]:
+                      - generic [ref=e551]: Stellar
+                      - generic [ref=e552]: XLM
+                    - generic [ref=e553]:
+                      - generic [ref=e554]: "Vol: 4,713"
+                      - img [ref=e555]
+                - generic [ref=e556]: 9,691
+                - generic [ref=e558]:
+                  - img [ref=e559]
+                  - text: 1.4%
+                - generic [ref=e562]:
+                  - generic [ref=e564]:
+                    - button [ref=e565]:
+                      - img [ref=e566]
+                    - button [ref=e568]:
+                      - img [ref=e569]
+                  - button "Stake" [ref=e571]:
+                    - img [ref=e572]
+                    - text: Stake
+              - generic [ref=e575] [cursor=pointer]:
+                - generic [ref=e577]: "#11"
+                - generic [ref=e578]:
+                  - img [ref=e580]
+                  - generic [ref=e582]:
+                    - generic [ref=e583]:
+                      - generic [ref=e584]: NEO
+                      - generic [ref=e585]: NEO
+                    - generic [ref=e586]:
+                      - generic [ref=e587]: "Vol: 779"
+                      - img [ref=e588]
+                - generic [ref=e590]: 9,690
+                - generic [ref=e592]:
+                  - img [ref=e593]
+                  - text: 0.0%
+                - generic [ref=e596]:
+                  - generic [ref=e598]:
+                    - button [ref=e599]:
+                      - img [ref=e600]
+                    - button [ref=e602]:
+                      - img [ref=e603]
+                  - button "Stake" [ref=e605]:
+                    - img [ref=e606]
+                    - text: Stake
+              - generic [ref=e609] [cursor=pointer]:
+                - generic [ref=e611]: "#12"
+                - generic [ref=e612]:
+                  - img [ref=e614]
+                  - generic [ref=e616]:
+                    - generic [ref=e617]:
+                      - generic [ref=e618]: Litecoin
+                      - generic [ref=e619]: LTC
+                    - generic [ref=e620]:
+                      - generic [ref=e621]: "Vol: 1,001"
+                      - img [ref=e622]
+                - generic [ref=e624]: 9,609
+                - generic [ref=e626]:
+                  - img [ref=e627]
+                  - text: 2.1%
+                - generic [ref=e630]:
+                  - generic [ref=e632]:
+                    - button [ref=e633]:
+                      - img [ref=e634]
+                    - button [ref=e636]:
+                      - img [ref=e637]
+                  - button "Stake" [ref=e639]:
+                    - img [ref=e640]
+                    - text: Stake
+              - generic [ref=e643] [cursor=pointer]:
+                - generic [ref=e645]: "#13"
+                - generic [ref=e646]:
+                  - img [ref=e648]
+                  - generic [ref=e650]:
+                    - generic [ref=e651]:
+                      - generic [ref=e652]: Avalanche
+                      - generic [ref=e653]: AVAX
+                    - generic [ref=e654]:
+                      - generic [ref=e655]: "Vol: 5,373"
+                      - img [ref=e656]
+                - generic [ref=e657]: 9,583
+                - generic [ref=e659]:
+                  - img [ref=e660]
+                  - text: 1.3%
+                - generic [ref=e663]:
+                  - generic [ref=e665]:
+                    - button [ref=e666]:
+                      - img [ref=e667]
+                    - button [ref=e669]:
+                      - img [ref=e670]
+                  - button "Stake" [ref=e672]:
+                    - img [ref=e673]
+                    - text: Stake
+              - generic [ref=e676] [cursor=pointer]:
+                - generic [ref=e678]: "#14"
+                - generic [ref=e679]:
+                  - img [ref=e681]
+                  - generic [ref=e683]:
+                    - generic [ref=e684]:
+                      - generic [ref=e685]: Shiba Inu
+                      - generic [ref=e686]: SHIB
+                    - generic [ref=e687]:
+                      - generic [ref=e688]: "Vol: 821"
+                      - img [ref=e689]
+                - generic [ref=e690]: 9,493
+                - generic [ref=e692]:
+                  - img [ref=e693]
+                  - text: 1.5%
+                - generic [ref=e696]:
+                  - generic [ref=e698]:
+                    - button [ref=e699]:
+                      - img [ref=e700]
+                    - button [ref=e702]:
+                      - img [ref=e703]
+                  - button "Stake" [ref=e705]:
+                    - img [ref=e706]
+                    - text: Stake
+              - generic [ref=e709] [cursor=pointer]:
+                - generic [ref=e711]: "#15"
+                - generic [ref=e712]:
+                  - img [ref=e714]
+                  - generic [ref=e716]:
+                    - generic [ref=e717]:
+                      - generic [ref=e718]: Lido DAO
+                      - generic [ref=e719]: LDO
+                    - generic [ref=e720]:
+                      - generic [ref=e721]: "Vol: 1,779"
+                      - img [ref=e722]
+                - generic [ref=e724]: 9,474
+                - generic [ref=e726]:
+                  - img [ref=e727]
+                  - text: 0.0%
+                - generic [ref=e730]:
+                  - generic [ref=e732]:
+                    - button [ref=e733]:
+                      - img [ref=e734]
+                    - button [ref=e736]:
+                      - img [ref=e737]
+                  - button "Stake" [ref=e739]:
+                    - img [ref=e740]
+                    - text: Stake
+              - generic [ref=e743] [cursor=pointer]:
+                - generic [ref=e745]: "#16"
+                - generic [ref=e746]:
+                  - img [ref=e748]
+                  - generic [ref=e750]:
+                    - generic [ref=e751]:
+                      - generic [ref=e752]: Helium
+                      - generic [ref=e753]: HNT
+                    - generic [ref=e754]:
+                      - generic [ref=e755]: "Vol: 4,024"
+                      - img [ref=e756]
+                - generic [ref=e758]: 9,462
+                - generic [ref=e760]:
+                  - img [ref=e761]
+                  - text: 0.0%
+                - generic [ref=e764]:
+                  - generic [ref=e766]:
+                    - button [ref=e767]:
+                      - img [ref=e768]
+                    - button [ref=e770]:
+                      - img [ref=e771]
+                  - button "Stake" [ref=e773]:
+                    - img [ref=e774]
+                    - text: Stake
+              - generic [ref=e777] [cursor=pointer]:
+                - generic [ref=e779]: "#17"
+                - generic [ref=e780]:
+                  - img [ref=e782]
+                  - generic [ref=e784]:
+                    - generic [ref=e785]:
+                      - generic [ref=e786]: Polkadot
+                      - generic [ref=e787]: DOT
+                    - generic [ref=e788]:
+                      - generic [ref=e789]: "Vol: 1,063"
+                      - img [ref=e790]
+                - generic [ref=e791]: 9,385
+                - generic [ref=e793]:
+                  - img [ref=e794]
+                  - text: 1.6%
+                - generic [ref=e797]:
+                  - generic [ref=e799]:
+                    - button [ref=e800]:
+                      - img [ref=e801]
+                    - button [ref=e803]:
+                      - img [ref=e804]
+                  - button "Stake" [ref=e806]:
+                    - img [ref=e807]
+                    - text: Stake
+              - generic [ref=e810] [cursor=pointer]:
+                - generic [ref=e812]: "#18"
+                - generic [ref=e813]:
+                  - img [ref=e815]
+                  - generic [ref=e817]:
+                    - generic [ref=e818]:
+                      - generic [ref=e819]: Uniswap
+                      - generic [ref=e820]: UNI
+                    - generic [ref=e821]:
+                      - generic [ref=e822]: "Vol: 746"
+                      - img [ref=e823]
+                - generic [ref=e824]: 9,367
+                - generic [ref=e826]:
+                  - img [ref=e827]
+                  - text: 3.5%
+                - generic [ref=e830]:
+                  - generic [ref=e832]:
+                    - button [ref=e833]:
+                      - img [ref=e834]
+                    - button [ref=e836]:
+                      - img [ref=e837]
+                  - button "Stake" [ref=e839]:
+                    - img [ref=e840]
+                    - text: Stake
+              - generic [ref=e843] [cursor=pointer]:
+                - generic [ref=e845]: "#19"
+                - generic [ref=e846]:
+                  - img [ref=e848]
+                  - generic [ref=e850]:
+                    - generic [ref=e851]:
+                      - generic [ref=e852]: Injective
+                      - generic [ref=e853]: INJ
+                    - generic [ref=e854]:
+                      - generic [ref=e855]: "Vol: 557"
+                      - img [ref=e856]
+                - generic [ref=e858]: 9,247
+                - generic [ref=e860]:
+                  - img [ref=e861]
+                  - text: 0.0%
+                - generic [ref=e864]:
+                  - generic [ref=e866]:
+                    - button [ref=e867]:
+                      - img [ref=e868]
+                    - button [ref=e870]:
+                      - img [ref=e871]
+                  - button "Stake" [ref=e873]:
+                    - img [ref=e874]
+                    - text: Stake
+              - generic [ref=e877] [cursor=pointer]:
+                - generic [ref=e879]: "#20"
+                - generic [ref=e880]:
+                  - img [ref=e882]
+                  - generic [ref=e884]:
+                    - generic [ref=e885]:
+                      - generic [ref=e886]: Pyth Network
+                      - generic [ref=e887]: PYTH
+                    - generic [ref=e888]:
+                      - generic [ref=e889]: "Vol: 2,000"
+                      - img [ref=e890]
+                - generic [ref=e892]: 8,952
+                - generic [ref=e894]:
+                  - img [ref=e895]
+                  - text: 0.0%
+                - generic [ref=e898]:
+                  - generic [ref=e900]:
+                    - button [ref=e901]:
+                      - img [ref=e902]
+                    - button [ref=e904]:
+                      - img [ref=e905]
+                  - button "Stake" [ref=e907]:
+                    - img [ref=e908]
+                    - text: Stake
+              - generic [ref=e911] [cursor=pointer]:
+                - generic [ref=e913]: "#21"
+                - generic [ref=e914]:
+                  - img [ref=e916]
+                  - generic [ref=e918]:
+                    - generic [ref=e919]:
+                      - generic [ref=e920]: Axie Infinity
+                      - generic [ref=e921]: AXS
+                    - generic [ref=e922]:
+                      - generic [ref=e923]: "Vol: 4,258"
+                      - img [ref=e924]
+                - generic [ref=e926]: 8,943
+                - generic [ref=e928]:
+                  - img [ref=e929]
+                  - text: 0.0%
+                - generic [ref=e932]:
+                  - generic [ref=e934]:
+                    - button [ref=e935]:
+                      - img [ref=e936]
+                    - button [ref=e938]:
+                      - img [ref=e939]
+                  - button "Stake" [ref=e941]:
+                    - img [ref=e942]
+                    - text: Stake
+              - generic [ref=e945] [cursor=pointer]:
+                - generic [ref=e947]: "#22"
+                - generic [ref=e948]:
+                  - img [ref=e950]
+                  - generic [ref=e952]:
+                    - generic [ref=e953]:
+                      - generic [ref=e954]: Cosmos
+                      - generic [ref=e955]: ATOM
+                    - generic [ref=e956]:
+                      - generic [ref=e957]: "Vol: 4,130"
+                      - img [ref=e958]
+                - generic [ref=e959]: 8,933
+                - generic [ref=e961]:
+                  - img [ref=e962]
+                  - text: 4.4%
+                - generic [ref=e965]:
+                  - generic [ref=e967]:
+                    - button [ref=e968]:
+                      - img [ref=e969]
+                    - button [ref=e971]:
+                      - img [ref=e972]
+                  - button "Stake" [ref=e974]:
+                    - img [ref=e975]
+                    - text: Stake
+              - generic [ref=e978] [cursor=pointer]:
+                - generic [ref=e980]: "#23"
+                - generic [ref=e981]:
+                  - img [ref=e983]
+                  - generic [ref=e985]:
+                    - generic [ref=e986]:
+                      - generic [ref=e987]: Oasis Network
+                      - generic [ref=e988]: ROSE
+                    - generic [ref=e989]:
+                      - generic [ref=e990]: "Vol: 4,521"
+                      - img [ref=e991]
+                - generic [ref=e993]: 8,881
+                - generic [ref=e995]:
+                  - img [ref=e996]
+                  - text: 0.0%
+                - generic [ref=e999]:
+                  - generic [ref=e1001]:
+                    - button [ref=e1002]:
+                      - img [ref=e1003]
+                    - button [ref=e1005]:
+                      - img [ref=e1006]
+                  - button "Stake" [ref=e1008]:
+                    - img [ref=e1009]
+                    - text: Stake
+              - generic [ref=e1012] [cursor=pointer]:
+                - generic [ref=e1014]: "#24"
+                - generic [ref=e1015]:
+                  - img [ref=e1017]
+                  - generic [ref=e1019]:
+                    - generic [ref=e1020]:
+                      - generic [ref=e1021]: Ton
+                      - generic [ref=e1022]: TON
+                    - generic [ref=e1023]:
+                      - generic [ref=e1024]: "Vol: 4,418"
+                      - img [ref=e1025]
+                - generic [ref=e1027]: 8,833
+                - generic [ref=e1029]:
+                  - img [ref=e1030]
+                  - text: 0.0%
+                - generic [ref=e1033]:
+                  - generic [ref=e1035]:
+                    - button [ref=e1036]:
+                      - img [ref=e1037]
+                    - button [ref=e1039]:
+                      - img [ref=e1040]
+                  - button "Stake" [ref=e1042]:
+                    - img [ref=e1043]
+                    - text: Stake
+              - generic [ref=e1046] [cursor=pointer]:
+                - generic [ref=e1048]: "#25"
+                - generic [ref=e1049]:
+                  - img [ref=e1051]
+                  - generic [ref=e1053]:
+                    - generic [ref=e1054]:
+                      - generic [ref=e1055]: Fetch.ai
+                      - generic [ref=e1056]: FET
+                    - generic [ref=e1057]:
+                      - generic [ref=e1058]: "Vol: 2,317"
+                      - img [ref=e1059]
+                - generic [ref=e1061]: 8,542
+                - generic [ref=e1063]:
+                  - img [ref=e1064]
+                  - text: 0.0%
+                - generic [ref=e1067]:
+                  - generic [ref=e1069]:
+                    - button [ref=e1070]:
+                      - img [ref=e1071]
+                    - button [ref=e1073]:
+                      - img [ref=e1074]
+                  - button "Stake" [ref=e1076]:
+                    - img [ref=e1077]
+                    - text: Stake
+              - generic [ref=e1080] [cursor=pointer]:
+                - generic [ref=e1082]: "#26"
+                - generic [ref=e1083]:
+                  - img [ref=e1085]
+                  - generic [ref=e1087]:
+                    - generic [ref=e1088]:
+                      - generic [ref=e1089]: Curve DAO
+                      - generic [ref=e1090]: CRV
+                    - generic [ref=e1091]:
+                      - generic [ref=e1092]: "Vol: 4,975"
+                      - img [ref=e1093]
+                - generic [ref=e1095]: 8,411
+                - generic [ref=e1097]:
+                  - img [ref=e1098]
+                  - text: 0.0%
+                - generic [ref=e1101]:
+                  - generic [ref=e1103]:
+                    - button [ref=e1104]:
+                      - img [ref=e1105]
+                    - button [ref=e1107]:
+                      - img [ref=e1108]
+                  - button "Stake" [ref=e1110]:
+                    - img [ref=e1111]
+                    - text: Stake
+              - generic [ref=e1114] [cursor=pointer]:
+                - generic [ref=e1116]: "#27"
+                - generic [ref=e1117]:
+                  - img [ref=e1119]
+                  - generic [ref=e1121]:
+                    - generic [ref=e1122]:
+                      - generic [ref=e1123]: Dash
+                      - generic [ref=e1124]: DASH
+                    - generic [ref=e1125]:
+                      - generic [ref=e1126]: "Vol: 5,410"
+                      - img [ref=e1127]
+                - generic [ref=e1129]: 8,384
+                - generic [ref=e1131]:
+                  - img [ref=e1132]
+                  - text: 0.0%
+                - generic [ref=e1135]:
+                  - generic [ref=e1137]:
+                    - button [ref=e1138]:
+                      - img [ref=e1139]
+                    - button [ref=e1141]:
+                      - img [ref=e1142]
+                  - button "Stake" [ref=e1144]:
+                    - img [ref=e1145]
+                    - text: Stake
+              - generic [ref=e1148] [cursor=pointer]:
+                - generic [ref=e1150]: "#28"
+                - generic [ref=e1151]:
+                  - img [ref=e1153]
+                  - generic [ref=e1155]:
+                    - generic [ref=e1156]:
+                      - generic [ref=e1157]: Ethena
+                      - generic [ref=e1158]: ENA
+                    - generic [ref=e1159]:
+                      - generic [ref=e1160]: "Vol: 5,313"
+                      - img [ref=e1161]
+                - generic [ref=e1163]: 8,298
+                - generic [ref=e1165]:
+                  - img [ref=e1166]
+                  - text: 0.0%
+                - generic [ref=e1169]:
+                  - generic [ref=e1171]:
+                    - button [ref=e1172]:
+                      - img [ref=e1173]
+                    - button [ref=e1175]:
+                      - img [ref=e1176]
+                  - button "Stake" [ref=e1178]:
+                    - img [ref=e1179]
+                    - text: Stake
+              - generic [ref=e1182] [cursor=pointer]:
+                - generic [ref=e1184]: "#29"
+                - generic [ref=e1185]:
+                  - img [ref=e1187]
+                  - generic [ref=e1189]:
+                    - generic [ref=e1190]:
+                      - generic [ref=e1191]: TRON
+                      - generic [ref=e1192]: TRX
+                    - generic [ref=e1193]:
+                      - generic [ref=e1194]: "Vol: 5,222"
+                      - img [ref=e1195]
+                - generic [ref=e1196]: 8,202
+                - generic [ref=e1198]:
+                  - img [ref=e1199]
+                  - text: 0.0%
+                - generic [ref=e1202]:
+                  - generic [ref=e1204]:
+                    - button [ref=e1205]:
+                      - img [ref=e1206]
+                    - button [ref=e1208]:
+                      - img [ref=e1209]
+                  - button "Stake" [ref=e1211]:
+                    - img [ref=e1212]
+                    - text: Stake
+              - generic [ref=e1215] [cursor=pointer]:
+                - generic [ref=e1217]: "#30"
+                - generic [ref=e1218]:
+                  - img [ref=e1220]
+                  - generic [ref=e1222]:
+                    - generic [ref=e1223]:
+                      - generic [ref=e1224]: Zcash
+                      - generic [ref=e1225]: ZEC
+                    - generic [ref=e1226]:
+                      - generic [ref=e1227]: "Vol: 1,249"
+                      - img [ref=e1228]
+                - generic [ref=e1230]: 8,174
+                - generic [ref=e1232]:
+                  - img [ref=e1233]
+                  - text: 0.0%
+                - generic [ref=e1236]:
+                  - generic [ref=e1238]:
+                    - button [ref=e1239]:
+                      - img [ref=e1240]
+                    - button [ref=e1242]:
+                      - img [ref=e1243]
+                  - button "Stake" [ref=e1245]:
+                    - img [ref=e1246]
+                    - text: Stake
+              - generic [ref=e1249] [cursor=pointer]:
+                - generic [ref=e1251]: "#31"
+                - generic [ref=e1252]:
+                  - img [ref=e1254]
+                  - generic [ref=e1256]:
+                    - generic [ref=e1257]:
+                      - generic [ref=e1258]: Notcoin
+                      - generic [ref=e1259]: NOT
+                    - generic [ref=e1260]:
+                      - generic [ref=e1261]: "Vol: 1,442"
+                      - img [ref=e1262]
+                - generic [ref=e1264]: 8,174
+                - generic [ref=e1266]:
+                  - img [ref=e1267]
+                  - text: 0.0%
+                - generic [ref=e1270]:
+                  - generic [ref=e1272]:
+                    - button [ref=e1273]:
+                      - img [ref=e1274]
+                    - button [ref=e1276]:
+                      - img [ref=e1277]
+                  - button "Stake" [ref=e1279]:
+                    - img [ref=e1280]
+                    - text: Stake
+              - generic [ref=e1283] [cursor=pointer]:
+                - generic [ref=e1285]: "#32"
+                - generic [ref=e1286]:
+                  - img [ref=e1288]
+                  - generic [ref=e1290]:
+                    - generic [ref=e1291]:
+                      - generic [ref=e1292]: Near Protocol
+                      - generic [ref=e1293]: NEAR
+                    - generic [ref=e1294]:
+                      - generic [ref=e1295]: "Vol: 5,219"
+                      - img [ref=e1296]
+                - generic [ref=e1298]: 8,147
+                - generic [ref=e1300]:
+                  - img [ref=e1301]
+                  - text: 0.0%
+                - generic [ref=e1304]:
+                  - generic [ref=e1306]:
+                    - button [ref=e1307]:
+                      - img [ref=e1308]
+                    - button [ref=e1310]:
+                      - img [ref=e1311]
+                  - button "Stake" [ref=e1313]:
+                    - img [ref=e1314]
+                    - text: Stake
+              - generic [ref=e1317] [cursor=pointer]:
+                - generic [ref=e1319]: "#33"
+                - generic [ref=e1320]:
+                  - img [ref=e1322]
+                  - generic [ref=e1324]:
+                    - generic [ref=e1325]:
+                      - generic [ref=e1326]: Worldcoin
+                      - generic [ref=e1327]: WLD
+                    - generic [ref=e1328]:
+                      - generic [ref=e1329]: "Vol: 1,023"
+                      - img [ref=e1330]
+                - generic [ref=e1332]: 8,141
+                - generic [ref=e1334]:
+                  - img [ref=e1335]
+                  - text: 0.0%
+                - generic [ref=e1338]:
+                  - generic [ref=e1340]:
+                    - button [ref=e1341]:
+                      - img [ref=e1342]
+                    - button [ref=e1344]:
+                      - img [ref=e1345]
+                  - button "Stake" [ref=e1347]:
+                    - img [ref=e1348]
+                    - text: Stake
+              - generic [ref=e1351] [cursor=pointer]:
+                - generic [ref=e1353]: "#34"
+                - generic [ref=e1354]:
+                  - img [ref=e1356]
+                  - generic [ref=e1358]:
+                    - generic [ref=e1359]:
+                      - generic [ref=e1360]: THORChain
+                      - generic [ref=e1361]: RUNE
+                    - generic [ref=e1362]:
+                      - generic [ref=e1363]: "Vol: 3,733"
+                      - img [ref=e1364]
+                - generic [ref=e1366]: 8,097
+                - generic [ref=e1368]:
+                  - img [ref=e1369]
+                  - text: 0.0%
+                - generic [ref=e1372]:
+                  - generic [ref=e1374]:
+                    - button [ref=e1375]:
+                      - img [ref=e1376]
+                    - button [ref=e1378]:
+                      - img [ref=e1379]
+                  - button "Stake" [ref=e1381]:
+                    - img [ref=e1382]
+                    - text: Stake
+              - generic [ref=e1385] [cursor=pointer]:
+                - generic [ref=e1387]: "#35"
+                - generic [ref=e1388]:
+                  - img [ref=e1390]
+                  - generic [ref=e1392]:
+                    - generic [ref=e1393]:
+                      - generic [ref=e1394]: Pendle
+                      - generic [ref=e1395]: PENDLE
+                    - generic [ref=e1396]:
+                      - generic [ref=e1397]: "Vol: 4,511"
+                      - img [ref=e1398]
+                - generic [ref=e1400]: 7,984
+                - generic [ref=e1402]:
+                  - img [ref=e1403]
+                  - text: 0.0%
+                - generic [ref=e1406]:
+                  - generic [ref=e1408]:
+                    - button [ref=e1409]:
+                      - img [ref=e1410]
+                    - button [ref=e1412]:
+                      - img [ref=e1413]
+                  - button "Stake" [ref=e1415]:
+                    - img [ref=e1416]
+                    - text: Stake
+              - generic [ref=e1419] [cursor=pointer]:
+                - generic [ref=e1421]: "#36"
+                - generic [ref=e1422]:
+                  - img [ref=e1424]
+                  - generic [ref=e1426]:
+                    - generic [ref=e1427]:
+                      - generic [ref=e1428]: Beam
+                      - generic [ref=e1429]: BEAM
+                    - generic [ref=e1430]:
+                      - generic [ref=e1431]: "Vol: 1,665"
+                      - img [ref=e1432]
+                - generic [ref=e1434]: 7,961
+                - generic [ref=e1436]:
+                  - img [ref=e1437]
+                  - text: 0.0%
+                - generic [ref=e1440]:
+                  - generic [ref=e1442]:
+                    - button [ref=e1443]:
+                      - img [ref=e1444]
+                    - button [ref=e1446]:
+                      - img [ref=e1447]
+                  - button "Stake" [ref=e1449]:
+                    - img [ref=e1450]
+                    - text: Stake
+              - generic [ref=e1453] [cursor=pointer]:
+                - generic [ref=e1455]: "#37"
+                - generic [ref=e1456]:
+                  - img [ref=e1458]
+                  - generic [ref=e1460]:
+                    - generic [ref=e1461]:
+                      - generic [ref=e1462]: Flow
+                      - generic [ref=e1463]: FLOW
+                    - generic [ref=e1464]:
+                      - generic [ref=e1465]: "Vol: 690"
+                      - img [ref=e1466]
+                - generic [ref=e1468]: 7,530
+                - generic [ref=e1470]:
+                  - img [ref=e1471]
+                  - text: 0.0%
+                - generic [ref=e1474]:
+                  - generic [ref=e1476]:
+                    - button [ref=e1477]:
+                      - img [ref=e1478]
+                    - button [ref=e1480]:
+                      - img [ref=e1481]
+                  - button "Stake" [ref=e1483]:
+                    - img [ref=e1484]
+                    - text: Stake
+              - generic [ref=e1487] [cursor=pointer]:
+                - generic [ref=e1489]: "#38"
+                - generic [ref=e1490]:
+                  - img [ref=e1492]
+                  - generic [ref=e1494]:
+                    - generic [ref=e1495]:
+                      - generic [ref=e1496]: IOTA
+                      - generic [ref=e1497]: IOTA
+                    - generic [ref=e1498]:
+                      - generic [ref=e1499]: "Vol: 3,539"
+                      - img [ref=e1500]
+                - generic [ref=e1502]: 7,389
+                - generic [ref=e1504]:
+                  - img [ref=e1505]
+                  - text: 0.0%
+                - generic [ref=e1508]:
+                  - generic [ref=e1510]:
+                    - button [ref=e1511]:
+                      - img [ref=e1512]
+                    - button [ref=e1514]:
+                      - img [ref=e1515]
+                  - button "Stake" [ref=e1517]:
+                    - img [ref=e1518]
+                    - text: Stake
+              - generic [ref=e1521] [cursor=pointer]:
+                - generic [ref=e1523]: "#39"
+                - generic [ref=e1524]:
+                  - img [ref=e1526]
+                  - generic [ref=e1528]:
+                    - generic [ref=e1529]:
+                      - generic [ref=e1530]: Decentraland
+                      - generic [ref=e1531]: MANA
+                    - generic [ref=e1532]:
+                      - generic [ref=e1533]: "Vol: 3,968"
+                      - img [ref=e1534]
+                - generic [ref=e1536]: 7,273
+                - generic [ref=e1538]:
+                  - img [ref=e1539]
+                  - text: 0.0%
+                - generic [ref=e1542]:
+                  - generic [ref=e1544]:
+                    - button [ref=e1545]:
+                      - img [ref=e1546]
+                    - button [ref=e1548]:
+                      - img [ref=e1549]
+                  - button "Stake" [ref=e1551]:
+                    - img [ref=e1552]
+                    - text: Stake
+              - generic [ref=e1555] [cursor=pointer]:
+                - generic [ref=e1557]: "#40"
+                - generic [ref=e1558]:
+                  - img [ref=e1560]
+                  - generic [ref=e1562]:
+                    - generic [ref=e1563]:
+                      - generic [ref=e1564]: Internet Computer
+                      - generic [ref=e1565]: ICP
+                    - generic [ref=e1566]:
+                      - generic [ref=e1567]: "Vol: 5,000"
+                      - img [ref=e1568]
+                - generic [ref=e1570]: 7,092
+                - generic [ref=e1572]:
+                  - img [ref=e1573]
+                  - text: 0.0%
+                - generic [ref=e1576]:
+                  - generic [ref=e1578]:
+                    - button [ref=e1579]:
+                      - img [ref=e1580]
+                    - button [ref=e1582]:
+                      - img [ref=e1583]
+                  - button "Stake" [ref=e1585]:
+                    - img [ref=e1586]
+                    - text: Stake
+              - generic [ref=e1589] [cursor=pointer]:
+                - generic [ref=e1591]: "#41"
+                - generic [ref=e1592]:
+                  - img [ref=e1594]
+                  - generic [ref=e1596]:
+                    - generic [ref=e1597]:
+                      - generic [ref=e1598]: Akash Network
+                      - generic [ref=e1599]: AKT
+                    - generic [ref=e1600]:
+                      - generic [ref=e1601]: "Vol: 1,043"
+                      - img [ref=e1602]
+                - generic [ref=e1604]: 7,088
+                - generic [ref=e1606]:
+                  - img [ref=e1607]
+                  - text: 0.0%
+                - generic [ref=e1610]:
+                  - generic [ref=e1612]:
+                    - button [ref=e1613]:
+                      - img [ref=e1614]
+                    - button [ref=e1616]:
+                      - img [ref=e1617]
+                  - button "Stake" [ref=e1619]:
+                    - img [ref=e1620]
+                    - text: Stake
+              - generic [ref=e1623] [cursor=pointer]:
+                - generic [ref=e1625]: "#42"
+                - generic [ref=e1626]:
+                  - img [ref=e1628]
+                  - generic [ref=e1630]:
+                    - generic [ref=e1631]:
+                      - generic [ref=e1632]: Blur
+                      - generic [ref=e1633]: BLUR
+                    - generic [ref=e1634]:
+                      - generic [ref=e1635]: "Vol: 2,984"
+                      - img [ref=e1636]
+                - generic [ref=e1638]: 7,032
+                - generic [ref=e1640]:
+                  - img [ref=e1641]
+                  - text: 0.0%
+                - generic [ref=e1644]:
+                  - generic [ref=e1646]:
+                    - button [ref=e1647]:
+                      - img [ref=e1648]
+                    - button [ref=e1650]:
+                      - img [ref=e1651]
+                  - button "Stake" [ref=e1653]:
+                    - img [ref=e1654]
+                    - text: Stake
+              - generic [ref=e1657] [cursor=pointer]:
+                - generic [ref=e1659]: "#43"
+                - generic [ref=e1660]:
+                  - img [ref=e1662]
+                  - generic [ref=e1664]:
+                    - generic [ref=e1665]:
+                      - generic [ref=e1666]: Raydium
+                      - generic [ref=e1667]: RAY
+                    - generic [ref=e1668]:
+                      - generic [ref=e1669]: "Vol: 4,494"
+                      - img [ref=e1670]
+                - generic [ref=e1672]: 6,910
+                - generic [ref=e1674]:
+                  - img [ref=e1675]
+                  - text: 0.0%
+                - generic [ref=e1678]:
+                  - generic [ref=e1680]:
+                    - button [ref=e1681]:
+                      - img [ref=e1682]
+                    - button [ref=e1684]:
+                      - img [ref=e1685]
+                  - button "Stake" [ref=e1687]:
+                    - img [ref=e1688]
+                    - text: Stake
+              - generic [ref=e1691] [cursor=pointer]:
+                - generic [ref=e1693]: "#44"
+                - generic [ref=e1694]:
+                  - img [ref=e1696]
+                  - generic [ref=e1698]:
+                    - generic [ref=e1699]:
+                      - generic [ref=e1700]: Bitcoin SV
+                      - generic [ref=e1701]: BSV
+                    - generic [ref=e1702]:
+                      - generic [ref=e1703]: "Vol: 3,452"
+                      - img [ref=e1704]
+                - generic [ref=e1706]: 6,841
+                - generic [ref=e1708]:
+                  - img [ref=e1709]
+                  - text: 0.0%
+                - generic [ref=e1712]:
+                  - generic [ref=e1714]:
+                    - button [ref=e1715]:
+                      - img [ref=e1716]
+                    - button [ref=e1718]:
+                      - img [ref=e1719]
+                  - button "Stake" [ref=e1721]:
+                    - img [ref=e1722]
+                    - text: Stake
+              - generic [ref=e1725] [cursor=pointer]:
+                - generic [ref=e1727]: "#45"
+                - generic [ref=e1728]:
+                  - img [ref=e1730]
+                  - generic [ref=e1732]:
+                    - generic [ref=e1733]:
+                      - generic [ref=e1734]: Bonk
+                      - generic [ref=e1735]: BONK
+                    - generic [ref=e1736]:
+                      - generic [ref=e1737]: "Vol: 2,461"
+                      - img [ref=e1738]
+                - generic [ref=e1740]: 6,807
+                - generic [ref=e1742]:
+                  - img [ref=e1743]
+                  - text: 0.0%
+                - generic [ref=e1746]:
+                  - generic [ref=e1748]:
+                    - button [ref=e1749]:
+                      - img [ref=e1750]
+                    - button [ref=e1752]:
+                      - img [ref=e1753]
+                  - button "Stake" [ref=e1755]:
+                    - img [ref=e1756]
+                    - text: Stake
+              - generic [ref=e1759] [cursor=pointer]:
+                - generic [ref=e1761]: "#46"
+                - generic [ref=e1762]:
+                  - img [ref=e1764]
+                  - generic [ref=e1766]:
+                    - generic [ref=e1767]:
+                      - generic [ref=e1768]: Synthetix
+                      - generic [ref=e1769]: SNX
+                    - generic [ref=e1770]:
+                      - generic [ref=e1771]: "Vol: 3,061"
+                      - img [ref=e1772]
+                - generic [ref=e1774]: 6,797
+                - generic [ref=e1776]:
+                  - img [ref=e1777]
+                  - text: 0.0%
+                - generic [ref=e1780]:
+                  - generic [ref=e1782]:
+                    - button [ref=e1783]:
+                      - img [ref=e1784]
+                    - button [ref=e1786]:
+                      - img [ref=e1787]
+                  - button "Stake" [ref=e1789]:
+                    - img [ref=e1790]
+                    - text: Stake
+              - generic [ref=e1793] [cursor=pointer]:
+                - generic [ref=e1795]: "#47"
+                - generic [ref=e1796]:
+                  - img [ref=e1798]
+                  - generic [ref=e1800]:
+                    - generic [ref=e1801]:
+                      - generic [ref=e1802]: SushiSwap
+                      - generic [ref=e1803]: SUSHI
+                    - generic [ref=e1804]:
+                      - generic [ref=e1805]: "Vol: 2,085"
+                      - img [ref=e1806]
+                - generic [ref=e1808]: 6,790
+                - generic [ref=e1810]:
+                  - img [ref=e1811]
+                  - text: 0.0%
+                - generic [ref=e1814]:
+                  - generic [ref=e1816]:
+                    - button [ref=e1817]:
+                      - img [ref=e1818]
+                    - button [ref=e1820]:
+                      - img [ref=e1821]
+                  - button "Stake" [ref=e1823]:
+                    - img [ref=e1824]
+                    - text: Stake
+              - generic [ref=e1827] [cursor=pointer]:
+                - generic [ref=e1829]: "#48"
+                - generic [ref=e1830]:
+                  - img [ref=e1832]
+                  - generic [ref=e1834]:
+                    - generic [ref=e1835]:
+                      - generic [ref=e1836]: Hedera
+                      - generic [ref=e1837]: HBAR
+                    - generic [ref=e1838]:
+                      - generic [ref=e1839]: "Vol: 2,640"
+                      - img [ref=e1840]
+                - generic [ref=e1842]: 6,586
+                - generic [ref=e1844]:
+                  - img [ref=e1845]
+                  - text: 0.0%
+                - generic [ref=e1848]:
+                  - generic [ref=e1850]:
+                    - button [ref=e1851]:
+                      - img [ref=e1852]
+                    - button [ref=e1854]:
+                      - img [ref=e1855]
+                  - button "Stake" [ref=e1857]:
+                    - img [ref=e1858]
+                    - text: Stake
+              - generic [ref=e1861] [cursor=pointer]:
+                - generic [ref=e1863]: "#49"
+                - generic [ref=e1864]:
+                  - img [ref=e1866]
+                  - generic [ref=e1868]:
+                    - generic [ref=e1869]:
+                      - generic [ref=e1870]: Aptos
+                      - generic [ref=e1871]: APT
+                    - generic [ref=e1872]:
+                      - generic [ref=e1873]: "Vol: 905"
+                      - img [ref=e1874]
+                - generic [ref=e1876]: 6,574
+                - generic [ref=e1878]:
+                  - img [ref=e1879]
+                  - text: 0.0%
+                - generic [ref=e1882]:
+                  - generic [ref=e1884]:
+                    - button [ref=e1885]:
+                      - img [ref=e1886]
+                    - button [ref=e1888]:
+                      - img [ref=e1889]
+                  - button "Stake" [ref=e1891]:
+                    - img [ref=e1892]
+                    - text: Stake
+              - generic [ref=e1895] [cursor=pointer]:
+                - generic [ref=e1897]: "#50"
+                - generic [ref=e1898]:
+                  - img [ref=e1900]
+                  - generic [ref=e1902]:
+                    - generic [ref=e1903]:
+                      - generic [ref=e1904]: Sei
+                      - generic [ref=e1905]: SEI
+                    - generic [ref=e1906]:
+                      - generic [ref=e1907]: "Vol: 775"
+                      - img [ref=e1908]
+                - generic [ref=e1910]: 6,554
+                - generic [ref=e1912]:
+                  - img [ref=e1913]
+                  - text: 0.0%
+                - generic [ref=e1916]:
+                  - generic [ref=e1918]:
+                    - button [ref=e1919]:
+                      - img [ref=e1920]
+                    - button [ref=e1922]:
+                      - img [ref=e1923]
+                  - button "Stake" [ref=e1925]:
+                    - img [ref=e1926]
+                    - text: Stake
+              - generic [ref=e1929] [cursor=pointer]:
+                - generic [ref=e1931]: "#51"
+                - generic [ref=e1932]:
+                  - img [ref=e1934]
+                  - generic [ref=e1936]:
+                    - generic [ref=e1937]:
+                      - generic [ref=e1938]: Ocean Protocol
+                      - generic [ref=e1939]: OCEAN
+                    - generic [ref=e1940]:
+                      - generic [ref=e1941]: "Vol: 5,429"
+                      - img [ref=e1942]
+                - generic [ref=e1944]: 6,350
+                - generic [ref=e1946]:
+                  - img [ref=e1947]
+                  - text: 0.0%
+                - generic [ref=e1950]:
+                  - generic [ref=e1952]:
+                    - button [ref=e1953]:
+                      - img [ref=e1954]
+                    - button [ref=e1956]:
+                      - img [ref=e1957]
+                  - button "Stake" [ref=e1959]:
+                    - img [ref=e1960]
+                    - text: Stake
+              - generic [ref=e1963] [cursor=pointer]:
+                - generic [ref=e1965]: "#52"
+                - generic [ref=e1966]:
+                  - img [ref=e1968]
+                  - generic [ref=e1970]:
+                    - generic [ref=e1971]:
+                      - generic [ref=e1972]: Celo
+                      - generic [ref=e1973]: CELO
+                    - generic [ref=e1974]:
+                      - generic [ref=e1975]: "Vol: 4,411"
+                      - img [ref=e1976]
+                - generic [ref=e1978]: 5,944
+                - generic [ref=e1980]:
+                  - img [ref=e1981]
+                  - text: 0.0%
+                - generic [ref=e1984]:
+                  - generic [ref=e1986]:
+                    - button [ref=e1987]:
+                      - img [ref=e1988]
+                    - button [ref=e1990]:
+                      - img [ref=e1991]
+                  - button "Stake" [ref=e1993]:
+                    - img [ref=e1994]
+                    - text: Stake
+              - generic [ref=e1997] [cursor=pointer]:
+                - generic [ref=e1999]: "#53"
+                - generic [ref=e2000]:
+                  - img [ref=e2002]
+                  - generic [ref=e2004]:
+                    - generic [ref=e2005]:
+                      - generic [ref=e2006]: Kaspa
+                      - generic [ref=e2007]: KAS
+                    - generic [ref=e2008]:
+                      - generic [ref=e2009]: "Vol: 3,319"
+                      - img [ref=e2010]
+                - generic [ref=e2012]: 5,906
+                - generic [ref=e2014]:
+                  - img [ref=e2015]
+                  - text: 0.0%
+                - generic [ref=e2018]:
+                  - generic [ref=e2020]:
+                    - button [ref=e2021]:
+                      - img [ref=e2022]
+                    - button [ref=e2024]:
+                      - img [ref=e2025]
+                  - button "Stake" [ref=e2027]:
+                    - img [ref=e2028]
+                    - text: Stake
+              - generic [ref=e2031] [cursor=pointer]:
+                - generic [ref=e2033]: "#54"
+                - generic [ref=e2034]:
+                  - img [ref=e2036]
+                  - generic [ref=e2038]:
+                    - generic [ref=e2039]:
+                      - generic [ref=e2040]: Starknet
+                      - generic [ref=e2041]: STRK
+                    - generic [ref=e2042]:
+                      - generic [ref=e2043]: "Vol: 1,139"
+                      - img [ref=e2044]
+                - generic [ref=e2046]: 5,836
+                - generic [ref=e2048]:
+                  - img [ref=e2049]
+                  - text: 0.0%
+                - generic [ref=e2052]:
+                  - generic [ref=e2054]:
+                    - button [ref=e2055]:
+                      - img [ref=e2056]
+                    - button [ref=e2058]:
+                      - img [ref=e2059]
+                  - button "Stake" [ref=e2061]:
+                    - img [ref=e2062]
+                    - text: Stake
+              - generic [ref=e2065] [cursor=pointer]:
+                - generic [ref=e2067]: "#55"
+                - generic [ref=e2068]:
+                  - img [ref=e2070]
+                  - generic [ref=e2072]:
+                    - generic [ref=e2073]:
+                      - generic [ref=e2074]: Celestia
+                      - generic [ref=e2075]: TIA
+                    - generic [ref=e2076]:
+                      - generic [ref=e2077]: "Vol: 3,352"
+                      - img [ref=e2078]
+                - generic [ref=e2080]: 5,742
+                - generic [ref=e2082]:
+                  - img [ref=e2083]
+                  - text: 0.0%
+                - generic [ref=e2086]:
+                  - generic [ref=e2088]:
+                    - button [ref=e2089]:
+                      - img [ref=e2090]
+                    - button [ref=e2092]:
+                      - img [ref=e2093]
+                  - button "Stake" [ref=e2095]:
+                    - img [ref=e2096]
+                    - text: Stake
+              - generic [ref=e2099] [cursor=pointer]:
+                - generic [ref=e2101]: "#56"
+                - generic [ref=e2102]:
+                  - img [ref=e2104]
+                  - generic [ref=e2106]:
+                    - generic [ref=e2107]:
+                      - generic [ref=e2108]: Wrapped Bitcoin
+                      - generic [ref=e2109]: WBTC
+                    - generic [ref=e2110]:
+                      - generic [ref=e2111]: "Vol: 2,930"
+                      - img [ref=e2112]
+                - generic [ref=e2114]: 5,730
+                - generic [ref=e2116]:
+                  - img [ref=e2117]
+                  - text: 0.0%
+                - generic [ref=e2120]:
+                  - generic [ref=e2122]:
+                    - button [ref=e2123]:
+                      - img [ref=e2124]
+                    - button [ref=e2126]:
+                      - img [ref=e2127]
+                  - button "Stake" [ref=e2129]:
+                    - img [ref=e2130]
+                    - text: Stake
+              - generic [ref=e2133] [cursor=pointer]:
+                - generic [ref=e2135]: "#57"
+                - generic [ref=e2136]:
+                  - img [ref=e2138]
+                  - generic [ref=e2140]:
+                    - generic [ref=e2141]:
+                      - generic [ref=e2142]: Filecoin
+                      - generic [ref=e2143]: FIL
+                    - generic [ref=e2144]:
+                      - generic [ref=e2145]: "Vol: 4,024"
+                      - img [ref=e2146]
+                - generic [ref=e2148]: 5,654
+                - generic [ref=e2150]:
+                  - img [ref=e2151]
+                  - text: 0.0%
+                - generic [ref=e2154]:
+                  - generic [ref=e2156]:
+                    - button [ref=e2157]:
+                      - img [ref=e2158]
+                    - button [ref=e2160]:
+                      - img [ref=e2161]
+                  - button "Stake" [ref=e2163]:
+                    - img [ref=e2164]
+                    - text: Stake
+              - generic [ref=e2167] [cursor=pointer]:
+                - generic [ref=e2169]: "#58"
+                - generic [ref=e2170]:
+                  - img [ref=e2172]
+                  - generic [ref=e2174]:
+                    - generic [ref=e2175]:
+                      - generic [ref=e2176]: Pepe
+                      - generic [ref=e2177]: PEPE
+                    - generic [ref=e2178]:
+                      - generic [ref=e2179]: "Vol: 2,380"
+                      - img [ref=e2180]
+                - generic [ref=e2182]: 5,434
+                - generic [ref=e2184]:
+                  - img [ref=e2185]
+                  - text: 0.0%
+                - generic [ref=e2188]:
+                  - generic [ref=e2190]:
+                    - button [ref=e2191]:
+                      - img [ref=e2192]
+                    - button [ref=e2194]:
+                      - img [ref=e2195]
+                  - button "Stake" [ref=e2197]:
+                    - img [ref=e2198]
+                    - text: Stake
+              - generic [ref=e2201] [cursor=pointer]:
+                - generic [ref=e2203]: "#59"
+                - generic [ref=e2204]:
+                  - img [ref=e2206]
+                  - generic [ref=e2208]:
+                    - generic [ref=e2209]:
+                      - generic [ref=e2210]: VeChain
+                      - generic [ref=e2211]: VET
+                    - generic [ref=e2212]:
+                      - generic [ref=e2213]: "Vol: 1,735"
+                      - img [ref=e2214]
+                - generic [ref=e2216]: 5,363
+                - generic [ref=e2218]:
+                  - img [ref=e2219]
+                  - text: 0.0%
+                - generic [ref=e2222]:
+                  - generic [ref=e2224]:
+                    - button [ref=e2225]:
+                      - img [ref=e2226]
+                    - button [ref=e2228]:
+                      - img [ref=e2229]
+                  - button "Stake" [ref=e2231]:
+                    - img [ref=e2232]
+                    - text: Stake
+              - generic [ref=e2235] [cursor=pointer]:
+                - generic [ref=e2237]: "#60"
+                - generic [ref=e2238]:
+                  - img [ref=e2240]
+                  - generic [ref=e2242]:
+                    - generic [ref=e2243]:
+                      - generic [ref=e2244]: Render
+                      - generic [ref=e2245]: RNDR
+                    - generic [ref=e2246]:
+                      - generic [ref=e2247]: "Vol: 2,523"
+                      - img [ref=e2248]
+                - generic [ref=e2250]: 5,326
+                - generic [ref=e2252]:
+                  - img [ref=e2253]
+                  - text: 0.0%
+                - generic [ref=e2256]:
+                  - generic [ref=e2258]:
+                    - button [ref=e2259]:
+                      - img [ref=e2260]
+                    - button [ref=e2262]:
+                      - img [ref=e2263]
+                  - button "Stake" [ref=e2265]:
+                    - img [ref=e2266]
+                    - text: Stake
+              - generic [ref=e2269] [cursor=pointer]:
+                - generic [ref=e2271]: "#61"
+                - generic [ref=e2272]:
+                  - img [ref=e2274]
+                  - generic [ref=e2276]:
+                    - generic [ref=e2277]:
+                      - generic [ref=e2278]: Quant
+                      - generic [ref=e2279]: QNT
+                    - generic [ref=e2280]:
+                      - generic [ref=e2281]: "Vol: 3,827"
+                      - img [ref=e2282]
+                - generic [ref=e2284]: 5,247
+                - generic [ref=e2286]:
+                  - img [ref=e2287]
+                  - text: 0.0%
+                - generic [ref=e2290]:
+                  - generic [ref=e2292]:
+                    - button [ref=e2293]:
+                      - img [ref=e2294]
+                    - button [ref=e2296]:
+                      - img [ref=e2297]
+                  - button "Stake" [ref=e2299]:
+                    - img [ref=e2300]
+                    - text: Stake
+              - generic [ref=e2303] [cursor=pointer]:
+                - generic [ref=e2305]: "#62"
+                - generic [ref=e2306]:
+                  - img [ref=e2308]
+                  - generic [ref=e2310]:
+                    - generic [ref=e2311]:
+                      - generic [ref=e2312]: Floki Inu
+                      - generic [ref=e2313]: FLOKI
+                    - generic [ref=e2314]:
+                      - generic [ref=e2315]: "Vol: 2,171"
+                      - img [ref=e2316]
+                - generic [ref=e2318]: 5,096
+                - generic [ref=e2320]:
+                  - img [ref=e2321]
+                  - text: 0.0%
+                - generic [ref=e2324]:
+                  - generic [ref=e2326]:
+                    - button [ref=e2327]:
+                      - img [ref=e2328]
+                    - button [ref=e2330]:
+                      - img [ref=e2331]
+                  - button "Stake" [ref=e2333]:
+                    - img [ref=e2334]
+                    - text: Stake
+              - generic [ref=e2337] [cursor=pointer]:
+                - generic [ref=e2339]: "#63"
+                - generic [ref=e2340]:
+                  - img [ref=e2342]
+                  - generic [ref=e2344]:
+                    - generic [ref=e2345]:
+                      - generic [ref=e2346]: MultiversX
+                      - generic [ref=e2347]: EGLD
+                    - generic [ref=e2348]:
+                      - generic [ref=e2349]: "Vol: 5,495"
+                      - img [ref=e2350]
+                - generic [ref=e2352]: 5,022
+                - generic [ref=e2354]:
+                  - img [ref=e2355]
+                  - text: 0.0%
+                - generic [ref=e2358]:
+                  - generic [ref=e2360]:
+                    - button [ref=e2361]:
+                      - img [ref=e2362]
+                    - button [ref=e2364]:
+                      - img [ref=e2365]
+                  - button "Stake" [ref=e2367]:
+                    - img [ref=e2368]
+                    - text: Stake
+              - generic [ref=e2371] [cursor=pointer]:
+                - generic [ref=e2373]: "#64"
+                - generic [ref=e2374]:
+                  - img [ref=e2376]
+                  - generic [ref=e2378]:
+                    - generic [ref=e2379]:
+                      - generic [ref=e2380]: Jito
+                      - generic [ref=e2381]: JTO
+                    - generic [ref=e2382]:
+                      - generic [ref=e2383]: "Vol: 2,613"
+                      - img [ref=e2384]
+                - generic [ref=e2386]: 5,014
+                - generic [ref=e2388]:
+                  - img [ref=e2389]
+                  - text: 0.0%
+                - generic [ref=e2392]:
+                  - generic [ref=e2394]:
+                    - button [ref=e2395]:
+                      - img [ref=e2396]
+                    - button [ref=e2398]:
+                      - img [ref=e2399]
+                  - button "Stake" [ref=e2401]:
+                    - img [ref=e2402]
+                    - text: Stake
+              - generic [ref=e2405] [cursor=pointer]:
+                - generic [ref=e2407]: "#65"
+                - generic [ref=e2408]:
+                  - img [ref=e2410]
+                  - generic [ref=e2412]:
+                    - generic [ref=e2413]:
+                      - generic [ref=e2414]: GMX
+                      - generic [ref=e2415]: GMX
+                    - generic [ref=e2416]:
+                      - generic [ref=e2417]: "Vol: 1,347"
+                      - img [ref=e2418]
+                - generic [ref=e2420]: 4,963
+                - generic [ref=e2422]:
+                  - img [ref=e2423]
+                  - text: 0.0%
+                - generic [ref=e2426]:
+                  - generic [ref=e2428]:
+                    - button [ref=e2429]:
+                      - img [ref=e2430]
+                    - button [ref=e2432]:
+                      - img [ref=e2433]
+                  - button "Stake" [ref=e2435]:
+                    - img [ref=e2436]
+                    - text: Stake
+              - generic [ref=e2439] [cursor=pointer]:
+                - generic [ref=e2441]: "#66"
+                - generic [ref=e2442]:
+                  - img [ref=e2444]
+                  - generic [ref=e2446]:
+                    - generic [ref=e2447]:
+                      - generic [ref=e2448]: USDC
+                      - generic [ref=e2449]: USDC
+                    - generic [ref=e2450]:
+                      - generic [ref=e2451]: "Vol: 887"
+                      - img [ref=e2452]
+                - generic [ref=e2453]: 4,887
+                - generic [ref=e2455]:
+                  - img [ref=e2456]
+                  - text: 0.0%
+                - generic [ref=e2459]:
+                  - generic [ref=e2461]:
+                    - button [ref=e2462]:
+                      - img [ref=e2463]
+                    - button [ref=e2465]:
+                      - img [ref=e2466]
+                  - button "Stake" [ref=e2468]:
+                    - img [ref=e2469]
+                    - text: Stake
+              - generic [ref=e2472] [cursor=pointer]:
+                - generic [ref=e2474]: "#67"
+                - generic [ref=e2475]:
+                  - img [ref=e2477]
+                  - generic [ref=e2479]:
+                    - generic [ref=e2480]:
+                      - generic [ref=e2481]: Kava
+                      - generic [ref=e2482]: KAVA
+                    - generic [ref=e2483]:
+                      - generic [ref=e2484]: "Vol: 2,036"
+                      - img [ref=e2485]
+                - generic [ref=e2487]: 4,873
+                - generic [ref=e2489]:
+                  - img [ref=e2490]
+                  - text: 0.0%
+                - generic [ref=e2493]:
+                  - generic [ref=e2495]:
+                    - button [ref=e2496]:
+                      - img [ref=e2497]
+                    - button [ref=e2499]:
+                      - img [ref=e2500]
+                  - button "Stake" [ref=e2502]:
+                    - img [ref=e2503]
+                    - text: Stake
+              - generic [ref=e2506] [cursor=pointer]:
+                - generic [ref=e2508]: "#68"
+                - generic [ref=e2509]:
+                  - img [ref=e2511]
+                  - generic [ref=e2513]:
+                    - generic [ref=e2514]:
+                      - generic [ref=e2515]: Maker
+                      - generic [ref=e2516]: MKR
+                    - generic [ref=e2517]:
+                      - generic [ref=e2518]: "Vol: 5,030"
+                      - img [ref=e2519]
+                - generic [ref=e2521]: 4,833
+                - generic [ref=e2523]:
+                  - img [ref=e2524]
+                  - text: 0.0%
+                - generic [ref=e2527]:
+                  - generic [ref=e2529]:
+                    - button [ref=e2530]:
+                      - img [ref=e2531]
+                    - button [ref=e2533]:
+                      - img [ref=e2534]
+                  - button "Stake" [ref=e2536]:
+                    - img [ref=e2537]
+                    - text: Stake
+              - generic [ref=e2540] [cursor=pointer]:
+                - generic [ref=e2542]: "#69"
+                - generic [ref=e2543]:
+                  - img [ref=e2545]
+                  - generic [ref=e2547]:
+                    - generic [ref=e2548]:
+                      - generic [ref=e2549]: Jupiter
+                      - generic [ref=e2550]: JUP
+                    - generic [ref=e2551]:
+                      - generic [ref=e2552]: "Vol: 5,385"
+                      - img [ref=e2553]
+                - generic [ref=e2555]: 4,576
+                - generic [ref=e2557]:
+                  - img [ref=e2558]
+                  - text: 0.0%
+                - generic [ref=e2561]:
+                  - generic [ref=e2563]:
+                    - button [ref=e2564]:
+                      - img [ref=e2565]
+                    - button [ref=e2567]:
+                      - img [ref=e2568]
+                  - button "Stake" [ref=e2570]:
+                    - img [ref=e2571]
+                    - text: Stake
+              - generic [ref=e2574] [cursor=pointer]:
+                - generic [ref=e2576]: "#70"
+                - generic [ref=e2577]:
+                  - img [ref=e2579]
+                  - generic [ref=e2581]:
+                    - generic [ref=e2582]:
+                      - generic [ref=e2583]: PancakeSwap
+                      - generic [ref=e2584]: CAKE
+                    - generic [ref=e2585]:
+                      - generic [ref=e2586]: "Vol: 4,037"
+                      - img [ref=e2587]
+                - generic [ref=e2589]: 4,575
+                - generic [ref=e2591]:
+                  - img [ref=e2592]
+                  - text: 0.0%
+                - generic [ref=e2595]:
+                  - generic [ref=e2597]:
+                    - button [ref=e2598]:
+                      - img [ref=e2599]
+                    - button [ref=e2601]:
+                      - img [ref=e2602]
+                  - button "Stake" [ref=e2604]:
+                    - img [ref=e2605]
+                    - text: Stake
+              - generic [ref=e2608] [cursor=pointer]:
+                - generic [ref=e2610]: "#71"
+                - generic [ref=e2611]:
+                  - img [ref=e2613]
+                  - generic [ref=e2615]:
+                    - generic [ref=e2616]:
+                      - generic [ref=e2617]: Ondo Finance
+                      - generic [ref=e2618]: ONDO
+                    - generic [ref=e2619]:
+                      - generic [ref=e2620]: "Vol: 521"
+                      - img [ref=e2621]
+                - generic [ref=e2623]: 4,534
+                - generic [ref=e2625]:
+                  - img [ref=e2626]
+                  - text: 0.0%
+                - generic [ref=e2629]:
+                  - generic [ref=e2631]:
+                    - button [ref=e2632]:
+                      - img [ref=e2633]
+                    - button [ref=e2635]:
+                      - img [ref=e2636]
+                  - button "Stake" [ref=e2638]:
+                    - img [ref=e2639]
+                    - text: Stake
+              - generic [ref=e2642] [cursor=pointer]:
+                - generic [ref=e2644]: "#72"
+                - generic [ref=e2645]:
+                  - img [ref=e2647]
+                  - generic [ref=e2649]:
+                    - generic [ref=e2650]:
+                      - generic [ref=e2651]: Zilliqa
+                      - generic [ref=e2652]: ZIL
+                    - generic [ref=e2653]:
+                      - generic [ref=e2654]: "Vol: 1,943"
+                      - img [ref=e2655]
+                - generic [ref=e2657]: 4,503
+                - generic [ref=e2659]:
+                  - img [ref=e2660]
+                  - text: 0.0%
+                - generic [ref=e2663]:
+                  - generic [ref=e2665]:
+                    - button [ref=e2666]:
+                      - img [ref=e2667]
+                    - button [ref=e2669]:
+                      - img [ref=e2670]
+                  - button "Stake" [ref=e2672]:
+                    - img [ref=e2673]
+                    - text: Stake
+              - generic [ref=e2676] [cursor=pointer]:
+                - generic [ref=e2678]: "#73"
+                - generic [ref=e2679]:
+                  - img [ref=e2681]
+                  - generic [ref=e2683]:
+                    - generic [ref=e2684]:
+                      - generic [ref=e2685]: Sandbox
+                      - generic [ref=e2686]: SAND
+                    - generic [ref=e2687]:
+                      - generic [ref=e2688]: "Vol: 934"
+                      - img [ref=e2689]
+                - generic [ref=e2691]: 4,470
+                - generic [ref=e2693]:
+                  - img [ref=e2694]
+                  - text: 0.0%
+                - generic [ref=e2697]:
+                  - generic [ref=e2699]:
+                    - button [ref=e2700]:
+                      - img [ref=e2701]
+                    - button [ref=e2703]:
+                      - img [ref=e2704]
+                  - button "Stake" [ref=e2706]:
+                    - img [ref=e2707]
+                    - text: Stake
+              - generic [ref=e2710] [cursor=pointer]:
+                - generic [ref=e2712]: "#74"
+                - generic [ref=e2713]:
+                  - img [ref=e2715]
+                  - generic [ref=e2717]:
+                    - generic [ref=e2718]:
+                      - generic [ref=e2719]: Tezos
+                      - generic [ref=e2720]: XTZ
+                    - generic [ref=e2721]:
+                      - generic [ref=e2722]: "Vol: 4,609"
+                      - img [ref=e2723]
+                - generic [ref=e2725]: 4,457
+                - generic [ref=e2727]:
+                  - img [ref=e2728]
+                  - text: 0.0%
+                - generic [ref=e2731]:
+                  - generic [ref=e2733]:
+                    - button [ref=e2734]:
+                      - img [ref=e2735]
+                    - button [ref=e2737]:
+                      - img [ref=e2738]
+                  - button "Stake" [ref=e2740]:
+                    - img [ref=e2741]
+                    - text: Stake
+              - generic [ref=e2744] [cursor=pointer]:
+                - generic [ref=e2746]: "#75"
+                - generic [ref=e2747]:
+                  - img [ref=e2749]
+                  - generic [ref=e2751]:
+                    - generic [ref=e2752]:
+                      - generic [ref=e2753]: BNB
+                      - generic [ref=e2754]: BNB
+                    - generic [ref=e2755]:
+                      - generic [ref=e2756]: "Vol: 3,809"
+                      - img [ref=e2757]
+                - generic [ref=e2758]: 4,251
+                - generic [ref=e2760]:
+                  - img [ref=e2761]
+                  - text: 0.0%
+                - generic [ref=e2764]:
+                  - generic [ref=e2766]:
+                    - button [ref=e2767]:
+                      - img [ref=e2768]
+                    - button [ref=e2770]:
+                      - img [ref=e2771]
+                  - button "Stake" [ref=e2773]:
+                    - img [ref=e2774]
+                    - text: Stake
+              - generic [ref=e2777] [cursor=pointer]:
+                - generic [ref=e2779]: "#76"
+                - generic [ref=e2780]:
+                  - img [ref=e2782]
+                  - generic [ref=e2784]:
+                    - generic [ref=e2785]:
+                      - generic [ref=e2786]: Immutable
+                      - generic [ref=e2787]: IMX
+                    - generic [ref=e2788]:
+                      - generic [ref=e2789]: "Vol: 5,063"
+                      - img [ref=e2790]
+                - generic [ref=e2792]: 4,218
+                - generic [ref=e2794]:
+                  - img [ref=e2795]
+                  - text: 0.0%
+                - generic [ref=e2798]:
+                  - generic [ref=e2800]:
+                    - button [ref=e2801]:
+                      - img [ref=e2802]
+                    - button [ref=e2804]:
+                      - img [ref=e2805]
+                  - button "Stake" [ref=e2807]:
+                    - img [ref=e2808]
+                    - text: Stake
+              - generic [ref=e2811] [cursor=pointer]:
+                - generic [ref=e2813]: "#77"
+                - generic [ref=e2814]:
+                  - img [ref=e2816]
+                  - generic [ref=e2818]:
+                    - generic [ref=e2819]:
+                      - generic [ref=e2820]: Compound
+                      - generic [ref=e2821]: COMP
+                    - generic [ref=e2822]:
+                      - generic [ref=e2823]: "Vol: 2,636"
+                      - img [ref=e2824]
+                - generic [ref=e2826]: 4,077
+                - generic [ref=e2828]:
+                  - img [ref=e2829]
+                  - text: 0.0%
+                - generic [ref=e2832]:
+                  - generic [ref=e2834]:
+                    - button [ref=e2835]:
+                      - img [ref=e2836]
+                    - button [ref=e2838]:
+                      - img [ref=e2839]
+                  - button "Stake" [ref=e2841]:
+                    - img [ref=e2842]
+                    - text: Stake
+              - generic [ref=e2845] [cursor=pointer]:
+                - generic [ref=e2847]: "#78"
+                - generic [ref=e2848]:
+                  - img [ref=e2850]
+                  - generic [ref=e2852]:
+                    - generic [ref=e2853]:
+                      - generic [ref=e2854]: Gala
+                      - generic [ref=e2855]: GALA
+                    - generic [ref=e2856]:
+                      - generic [ref=e2857]: "Vol: 4,931"
+                      - img [ref=e2858]
+                - generic [ref=e2860]: 4,030
+                - generic [ref=e2862]:
+                  - img [ref=e2863]
+                  - text: 0.0%
+                - generic [ref=e2866]:
+                  - generic [ref=e2868]:
+                    - button [ref=e2869]:
+                      - img [ref=e2870]
+                    - button [ref=e2872]:
+                      - img [ref=e2873]
+                  - button "Stake" [ref=e2875]:
+                    - img [ref=e2876]
+                    - text: Stake
+              - generic [ref=e2879] [cursor=pointer]:
+                - generic [ref=e2881]: "#79"
+                - generic [ref=e2882]:
+                  - img [ref=e2884]
+                  - generic [ref=e2886]:
+                    - generic [ref=e2887]:
+                      - generic [ref=e2888]: Aave
+                      - generic [ref=e2889]: AAVE
+                    - generic [ref=e2890]:
+                      - generic [ref=e2891]: "Vol: 1,144"
+                      - img [ref=e2892]
+                - generic [ref=e2894]: 3,863
+                - generic [ref=e2896]:
+                  - img [ref=e2897]
+                  - text: 0.0%
+                - generic [ref=e2900]:
+                  - generic [ref=e2902]:
+                    - button [ref=e2903]:
+                      - img [ref=e2904]
+                    - button [ref=e2906]:
+                      - img [ref=e2907]
+                  - button "Stake" [ref=e2909]:
+                    - img [ref=e2910]
+                    - text: Stake
+              - generic [ref=e2913] [cursor=pointer]:
+                - generic [ref=e2915]: "#80"
+                - generic [ref=e2916]:
+                  - img [ref=e2918]
+                  - generic [ref=e2920]:
+                    - generic [ref=e2921]:
+                      - generic [ref=e2922]: Mantle
+                      - generic [ref=e2923]: MNT
+                    - generic [ref=e2924]:
+                      - generic [ref=e2925]: "Vol: 1,261"
+                      - img [ref=e2926]
+                - generic [ref=e2928]: 3,856
+                - generic [ref=e2930]:
+                  - img [ref=e2931]
+                  - text: 0.0%
+                - generic [ref=e2934]:
+                  - generic [ref=e2936]:
+                    - button [ref=e2937]:
+                      - img [ref=e2938]
+                    - button [ref=e2940]:
+                      - img [ref=e2941]
+                  - button "Stake" [ref=e2943]:
+                    - img [ref=e2944]
+                    - text: Stake
+              - generic [ref=e2947] [cursor=pointer]:
+                - generic [ref=e2949]: "#81"
+                - generic [ref=e2950]:
+                  - img [ref=e2952]
+                  - generic [ref=e2954]:
+                    - generic [ref=e2955]:
+                      - generic [ref=e2956]: Theta Network
+                      - generic [ref=e2957]: THETA
+                    - generic [ref=e2958]:
+                      - generic [ref=e2959]: "Vol: 3,476"
+                      - img [ref=e2960]
+                - generic [ref=e2962]: 3,751
+                - generic [ref=e2964]:
+                  - img [ref=e2965]
+                  - text: 0.0%
+                - generic [ref=e2968]:
+                  - generic [ref=e2970]:
+                    - button [ref=e2971]:
+                      - img [ref=e2972]
+                    - button [ref=e2974]:
+                      - img [ref=e2975]
+                  - button "Stake" [ref=e2977]:
+                    - img [ref=e2978]
+                    - text: Stake
+              - generic [ref=e2981] [cursor=pointer]:
+                - generic [ref=e2983]: "#82"
+                - generic [ref=e2984]:
+                  - img [ref=e2986]
+                  - generic [ref=e2988]:
+                    - generic [ref=e2989]:
+                      - generic [ref=e2990]: Optimism
+                      - generic [ref=e2991]: OP
+                    - generic [ref=e2992]:
+                      - generic [ref=e2993]: "Vol: 2,159"
+                      - img [ref=e2994]
+                - generic [ref=e2996]: 3,712
+                - generic [ref=e2998]:
+                  - img [ref=e2999]
+                  - text: 0.0%
+                - generic [ref=e3002]:
+                  - generic [ref=e3004]:
+                    - button [ref=e3005]:
+                      - img [ref=e3006]
+                    - button [ref=e3008]:
+                      - img [ref=e3009]
+                  - button "Stake" [ref=e3011]:
+                    - img [ref=e3012]
+                    - text: Stake
+              - generic [ref=e3015] [cursor=pointer]:
+                - generic [ref=e3017]: "#83"
+                - generic [ref=e3018]:
+                  - img [ref=e3020]
+                  - generic [ref=e3022]:
+                    - generic [ref=e3023]:
+                      - generic [ref=e3024]: Ronin
+                      - generic [ref=e3025]: RON
+                    - generic [ref=e3026]:
+                      - generic [ref=e3027]: "Vol: 1,133"
+                      - img [ref=e3028]
+                - generic [ref=e3030]: 3,675
+                - generic [ref=e3032]:
+                  - img [ref=e3033]
+                  - text: 0.0%
+                - generic [ref=e3036]:
+                  - generic [ref=e3038]:
+                    - button [ref=e3039]:
+                      - img [ref=e3040]
+                    - button [ref=e3042]:
+                      - img [ref=e3043]
+                  - button "Stake" [ref=e3045]:
+                    - img [ref=e3046]
+                    - text: Stake
+              - generic [ref=e3049] [cursor=pointer]:
+                - generic [ref=e3051]: "#84"
+                - generic [ref=e3052]:
+                  - img [ref=e3054]
+                  - generic [ref=e3056]:
+                    - generic [ref=e3057]:
+                      - generic [ref=e3058]: 1inch
+                      - generic [ref=e3059]: 1INCH
+                    - generic [ref=e3060]:
+                      - generic [ref=e3061]: "Vol: 5,173"
+                      - img [ref=e3062]
+                - generic [ref=e3064]: 3,668
+                - generic [ref=e3066]:
+                  - img [ref=e3067]
+                  - text: 0.0%
+                - generic [ref=e3070]:
+                  - generic [ref=e3072]:
+                    - button [ref=e3073]:
+                      - img [ref=e3074]
+                    - button [ref=e3076]:
+                      - img [ref=e3077]
+                  - button "Stake" [ref=e3079]:
+                    - img [ref=e3080]
+                    - text: Stake
+              - generic [ref=e3083] [cursor=pointer]:
+                - generic [ref=e3085]: "#85"
+                - generic [ref=e3086]:
+                  - img [ref=e3088]
+                  - generic [ref=e3090]:
+                    - generic [ref=e3091]:
+                      - generic [ref=e3092]: Monero
+                      - generic [ref=e3093]: XMR
+                    - generic [ref=e3094]:
+                      - generic [ref=e3095]: "Vol: 2,719"
+                      - img [ref=e3096]
+                - generic [ref=e3098]: 3,581
+                - generic [ref=e3100]:
+                  - img [ref=e3101]
+                  - text: 0.0%
+                - generic [ref=e3104]:
+                  - generic [ref=e3106]:
+                    - button [ref=e3107]:
+                      - img [ref=e3108]
+                    - button [ref=e3110]:
+                      - img [ref=e3111]
+                  - button "Stake" [ref=e3113]:
+                    - img [ref=e3114]
+                    - text: Stake
+              - generic [ref=e3117] [cursor=pointer]:
+                - generic [ref=e3119]: "#86"
+                - generic [ref=e3120]:
+                  - img [ref=e3122]
+                  - generic [ref=e3124]:
+                    - generic [ref=e3125]:
+                      - generic [ref=e3126]: Fantom
+                      - generic [ref=e3127]: FTM
+                    - generic [ref=e3128]:
+                      - generic [ref=e3129]: "Vol: 4,931"
+                      - img [ref=e3130]
+                - generic [ref=e3132]: 3,376
+                - generic [ref=e3134]:
+                  - img [ref=e3135]
+                  - text: 0.0%
+                - generic [ref=e3138]:
+                  - generic [ref=e3140]:
+                    - button [ref=e3141]:
+                      - img [ref=e3142]
+                    - button [ref=e3144]:
+                      - img [ref=e3145]
+                  - button "Stake" [ref=e3147]:
+                    - img [ref=e3148]
+                    - text: Stake
+              - generic [ref=e3151] [cursor=pointer]:
+                - generic [ref=e3153]: "#87"
+                - generic [ref=e3154]:
+                  - img [ref=e3156]
+                  - generic [ref=e3158]:
+                    - generic [ref=e3159]:
+                      - generic [ref=e3160]: Stacks
+                      - generic [ref=e3161]: STX
+                    - generic [ref=e3162]:
+                      - generic [ref=e3163]: "Vol: 4,089"
+                      - img [ref=e3164]
+                - generic [ref=e3166]: 3,335
+                - generic [ref=e3168]:
+                  - img [ref=e3169]
+                  - text: 0.0%
+                - generic [ref=e3172]:
+                  - generic [ref=e3174]:
+                    - button [ref=e3175]:
+                      - img [ref=e3176]
+                    - button [ref=e3178]:
+                      - img [ref=e3179]
+                  - button "Stake" [ref=e3181]:
+                    - img [ref=e3182]
+                    - text: Stake
+              - generic [ref=e3185] [cursor=pointer]:
+                - generic [ref=e3187]: "#88"
+                - generic [ref=e3188]:
+                  - img [ref=e3190]
+                  - generic [ref=e3192]:
+                    - generic [ref=e3193]:
+                      - generic [ref=e3194]: Arbitrum
+                      - generic [ref=e3195]: ARB
+                    - generic [ref=e3196]:
+                      - generic [ref=e3197]: "Vol: 1,884"
+                      - img [ref=e3198]
+                - generic [ref=e3200]: 3,292
+                - generic [ref=e3202]:
+                  - img [ref=e3203]
+                  - text: 0.0%
+                - generic [ref=e3206]:
+                  - generic [ref=e3208]:
+                    - button [ref=e3209]:
+                      - img [ref=e3210]
+                    - button [ref=e3212]:
+                      - img [ref=e3213]
+                  - button "Stake" [ref=e3215]:
+                    - img [ref=e3216]
+                    - text: Stake
+              - generic [ref=e3219] [cursor=pointer]:
+                - generic [ref=e3221]: "#89"
+                - generic [ref=e3222]:
+                  - img [ref=e3224]
+                  - generic [ref=e3226]:
+                    - generic [ref=e3227]:
+                      - generic [ref=e3228]: The Graph
+                      - generic [ref=e3229]: GRT
+                    - generic [ref=e3230]:
+                      - generic [ref=e3231]: "Vol: 1,206"
+                      - img [ref=e3232]
+                - generic [ref=e3234]: 3,241
+                - generic [ref=e3236]:
+                  - img [ref=e3237]
+                  - text: 0.0%
+                - generic [ref=e3240]:
+                  - generic [ref=e3242]:
+                    - button [ref=e3243]:
+                      - img [ref=e3244]
+                    - button [ref=e3246]:
+                      - img [ref=e3247]
+                  - button "Stake" [ref=e3249]:
+                    - img [ref=e3250]
+                    - text: Stake
+              - generic [ref=e3253] [cursor=pointer]:
+                - generic [ref=e3255]: "#90"
+                - generic [ref=e3256]:
+                  - img [ref=e3258]
+                  - generic [ref=e3260]:
+                    - generic [ref=e3261]:
+                      - generic [ref=e3262]: Nervos
+                      - generic [ref=e3263]: CKB
+                    - generic [ref=e3264]:
+                      - generic [ref=e3265]: "Vol: 5,330"
+                      - img [ref=e3266]
+                - generic [ref=e3268]: 3,082
+                - generic [ref=e3270]:
+                  - img [ref=e3271]
+                  - text: 0.0%
+                - generic [ref=e3274]:
+                  - generic [ref=e3276]:
+                    - button [ref=e3277]:
+                      - img [ref=e3278]
+                    - button [ref=e3280]:
+                      - img [ref=e3281]
+                  - button "Stake" [ref=e3283]:
+                    - img [ref=e3284]
+                    - text: Stake
+              - generic [ref=e3287] [cursor=pointer]:
+                - generic [ref=e3289]: "#91"
+                - generic [ref=e3290]:
+                  - img [ref=e3292]
+                  - generic [ref=e3294]:
+                    - generic [ref=e3295]:
+                      - generic [ref=e3296]: Frax Share
+                      - generic [ref=e3297]: FXS
+                    - generic [ref=e3298]:
+                      - generic [ref=e3299]: "Vol: 1,379"
+                      - img [ref=e3300]
+                - generic [ref=e3302]: 3,024
+                - generic [ref=e3304]:
+                  - img [ref=e3305]
+                  - text: 0.0%
+                - generic [ref=e3308]:
+                  - generic [ref=e3310]:
+                    - button [ref=e3311]:
+                      - img [ref=e3312]
+                    - button [ref=e3314]:
+                      - img [ref=e3315]
+                  - button "Stake" [ref=e3317]:
+                    - img [ref=e3318]
+                    - text: Stake
+              - generic [ref=e3321] [cursor=pointer]:
+                - generic [ref=e3323]: "#92"
+                - generic [ref=e3324]:
+                  - img [ref=e3326]
+                  - generic [ref=e3328]:
+                    - generic [ref=e3329]:
+                      - generic [ref=e3330]: Bittensor
+                      - generic [ref=e3331]: TAO
+                    - generic [ref=e3332]:
+                      - generic [ref=e3333]: "Vol: 5,490"
+                      - img [ref=e3334]
+                - generic [ref=e3336]: 2,934
+                - generic [ref=e3338]:
+                  - img [ref=e3339]
+                  - text: 0.0%
+                - generic [ref=e3342]:
+                  - generic [ref=e3344]:
+                    - button [ref=e3345]:
+                      - img [ref=e3346]
+                    - button [ref=e3348]:
+                      - img [ref=e3349]
+                  - button "Stake" [ref=e3351]:
+                    - img [ref=e3352]
+                    - text: Stake
+              - generic [ref=e3355] [cursor=pointer]:
+                - generic [ref=e3357]: "#93"
+                - generic [ref=e3358]:
+                  - img [ref=e3360]
+                  - generic [ref=e3362]:
+                    - generic [ref=e3363]:
+                      - generic [ref=e3364]: SingularityNET
+                      - generic [ref=e3365]: AGIX
+                    - generic [ref=e3366]:
+                      - generic [ref=e3367]: "Vol: 4,179"
+                      - img [ref=e3368]
+                - generic [ref=e3370]: 2,900
+                - generic [ref=e3372]:
+                  - img [ref=e3373]
+                  - text: 0.0%
+                - generic [ref=e3376]:
+                  - generic [ref=e3378]:
+                    - button [ref=e3379]:
+                      - img [ref=e3380]
+                    - button [ref=e3382]:
+                      - img [ref=e3383]
+                  - button "Stake" [ref=e3385]:
+                    - img [ref=e3386]
+                    - text: Stake
+              - generic [ref=e3389] [cursor=pointer]:
+                - generic [ref=e3391]: "#94"
+                - generic [ref=e3392]:
+                  - img [ref=e3394]
+                  - generic [ref=e3396]:
+                    - generic [ref=e3397]:
+                      - generic [ref=e3398]: Algorand
+                      - generic [ref=e3399]: ALGO
+                    - generic [ref=e3400]:
+                      - generic [ref=e3401]: "Vol: 3,763"
+                      - img [ref=e3402]
+                - generic [ref=e3404]: 2,895
+                - generic [ref=e3406]:
+                  - img [ref=e3407]
+                  - text: 0.0%
+                - generic [ref=e3410]:
+                  - generic [ref=e3412]:
+                    - button [ref=e3413]:
+                      - img [ref=e3414]
+                    - button [ref=e3416]:
+                      - img [ref=e3417]
+                  - button "Stake" [ref=e3419]:
+                    - img [ref=e3420]
+                    - text: Stake
+              - generic [ref=e3423] [cursor=pointer]:
+                - generic [ref=e3425]: "#95"
+                - generic [ref=e3426]:
+                  - img [ref=e3428]
+                  - generic [ref=e3430]:
+                    - generic [ref=e3431]:
+                      - generic [ref=e3432]: Bitcoin Cash
+                      - generic [ref=e3433]: BCH
+                    - generic [ref=e3434]:
+                      - generic [ref=e3435]: "Vol: 671"
+                      - img [ref=e3436]
+                - generic [ref=e3438]: 2,886
+                - generic [ref=e3440]:
+                  - img [ref=e3441]
+                  - text: 0.0%
+                - generic [ref=e3444]:
+                  - generic [ref=e3446]:
+                    - button [ref=e3447]:
+                      - img [ref=e3448]
+                    - button [ref=e3450]:
+                      - img [ref=e3451]
+                  - button "Stake" [ref=e3453]:
+                    - img [ref=e3454]
+                    - text: Stake
+              - generic [ref=e3457] [cursor=pointer]:
+                - generic [ref=e3459]: "#96"
+                - generic [ref=e3460]:
+                  - img [ref=e3462]
+                  - generic [ref=e3464]:
+                    - generic [ref=e3465]:
+                      - generic [ref=e3466]: Sui
+                      - generic [ref=e3467]: SUI
+                    - generic [ref=e3468]:
+                      - generic [ref=e3469]: "Vol: 3,056"
+                      - img [ref=e3470]
+                - generic [ref=e3472]: 2,772
+                - generic [ref=e3474]:
+                  - img [ref=e3475]
+                  - text: 0.0%
+                - generic [ref=e3478]:
+                  - generic [ref=e3480]:
+                    - button [ref=e3481]:
+                      - img [ref=e3482]
+                    - button [ref=e3484]:
+                      - img [ref=e3485]
+                  - button "Stake" [ref=e3487]:
+                    - img [ref=e3488]
+                    - text: Stake
+              - generic [ref=e3491] [cursor=pointer]:
+                - generic [ref=e3493]: "#97"
+                - generic [ref=e3494]:
+                  - img [ref=e3496]
+                  - generic [ref=e3498]:
+                    - generic [ref=e3499]:
+                      - generic [ref=e3500]: Tether
+                      - generic [ref=e3501]: USDT
+                    - generic [ref=e3502]:
+                      - generic [ref=e3503]: "Vol: 910"
+                      - img [ref=e3504]
+                - generic [ref=e3505]: 2,709
+                - generic [ref=e3507]:
+                  - img [ref=e3508]
+                  - text: 0.0%
+                - generic [ref=e3511]:
+                  - generic [ref=e3513]:
+                    - button [ref=e3514]:
+                      - img [ref=e3515]
+                    - button [ref=e3517]:
+                      - img [ref=e3518]
+                  - button "Stake" [ref=e3520]:
+                    - img [ref=e3521]
+                    - text: Stake
+              - generic [ref=e3524] [cursor=pointer]:
+                - generic [ref=e3526]: "#98"
+                - generic [ref=e3527]:
+                  - img [ref=e3529]
+                  - generic [ref=e3531]:
+                    - generic [ref=e3532]:
+                      - generic [ref=e3533]: Enjin Coin
+                      - generic [ref=e3534]: ENJ
+                    - generic [ref=e3535]:
+                      - generic [ref=e3536]: "Vol: 5,076"
+                      - img [ref=e3537]
+                - generic [ref=e3539]: 2,465
+                - generic [ref=e3541]:
+                  - img [ref=e3542]
+                  - text: 0.0%
+                - generic [ref=e3545]:
+                  - generic [ref=e3547]:
+                    - button [ref=e3548]:
+                      - img [ref=e3549]
+                    - button [ref=e3551]:
+                      - img [ref=e3552]
+                  - button "Stake" [ref=e3554]:
+                    - img [ref=e3555]
+                    - text: Stake
+              - generic [ref=e3558] [cursor=pointer]:
+                - generic [ref=e3560]: "#99"
+                - generic [ref=e3561]:
+                  - img [ref=e3563]
+                  - generic [ref=e3565]:
+                    - generic [ref=e3566]:
+                      - generic [ref=e3567]: EOS
+                      - generic [ref=e3568]: EOS
+                    - generic [ref=e3569]:
+                      - generic [ref=e3570]: "Vol: 4,493"
+                      - img [ref=e3571]
+                - generic [ref=e3573]: 2,422
+                - generic [ref=e3575]:
+                  - img [ref=e3576]
+                  - text: 0.0%
+                - generic [ref=e3579]:
+                  - generic [ref=e3581]:
+                    - button [ref=e3582]:
+                      - img [ref=e3583]
+                    - button [ref=e3585]:
+                      - img [ref=e3586]
+                  - button "Stake" [ref=e3588]:
+                    - img [ref=e3589]
+                    - text: Stake
+              - generic [ref=e3592] [cursor=pointer]:
+                - generic [ref=e3594]: "#100"
+                - generic [ref=e3595]:
+                  - img [ref=e3597]
+                  - generic [ref=e3599]:
+                    - generic [ref=e3600]:
+                      - generic [ref=e3601]: Arweave
+                      - generic [ref=e3602]: AR
+                    - generic [ref=e3603]:
+                      - generic [ref=e3604]: "Vol: 622"
+                      - img [ref=e3605]
+                - generic [ref=e3607]: 2,366
+                - generic [ref=e3609]:
+                  - img [ref=e3610]
+                  - text: 0.0%
+                - generic [ref=e3613]:
+                  - generic [ref=e3615]:
+                    - button [ref=e3616]:
+                      - img [ref=e3617]
+                    - button [ref=e3619]:
+                      - img [ref=e3620]
+                  - button "Stake" [ref=e3622]:
+                    - img [ref=e3623]
+                    - text: Stake
+              - generic [ref=e3626] [cursor=pointer]:
+                - generic [ref=e3628]: "#101"
+                - generic [ref=e3629]:
+                  - img [ref=e3631]
+                  - generic [ref=e3633]:
+                    - generic [ref=e3634]:
+                      - generic [ref=e3635]: Cronos
+                      - generic [ref=e3636]: CRO
+                    - generic [ref=e3637]:
+                      - generic [ref=e3638]: "Vol: 2,105"
+                      - img [ref=e3639]
+                - generic [ref=e3641]: 2,318
+                - generic [ref=e3643]:
+                  - img [ref=e3644]
+                  - text: 0.0%
+                - generic [ref=e3647]:
+                  - generic [ref=e3649]:
+                    - button [ref=e3650]:
+                      - img [ref=e3651]
+                    - button [ref=e3653]:
+                      - img [ref=e3654]
+                  - button "Stake" [ref=e3656]:
+                    - img [ref=e3657]
+                    - text: Stake
+              - generic [ref=e3660] [cursor=pointer]:
+                - generic [ref=e3662]: "#102"
+                - generic [ref=e3663]:
+                  - img [ref=e3665]
+                  - generic [ref=e3667]:
+                    - generic [ref=e3668]:
+                      - generic [ref=e3669]: dYdX
+                      - generic [ref=e3670]: DYDX
+                    - generic [ref=e3671]:
+                      - generic [ref=e3672]: "Vol: 629"
+                      - img [ref=e3673]
+                - generic [ref=e3675]: 2,153
+                - generic [ref=e3677]:
+                  - img [ref=e3678]
+                  - text: 0.0%
+                - generic [ref=e3681]:
+                  - generic [ref=e3683]:
+                    - button [ref=e3684]:
+                      - img [ref=e3685]
+                    - button [ref=e3687]:
+                      - img [ref=e3688]
+                  - button "Stake" [ref=e3690]:
+                    - img [ref=e3691]
+                    - text: Stake
+              - generic [ref=e3694] [cursor=pointer]:
+                - generic [ref=e3696]: "#103"
+                - generic [ref=e3697]:
+                  - img [ref=e3699]
+                  - generic [ref=e3701]:
+                    - generic [ref=e3702]:
+                      - generic [ref=e3703]: zkSync
+                      - generic [ref=e3704]: ZK
+                    - generic [ref=e3705]:
+                      - generic [ref=e3706]: "Vol: 3,325"
+                      - img [ref=e3707]
+                - generic [ref=e3709]: 2,075
+                - generic [ref=e3711]:
+                  - img [ref=e3712]
+                  - text: 0.0%
+                - generic [ref=e3715]:
+                  - generic [ref=e3717]:
+                    - button [ref=e3718]:
+                      - img [ref=e3719]
+                    - button [ref=e3721]:
+                      - img [ref=e3722]
+                  - button "Stake" [ref=e3724]:
+                    - img [ref=e3725]
+                    - text: Stake
+              - generic [ref=e3728] [cursor=pointer]:
+                - generic [ref=e3730]: "#104"
+                - generic [ref=e3731]:
+                  - img [ref=e3733]
+                  - generic [ref=e3735]:
+                    - generic [ref=e3736]:
+                      - generic [ref=e3737]: Polygon
+                      - generic [ref=e3738]: MATIC
+                    - generic [ref=e3739]:
+                      - generic [ref=e3740]: "Vol: 4,859"
+                      - img [ref=e3741]
+                - generic [ref=e3742]: "0"
+                - generic [ref=e3744]:
+                  - img [ref=e3745]
+                  - text: 0.0%
+                - generic [ref=e3748]:
+                  - generic [ref=e3750]:
+                    - button [ref=e3751]:
+                      - img [ref=e3752]
+                    - button [ref=e3754]:
+                      - img [ref=e3755]
+                  - button "Stake" [ref=e3757]:
+                    - img [ref=e3758]
+                    - text: Stake
+            - generic [ref=e3760]:
+              - generic [ref=e3761]: Rendering 104 Units
+              - generic [ref=e3762]: Oracle Feed Active
+        - generic [ref=e3764]:
+          - generic [ref=e3765]:
+            - generic [ref=e3766]:
+              - link "Terms" [ref=e3767] [cursor=pointer]:
+                - /url: /legal/terms
+              - generic [ref=e3768]: •
+              - link "Privacy" [ref=e3769] [cursor=pointer]:
+                - /url: /legal/privacy
+              - generic [ref=e3770]: •
+              - link "Responsible Play" [ref=e3771] [cursor=pointer]:
+                - /url: /legal/responsible-play
+            - generic [ref=e3772]:
+              - link "support@starranker.io" [ref=e3773] [cursor=pointer]:
+                - /url: mailto:support@starranker.io
+              - paragraph [ref=e3774]: © 2026 Star Ranker Technologies Limited
+          - generic [ref=e3776]: BETA — Balances subject to reset
+      - generic [ref=e3778]:
+        - generic [ref=e3779]:
+          - img [ref=e3780]
+          - text: LIVE FEED
+        - generic [ref=e3783]:
+          - generic [ref=e3784]:
+            - generic [ref=e3785]: anon_42
+            - generic [ref=e3786]: voted
+            - generic [ref=e3787]: UP
+            - generic [ref=e3788]: "on"
+            - generic [ref=e3789]: Bitcoin
+            - generic [ref=e3790]: (just now)
+          - generic [ref=e3791]:
+            - generic [ref=e3792]: sage_ox
+            - generic [ref=e3793]: voted
+            - generic [ref=e3794]: DOWN
+            - generic [ref=e3795]: "on"
+            - generic [ref=e3796]: iPhone 15
+            - generic [ref=e3797]: (2s ago)
+          - generic [ref=e3798]:
+            - generic [ref=e3799]: oracle_dev
+            - generic [ref=e3800]: voted
+            - generic [ref=e3801]: UP
+            - generic [ref=e3802]: "on"
+            - generic [ref=e3803]: Google
+            - generic [ref=e3804]: (5s ago)
+          - generic [ref=e3805]:
+            - generic [ref=e3806]: market_maker
+            - generic [ref=e3807]: voted
+            - generic [ref=e3808]: UP
+            - generic [ref=e3809]: "on"
+            - generic [ref=e3810]: Solana
+            - generic [ref=e3811]: (8s ago)
+          - generic [ref=e3812]:
+            - generic [ref=e3813]: bgadz
+            - generic [ref=e3814]: voted
+            - generic [ref=e3815]: UP
+            - generic [ref=e3816]: "on"
+            - generic [ref=e3817]: Star Ranker
+            - generic [ref=e3818]: (10s ago)
+          - generic [ref=e3819]:
+            - generic [ref=e3820]: ranker_bot
+            - generic [ref=e3821]: voted
+            - generic [ref=e3822]: DOWN
+            - generic [ref=e3823]: "on"
+            - generic [ref=e3824]: Ethereum
+            - generic [ref=e3825]: (12s ago)
+          - generic [ref=e3826]:
+            - generic [ref=e3827]: anon_42
+            - generic [ref=e3828]: voted
+            - generic [ref=e3829]: UP
+            - generic [ref=e3830]: "on"
+            - generic [ref=e3831]: Bitcoin
+            - generic [ref=e3832]: (just now)
+          - generic [ref=e3833]:
+            - generic [ref=e3834]: sage_ox
+            - generic [ref=e3835]: voted
+            - generic [ref=e3836]: DOWN
+            - generic [ref=e3837]: "on"
+            - generic [ref=e3838]: iPhone 15
+            - generic [ref=e3839]: (2s ago)
+          - generic [ref=e3840]:
+            - generic [ref=e3841]: oracle_dev
+            - generic [ref=e3842]: voted
+            - generic [ref=e3843]: UP
+            - generic [ref=e3844]: "on"
+            - generic [ref=e3845]: Google
+            - generic [ref=e3846]: (5s ago)
+          - generic [ref=e3847]:
+            - generic [ref=e3848]: market_maker
+            - generic [ref=e3849]: voted
+            - generic [ref=e3850]: UP
+            - generic [ref=e3851]: "on"
+            - generic [ref=e3852]: Solana
+            - generic [ref=e3853]: (8s ago)
+          - generic [ref=e3854]:
+            - generic [ref=e3855]: bgadz
+            - generic [ref=e3856]: voted
+            - generic [ref=e3857]: UP
+            - generic [ref=e3858]: "on"
+            - generic [ref=e3859]: Star Ranker
+            - generic [ref=e3860]: (10s ago)
+          - generic [ref=e3861]:
+            - generic [ref=e3862]: ranker_bot
+            - generic [ref=e3863]: voted
+            - generic [ref=e3864]: DOWN
+            - generic [ref=e3865]: "on"
+            - generic [ref=e3866]: Ethereum
+            - generic [ref=e3867]: (12s ago)
+          - generic [ref=e3868]:
+            - generic [ref=e3869]: anon_42
+            - generic [ref=e3870]: voted
+            - generic [ref=e3871]: UP
+            - generic [ref=e3872]: "on"
+            - generic [ref=e3873]: Bitcoin
+            - generic [ref=e3874]: (just now)
+          - generic [ref=e3875]:
+            - generic [ref=e3876]: sage_ox
+            - generic [ref=e3877]: voted
+            - generic [ref=e3878]: DOWN
+            - generic [ref=e3879]: "on"
+            - generic [ref=e3880]: iPhone 15
+            - generic [ref=e3881]: (2s ago)
+          - generic [ref=e3882]:
+            - generic [ref=e3883]: oracle_dev
+            - generic [ref=e3884]: voted
+            - generic [ref=e3885]: UP
+            - generic [ref=e3886]: "on"
+            - generic [ref=e3887]: Google
+            - generic [ref=e3888]: (5s ago)
+          - generic [ref=e3889]:
+            - generic [ref=e3890]: market_maker
+            - generic [ref=e3891]: voted
+            - generic [ref=e3892]: UP
+            - generic [ref=e3893]: "on"
+            - generic [ref=e3894]: Solana
+            - generic [ref=e3895]: (8s ago)
+          - generic [ref=e3896]:
+            - generic [ref=e3897]: bgadz
+            - generic [ref=e3898]: voted
+            - generic [ref=e3899]: UP
+            - generic [ref=e3900]: "on"
+            - generic [ref=e3901]: Star Ranker
+            - generic [ref=e3902]: (10s ago)
+          - generic [ref=e3903]:
+            - generic [ref=e3904]: ranker_bot
+            - generic [ref=e3905]: voted
+            - generic [ref=e3906]: DOWN
+            - generic [ref=e3907]: "on"
+            - generic [ref=e3908]: Ethereum
+            - generic [ref=e3909]: (12s ago)
+```

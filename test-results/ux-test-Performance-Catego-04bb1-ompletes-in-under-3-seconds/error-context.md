@@ -1,0 +1,310 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - heading "Jurisdictional Protocols" [level=2] [ref=e10]
+      - paragraph [ref=e11]: System Access Verification Required
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - img [ref=e14]
+        - generic [ref=e18]:
+          - heading "Platform Nature" [level=4] [ref=e19]
+          - paragraph [ref=e20]: Star Ranker is a cultural popularity engine. All "Stakes" represent reputation units and do not constitute financial derivatives or investment products.
+      - generic [ref=e21]:
+        - img [ref=e22]
+        - generic [ref=e25]:
+          - heading "Gated Jurisdictions" [level=4] [ref=e26]
+          - paragraph [ref=e27]: Staking is disabled in sanctioned regions and locations where predictive markets are restricted. You certify you are not accessing from such a region.
+      - generic [ref=e28]:
+        - img [ref=e29]
+        - generic [ref=e31]:
+          - heading "Beta Protocol" [level=4] [ref=e32]
+          - paragraph [ref=e33]: This terminal is in active BETA. Systems are subject to reset and volatility dampening based on oracle oversight.
+    - generic [ref=e34]:
+      - button "Synchronize Agreement" [ref=e35]:
+        - text: Synchronize Agreement
+        - img [ref=e36]
+      - paragraph [ref=e38]: By entering, you agree to the terms in LEGAL.md
+  - generic [ref=e39]:
+    - complementary [ref=e40]:
+      - generic [ref=e42] [cursor=pointer]:
+        - img [ref=e44]
+        - generic [ref=e46]: STAR RANKER
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - heading "Terminal" [level=3] [ref=e49]
+          - link "Markets" [ref=e50] [cursor=pointer]:
+            - /url: /markets
+            - img [ref=e52]
+            - generic [ref=e54]: Markets
+          - link "Activity" [ref=e55] [cursor=pointer]:
+            - /url: /activity
+            - img [ref=e57]
+            - generic [ref=e59]: Activity
+          - link "Leaderboards" [ref=e60] [cursor=pointer]:
+            - /url: /leaderboards
+            - img [ref=e62]
+            - generic [ref=e65]: Leaderboards
+        - generic [ref=e66]:
+          - heading "Personal" [level=3] [ref=e67]
+          - link "Portfolio" [ref=e68] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e70]
+            - generic [ref=e75]: Portfolio
+          - link "Alerts 2" [ref=e76] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e78]
+            - generic [ref=e81]: Alerts
+            - generic [ref=e82]: "2"
+          - link "Settings" [ref=e83] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e85]
+            - generic [ref=e88]: Settings
+          - link "Admin ZMG" [ref=e89] [cursor=pointer]:
+            - /url: /admin/zmg
+            - img [ref=e91]
+            - generic [ref=e94]: Admin ZMG
+          - link "Overwatch" [ref=e95] [cursor=pointer]:
+            - /url: /admin/ops
+            - img [ref=e97]
+            - generic [ref=e99]: Overwatch
+        - generic [ref=e100]:
+          - heading "Resources" [level=3] [ref=e101]
+          - link "How it Works" [ref=e102] [cursor=pointer]:
+            - /url: /how-it-works
+            - img [ref=e104]
+            - generic [ref=e106]: How it Works
+          - link "Transparency" [ref=e107] [cursor=pointer]:
+            - /url: /transparency
+            - img [ref=e109]
+            - generic [ref=e112]: Transparency
+          - link "Epoch History" [ref=e113] [cursor=pointer]:
+            - /url: /history
+            - img [ref=e115]
+            - generic [ref=e119]: Epoch History
+      - generic [ref=e120]:
+        - generic [ref=e122]:
+          - generic [ref=e123]: Bankroll
+          - generic [ref=e124]: $10,000
+        - generic [ref=e127]:
+          - button "+ Fund Wallet" [ref=e128]
+          - button "GET POWER VOTES" [ref=e129]:
+            - img [ref=e130]
+            - text: GET POWER VOTES
+        - button [ref=e132]:
+          - img [ref=e133]
+    - main [ref=e136]:
+      - generic [ref=e137]:
+        - generic [ref=e139]:
+          - img [ref=e140]
+          - textbox "Search markets (Cmd+K)..." [ref=e143]
+        - generic [ref=e144]:
+          - generic [ref=e145]:
+            - img [ref=e146]
+            - text: Web3 Missing
+          - generic [ref=e148]:
+            - button "USD" [ref=e149]
+            - button "NGN" [ref=e150]
+            - button "EUR" [ref=e151]
+          - button "2" [ref=e153]:
+            - img [ref=e154]
+            - generic [ref=e157]: "2"
+          - generic [ref=e158]:
+            - generic [ref=e159]:
+              - generic [ref=e160]: Oracle
+              - generic [ref=e161]: $10,000
+            - button [ref=e162]:
+              - img [ref=e163]
+      - generic [ref=e166]:
+        - generic [ref=e168]:
+          - generic [ref=e169]:
+            - generic [ref=e170]:
+              - button "Crypto Assets" [ref=e171]
+              - button "Smartphones" [ref=e172]
+              - button "Music Artists" [ref=e173]
+              - button "Websites & Apps" [ref=e174]
+              - button "Tech Companies" [ref=e175]
+              - button "Movies & TV" [ref=e176]
+              - button "Athletes" [ref=e177]
+              - button "Fashion & Brands" [ref=e178]
+              - button "Video Games" [ref=e179]
+              - button "Creators & Influencers" [ref=e180]
+              - button "Cultural Zeitgeist" [ref=e181]
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - generic [ref=e184]:
+                  - heading "Crypto Assets" [level=1] [ref=e185]
+                  - generic [ref=e186]: Live Oracle Feed
+                - paragraph [ref=e187]: Top cryptocurrencies ranked by market sentiment and oracle velocity. Rankings are reified every 30 minutes via the Star Oracle protocol.
+              - generic [ref=e188]:
+                - generic [ref=e189]:
+                  - img [ref=e190]
+                  - textbox "Search inventory..." [ref=e193]
+                - generic [ref=e194]:
+                  - button "All" [ref=e195]
+                  - button "Gainers" [ref=e196]:
+                    - img [ref=e197]
+                    - text: Gainers
+                  - button "Losers" [ref=e200]:
+                    - img [ref=e201]
+                    - text: Losers
+                  - button "Movers" [ref=e204]:
+                    - img [ref=e205]
+                    - text: Movers
+                  - button "Sleepers" [ref=e208]:
+                    - img [ref=e209]
+                    - text: Sleepers
+          - generic [ref=e216]:
+            - img [ref=e217]
+            - generic [ref=e219]: Synchronizing Oracle Data...
+        - generic [ref=e220]:
+          - generic [ref=e221]:
+            - generic [ref=e222]:
+              - link "Terms" [ref=e223] [cursor=pointer]:
+                - /url: /legal/terms
+              - generic [ref=e224]: •
+              - link "Privacy" [ref=e225] [cursor=pointer]:
+                - /url: /legal/privacy
+              - generic [ref=e226]: •
+              - link "Responsible Play" [ref=e227] [cursor=pointer]:
+                - /url: /legal/responsible-play
+            - generic [ref=e228]:
+              - link "support@starranker.io" [ref=e229] [cursor=pointer]:
+                - /url: mailto:support@starranker.io
+              - paragraph [ref=e230]: © 2026 Star Ranker Technologies Limited
+          - generic [ref=e232]: BETA — Balances subject to reset
+      - generic [ref=e234]:
+        - generic [ref=e235]:
+          - img [ref=e236]
+          - text: LIVE FEED
+        - generic [ref=e239]:
+          - generic [ref=e240]:
+            - generic [ref=e241]: anon_42
+            - generic [ref=e242]: voted
+            - generic [ref=e243]: UP
+            - generic [ref=e244]: "on"
+            - generic [ref=e245]: Bitcoin
+            - generic [ref=e246]: (just now)
+          - generic [ref=e247]:
+            - generic [ref=e248]: sage_ox
+            - generic [ref=e249]: voted
+            - generic [ref=e250]: DOWN
+            - generic [ref=e251]: "on"
+            - generic [ref=e252]: iPhone 15
+            - generic [ref=e253]: (2s ago)
+          - generic [ref=e254]:
+            - generic [ref=e255]: oracle_dev
+            - generic [ref=e256]: voted
+            - generic [ref=e257]: UP
+            - generic [ref=e258]: "on"
+            - generic [ref=e259]: Google
+            - generic [ref=e260]: (5s ago)
+          - generic [ref=e261]:
+            - generic [ref=e262]: market_maker
+            - generic [ref=e263]: voted
+            - generic [ref=e264]: UP
+            - generic [ref=e265]: "on"
+            - generic [ref=e266]: Solana
+            - generic [ref=e267]: (8s ago)
+          - generic [ref=e268]:
+            - generic [ref=e269]: bgadz
+            - generic [ref=e270]: voted
+            - generic [ref=e271]: UP
+            - generic [ref=e272]: "on"
+            - generic [ref=e273]: Star Ranker
+            - generic [ref=e274]: (10s ago)
+          - generic [ref=e275]:
+            - generic [ref=e276]: ranker_bot
+            - generic [ref=e277]: voted
+            - generic [ref=e278]: DOWN
+            - generic [ref=e279]: "on"
+            - generic [ref=e280]: Ethereum
+            - generic [ref=e281]: (12s ago)
+          - generic [ref=e282]:
+            - generic [ref=e283]: anon_42
+            - generic [ref=e284]: voted
+            - generic [ref=e285]: UP
+            - generic [ref=e286]: "on"
+            - generic [ref=e287]: Bitcoin
+            - generic [ref=e288]: (just now)
+          - generic [ref=e289]:
+            - generic [ref=e290]: sage_ox
+            - generic [ref=e291]: voted
+            - generic [ref=e292]: DOWN
+            - generic [ref=e293]: "on"
+            - generic [ref=e294]: iPhone 15
+            - generic [ref=e295]: (2s ago)
+          - generic [ref=e296]:
+            - generic [ref=e297]: oracle_dev
+            - generic [ref=e298]: voted
+            - generic [ref=e299]: UP
+            - generic [ref=e300]: "on"
+            - generic [ref=e301]: Google
+            - generic [ref=e302]: (5s ago)
+          - generic [ref=e303]:
+            - generic [ref=e304]: market_maker
+            - generic [ref=e305]: voted
+            - generic [ref=e306]: UP
+            - generic [ref=e307]: "on"
+            - generic [ref=e308]: Solana
+            - generic [ref=e309]: (8s ago)
+          - generic [ref=e310]:
+            - generic [ref=e311]: bgadz
+            - generic [ref=e312]: voted
+            - generic [ref=e313]: UP
+            - generic [ref=e314]: "on"
+            - generic [ref=e315]: Star Ranker
+            - generic [ref=e316]: (10s ago)
+          - generic [ref=e317]:
+            - generic [ref=e318]: ranker_bot
+            - generic [ref=e319]: voted
+            - generic [ref=e320]: DOWN
+            - generic [ref=e321]: "on"
+            - generic [ref=e322]: Ethereum
+            - generic [ref=e323]: (12s ago)
+          - generic [ref=e324]:
+            - generic [ref=e325]: anon_42
+            - generic [ref=e326]: voted
+            - generic [ref=e327]: UP
+            - generic [ref=e328]: "on"
+            - generic [ref=e329]: Bitcoin
+            - generic [ref=e330]: (just now)
+          - generic [ref=e331]:
+            - generic [ref=e332]: sage_ox
+            - generic [ref=e333]: voted
+            - generic [ref=e334]: DOWN
+            - generic [ref=e335]: "on"
+            - generic [ref=e336]: iPhone 15
+            - generic [ref=e337]: (2s ago)
+          - generic [ref=e338]:
+            - generic [ref=e339]: oracle_dev
+            - generic [ref=e340]: voted
+            - generic [ref=e341]: UP
+            - generic [ref=e342]: "on"
+            - generic [ref=e343]: Google
+            - generic [ref=e344]: (5s ago)
+          - generic [ref=e345]:
+            - generic [ref=e346]: market_maker
+            - generic [ref=e347]: voted
+            - generic [ref=e348]: UP
+            - generic [ref=e349]: "on"
+            - generic [ref=e350]: Solana
+            - generic [ref=e351]: (8s ago)
+          - generic [ref=e352]:
+            - generic [ref=e353]: bgadz
+            - generic [ref=e354]: voted
+            - generic [ref=e355]: UP
+            - generic [ref=e356]: "on"
+            - generic [ref=e357]: Star Ranker
+            - generic [ref=e358]: (10s ago)
+          - generic [ref=e359]:
+            - generic [ref=e360]: ranker_bot
+            - generic [ref=e361]: voted
+            - generic [ref=e362]: DOWN
+            - generic [ref=e363]: "on"
+            - generic [ref=e364]: Ethereum
+            - generic [ref=e365]: (12s ago)
+```

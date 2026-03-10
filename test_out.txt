@@ -1,0 +1,63 @@
+﻿[1m
+ΓòöΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòù[0m
+[1mΓòæ   STAR RANKER ΓÇö API Integration Test Suite       Γòæ[0m
+[1mΓòÜΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓò¥[0m
+  Target: [36mhttp://localhost:3001[0m
+  Time:   2026-03-08T02:43:14.058Z
+
+[36m
+ΓÜí SUITE: Health & Connectivity[0m
+[32m  Γ£à PASS[0m [803ms]  Server is reachable
+[32m  Γ£à PASS[0m [238ms]  GET /api/categories returns array with 10+ categories
+[32m  Γ£à PASS[0m [491ms]  GET /api/categories response time < 500ms
+[31m  Γ¥î FAIL[0m [502ms]  GET /api/items?categoryId=1 returns items
+[31m       ΓåÆ Got 400[0m
+[36m
+≡ƒöÉ SUITE: Authentication & Security[0m
+[32m  Γ£à PASS[0m [14ms]  Protected routes reject unauthenticated requests with 401
+[32m  Γ£à PASS[0m [6ms]  Protected routes reject invalid tokens with 401
+[32m  Γ£à PASS[0m [443ms]  Invite validation endpoint exists and rejects bad codes
+[31m  Γ¥î FAIL[0m [0ms]  Admin routes reject non-admin tokens with 401 or 403
+[31m       ΓåÆ TEST_TOKEN not configured ΓÇö skipping auth tests[0m
+[36m
+≡ƒÆ░ SUITE: Staking System[0m
+[33m  ΓÜá  Skipping staking tests ΓÇö TEST_TOKEN not configured[0m
+[36m
+≡ƒÆ│ SUITE: Payments[0m
+[33m  ΓÜá  Skipping payment tests ΓÇö TEST_TOKEN not configured[0m
+[36m
+≡ƒù│  SUITE: Voting[0m
+[33m  ΓÜá  Skipping vote tests ΓÇö TEST_TOKEN not configured[0m
+[36m
+≡ƒ¢í  SUITE: Rate Limiting[0m
+[32m  Γ£à PASS[0m [70ms]  Rapid-fire requests eventually get rate limited (429)
+[36m
+ΓÅ▒  SUITE: Epochs[0m
+[32m  Γ£à PASS[0m [354ms]  GET /api/epochs/current returns active epoch
+[32m  Γ£à PASS[0m [234ms]  Epoch has startTime and endTime fields
+[36m
+≡ƒææ SUITE: Admin[0m
+[33m  ΓÜá  Skipping admin tests ΓÇö ADMIN_TOKEN not configured[0m
+[36m
+≡ƒöÑ SUITE: Light Load Simulation (50 concurrent)[0m
+[32m  Γ£à PASS[0m [1055ms]  50 concurrent GET /api/categories all return 200
+[32m  Γ£à PASS[0m [326ms]  50 concurrent requests complete in under 3 seconds
+[32m  Γ£à PASS[0m [973ms]  100 concurrent requests complete in under 5 seconds
+[1m
+ΓòöΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòù[0m
+[1mΓòæ   TEST REPORT                                     Γòæ[0m
+[1mΓòÜΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓò¥[0m
+  Total:   14
+  [32mPassed:[0m  12
+  [31mFailed:[0m  2
+  [33mWarned:[0m  0
+  Score:   86%
+[31m
+  Γ¥î FAILURES:[0m
+[31m  ΓÇó GET /api/items?categoryId=1 returns items[0m
+[31m    Got 400[0m
+[31m  ΓÇó Admin routes reject non-admin tokens with 401 or 403[0m
+[31m    TEST_TOKEN not configured ΓÇö skipping auth tests[0m
+[31m
+  ≡ƒö┤ NOT BETA READY ΓÇö fix failures above first[0m
+

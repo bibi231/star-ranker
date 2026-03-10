@@ -1,0 +1,67 @@
+# Star Ranker Core Schema
+
+# User table extension for reputation and tiers
+type User @table {
+  id: String! @default(expr: "auth.uid")
+  username: String! @col(dataType: "varchar(50)")
+  reputation: Float! @default(value: 0.0)
+  balance: Float! @default(value: 1000.0) # For staking/gambling
+  tier: String! @default(value: "Newbie") # Newbie, Peer, Sage, Oracle
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# Categories (Markets)
+type Category @table {
+  id: UUID! @default(expr: "uuidV4()")
+  slug: String! @unique
+  title: String!
+  description: String
+  isActive: Boolean! @default(value: true)
+  viscosity: Float! @default(value: 1.0) # For MWR calculation
+  stakingEnabled: Boolean! @default(value: false)
+  lastRefresh: Timestamp @default(expr: "request.time")
+}
+
+# Items within a category
+type Item @table {
+  id: UUID! @default(expr: "uuidV4()")
+  category: Category!
+  name: String!
+  imageUrl: String
+  score: Float! @default(value: 0.0)
+  momentum: Float! @default(value: 0.0)
+  velocity: Float! @default(value: 0.0)
+  rankPosition: Int
+  totalVotes: Int! @default(value: 0)
+}
+
+# Immutable Vote Ledger
+type Vote @table(key: ["user", "item", "id"]) {
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  item: Item!
+  weight: Float!
+  direction: Int! # 1 for up, -1 for down
+  timestamp: Timestamp! @default(expr: "request.time")
+}
+
+# Staking Ledger
+type Stake @table {
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  item: Item!
+  amount: Float!
+  targetRank: Int!
+  deadline: Timestamp!
+  isSettled: Boolean! @default(value: false)
+  payout: Float
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# Snapshots for historical trends and consistency
+type Snapshot @table {
+  id: UUID! @default(expr: "uuidV4()")
+  category: Category!
+  timestamp: Timestamp! @default(expr: "request.time")
+  rankData: String! # JSON string of top items
+}

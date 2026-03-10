@@ -1,0 +1,60 @@
+[1m
+╔══════════════════════════════════════════════════╗[0m
+[1m║   STAR RANKER — API Integration Test Suite       ║[0m
+[1m╚══════════════════════════════════════════════════╝[0m
+  Target: [36mhttp://localhost:3001[0m
+  Time:   2026-03-08T02:50:18.614Z
+
+[36m
+⚡ SUITE: Health & Connectivity[0m
+[32m  ✅ PASS[0m [335ms]  Server is reachable
+[32m  ✅ PASS[0m [246ms]  GET /api/categories returns array with 10+ categories
+[32m  ✅ PASS[0m [251ms]  GET /api/categories response time < 500ms
+[32m  ✅ PASS[0m [2808ms]  GET /api/items?categoryId=1 returns items
+[36m
+🔐 SUITE: Authentication & Security[0m
+[32m  ✅ PASS[0m [16ms]  Protected routes reject unauthenticated requests with 401
+[32m  ✅ PASS[0m [9ms]  Protected routes reject invalid tokens with 401
+[32m  ✅ PASS[0m [433ms]  Invite validation endpoint exists and rejects bad codes
+[31m  ❌ FAIL[0m [1ms]  Admin routes reject non-admin tokens with 401 or 403
+[31m       → TEST_TOKEN not configured — skipping auth tests[0m
+[36m
+💰 SUITE: Staking System[0m
+[33m  ⚠  Skipping staking tests — TEST_TOKEN not configured[0m
+[36m
+💳 SUITE: Payments[0m
+[33m  ⚠  Skipping payment tests — TEST_TOKEN not configured[0m
+[36m
+🗳  SUITE: Voting[0m
+[33m  ⚠  Skipping vote tests — TEST_TOKEN not configured[0m
+[36m
+🛡  SUITE: Rate Limiting[0m
+[32m  ✅ PASS[0m [75ms]  Rapid-fire requests eventually get rate limited (429)
+[36m
+⏱  SUITE: Epochs[0m
+[32m  ✅ PASS[0m [234ms]  GET /api/epochs/current returns active epoch
+[32m  ✅ PASS[0m [235ms]  Epoch has startTime and endTime fields
+[36m
+👑 SUITE: Admin[0m
+[33m  ⚠  Skipping admin tests — ADMIN_TOKEN not configured[0m
+[36m
+🔥 SUITE: Light Load Simulation (50 concurrent)[0m
+[32m  ✅ PASS[0m [1285ms]  50 concurrent GET /api/categories all return 200
+[32m  ✅ PASS[0m [342ms]  50 concurrent requests complete in under 3 seconds
+[32m  ✅ PASS[0m [1164ms]  100 concurrent requests complete in under 5 seconds
+[1m
+╔══════════════════════════════════════════════════╗[0m
+[1m║   TEST REPORT                                     ║[0m
+[1m╚══════════════════════════════════════════════════╝[0m
+  Total:   14
+  [32mPassed:[0m  13
+  [31mFailed:[0m  1
+  [33mWarned:[0m  0
+  Score:   93%
+[31m
+  ❌ FAILURES:[0m
+[31m  • Admin routes reject non-admin tokens with 401 or 403[0m
+[31m    TEST_TOKEN not configured — skipping auth tests[0m
+[31m
+  🔴 NOT BETA READY — fix failures above first[0m
+
