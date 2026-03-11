@@ -5,7 +5,11 @@ import { useStore } from '../store/useStore';
 import { cn } from '../lib/utils';
 
 export function AlertsPage() {
-    const { notifications, markNotificationAsRead } = useStore();
+    const { notifications, markNotificationAsRead, fetchNotifications, markAllRead } = useStore();
+
+    React.useEffect(() => {
+        fetchNotifications();
+    }, [fetchNotifications]);
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -23,7 +27,10 @@ export function AlertsPage() {
                 </div>
 
                 <div className="flex gap-4">
-                    <button className="px-5 py-2.5 rounded-xl border border-slate-800 text-[10px] font-black uppercase text-slate-500 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-2">
+                    <button
+                        onClick={markAllRead}
+                        className="px-5 py-2.5 rounded-xl border border-slate-800 text-[10px] font-black uppercase text-slate-500 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-2"
+                    >
                         <CheckCircle2 size={14} /> Mark All Read
                     </button>
                     <button className="px-5 py-2.5 rounded-xl border border-slate-800 text-[10px] font-black uppercase text-rose-500 hover:bg-rose-500/10 transition-all flex items-center gap-2">

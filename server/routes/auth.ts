@@ -30,7 +30,7 @@ router.post("/validate-invite", async (req, res) => {
             .where(eq(betaInvites.code, code))
             .limit(1);
 
-        if (invite.length === 0 || invite[0].used) {
+        if (invite.length === 0 || (invite[0].used && !invite[0].isReusable)) {
             return res.status(400).json({ valid: false, message: "Invalid or already used invite code" });
         }
 
@@ -52,10 +52,10 @@ router.post("/redeem-invite", requireAuth, async (req: AuthRequest, res) => {
 
         const { code } = parsed.data;
         const invite = await db.select().from(betaInvites)
-            .where(and(eq(betaInvites.code, code), eq(betaInvites.used, false)))
+            .where(eq(betaInvites.code, code))
             .limit(1);
 
-        if (invite.length === 0) {
+        if (invite.length === 0 || (invite[0].used && !invite[0].isReusable)) {
             return res.status(400).json({ redeemed: false, message: "Code invalid or already redeemed" });
         }
 

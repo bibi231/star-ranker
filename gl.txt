@@ -1,0 +1,5 @@
+bdbccdf feat(web3): remove secrets and update gitignore
+84574d4 feat(web3): integrate wagmi/rainbowkit wallet bindings, update user schema, and fix vercel deployment scripts
+27ee1f0 fix(ui): bottom nav routed paths, market page search bar flex layout stacking, and global currency alignment for power votes transaction logic
+752e31a chore: add vercel and firebase literal domains to cors policy
+4112013 Initial commit with mobile-first UI and Vercel build fix

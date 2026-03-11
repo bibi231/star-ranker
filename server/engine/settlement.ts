@@ -10,7 +10,7 @@
  */
 
 import { db } from "../db/index";
-import { stakes, items, users, marketMeta } from "../db/schema";
+import { stakes, items, users, marketMeta, notifications } from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { sendEmail, templates } from "../lib/email";
 
@@ -134,6 +134,16 @@ export async function settleBets() {
             sendEmail(userEmail, template.subject, template.html)
                 .catch(err => console.error("Settlement email failed:", err));
         }
+
+        // Add in-app notification
+        await db.insert(notifications).values({
+            userId: stake.userId,
+            title: isWin ? "Oracle Alignment Successful" : "Market Divergence Detected",
+            message: isWin
+                ? `Profit reified on ${stake.itemName || 'asset'}. +${actualPayout.toLocaleString()} units credited.`
+                : `Stake on ${stake.itemName || 'asset'} dissolved into the pool. -${stake.amount.toLocaleString()} units.`,
+            type: isWin ? "win" : "loss"
+        });
 
         settledCount++;
         console.log(`[Settlement] Stake #${stake.id}: ${stake.betType} | ${isWin ? "WIN" : "LOSS"} | Payout: ${actualPayout}`);

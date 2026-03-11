@@ -44,7 +44,11 @@ function App() {
   useEffect(() => {
     syncUser();
     useStore.getState().fetchCategories();
-  }, [syncUser]);
+    // Fetch notifications if user is already logged in
+    if (user) {
+      useStore.getState().fetchNotifications();
+    }
+  }, [syncUser, user]);
 
   if (isAuthLoading) {
     return (

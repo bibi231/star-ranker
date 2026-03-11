@@ -37,11 +37,7 @@ export const useStore = create((set, get) => ({
         return `${currencySymbol}${converted.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
     },
 
-    notifications: [
-        { id: 'n1', type: 'security', title: 'AVD Triggered', message: 'Anomalous velocity detected in Bitcoin market. Proportional dampening applied.', read: false },
-        { id: 'n2', type: 'system', title: 'Epoch Reification', message: 'Market snapshots for Epoch #482 have been successfully reified.', read: false },
-        { id: 'n3', type: 'security', title: 'New Login', message: 'New session established from IP 192.168.1.1.', read: true },
-    ],
+    notifications: [],
     votingHistory: [],
     stakes: [],
     items: [],
@@ -307,18 +303,10 @@ export const useStore = create((set, get) => ({
 
     bindWallet: async (walletAddress) => {
         try {
-            const result = await apiPost("/api/auth/bind-wallet", { walletAddress });
-            if (result.success) {
-                const { user } = get();
-                if (user) {
-                    set({ user: { ...user, walletAddress } });
-                }
-                return true;
-            }
-            return false;
+            await apiPost("/api/auth/bind-wallet", { walletAddress });
+            set((state) => ({ user: state.user ? { ...state.user, walletAddress } : null }));
         } catch (error) {
-            console.error("Failed to bind wallet:", error);
-            return false;
+            console.error("Wallet binding failed:", error);
         }
     },
 
@@ -428,9 +416,39 @@ export const useStore = create((set, get) => ({
         }
     },
 
-    markNotificationAsRead: (id) => set(state => ({
-        notifications: state.notifications.map(n => n.id === id ? { ...n, read: true } : n)
-    })),
+    // ===== NOTIFICATIONS =====
+    fetchNotifications: async () => {
+        try {
+            const data = await apiGet("/api/notifications");
+            set({ notifications: data });
+        } catch (error) {
+            console.error("Failed to fetch notifications:", error);
+        }
+    },
+
+    markNotificationAsRead: async (id) => {
+        try {
+            await apiPost(`/api/notifications/${id}/read`);
+            set((state) => ({
+                notifications: state.notifications.map((n) =>
+                    n.id === id ? { ...n, read: true } : n
+                ),
+            }));
+        } catch (error) {
+            console.error("Failed to mark alert as read:", error);
+        }
+    },
+
+    markAllRead: async () => {
+        try {
+            await apiPost("/api/notifications/read-all");
+            set((state) => ({
+                notifications: state.notifications.map((n) => ({ ...n, read: true })),
+            }));
+        } catch (error) {
+            console.error("Failed to mark all alerts as read:", error);
+        }
+    },
 
     login: async () => {
         set({ isAuthLoading: true });

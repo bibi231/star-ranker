@@ -127,6 +127,7 @@ export const betaInvites = pgTable("beta_invites", {
     id: serial("id").primaryKey(),
     code: varchar("code", { length: 20 }).notNull().unique(),
     used: boolean("used").default(false),
+    isReusable: boolean("is_reusable").default(false),
     usedBy: varchar("used_by", { length: 128 }),
     usedAt: timestamp("used_at"),
     createdAt: timestamp("created_at").defaultNow(),
@@ -153,3 +154,15 @@ export const sponsoredItems = pgTable("sponsored_items", {
     active: boolean("active").default(true),
     createdAt: timestamp("created_at").defaultNow(),
 });
+// ===== NOTIFICATIONS PATTERN =====
+export const notifications = pgTable("notifications", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    title: text("title").notNull(),
+    message: text("message").notNull(),
+    type: text("type").default("general"), // general, security, win, loss, epoch
+    read: boolean("read").default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+    index("notifications_user_idx").on(table.userId),
+]);

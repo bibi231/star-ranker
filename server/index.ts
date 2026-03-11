@@ -24,6 +24,7 @@ import leaderboardRouter from "./routes/leaderboard";
 import paymentsRouter from "./routes/payments";
 import withdrawalsRouter from "./routes/withdrawals";
 import authRouter from "./routes/auth";
+import notificationRouter from "./routes/notifications";
 import votePacksRouter from "./routes/votePacks";
 import sponsorshipsRouter from "./routes/sponsorships";
 
@@ -76,6 +77,7 @@ app.use("/api/leaderboard", leaderboardRouter);
 app.use("/api/payments", paymentsRouter);
 app.use("/api/withdrawals", withdrawalsRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/notifications", notificationRouter);
 app.use("/api/vote-packs", votePacksRouter);
 app.use("/api/sponsorships", sponsorshipsRouter);
 
