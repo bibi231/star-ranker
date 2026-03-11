@@ -1,0 +1,35 @@
+remote: error: GH013: Repository rule violations found for refs/heads/main.        
+remote: 
+remote: - GITHUB PUSH PROTECTION        
+remote:   —————————————————————————————————————————        
+remote:     Resolve the following violations before pushing again        
+remote: 
+remote:     - Push cannot contain secrets        
+remote: 
+remote:             
+remote:      (?) Learn how to resolve a blocked push        
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push        
+remote:             
+remote:             
+remote:       —— Google Cloud Service Account Credentials ——————————        
+remote:        locations:        
+remote:          - commit: 0f2617c207434ed883ffc036d51af07a90e2c6ca        
+remote:            path: serviceAccountKey.json:1        
+remote:             
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.        
+remote:        https://github.com/bibi231/star-ranker/security/secret-scanning/unblock-secret/3AlEtAqNvqhd50dXoUnThFlAqDM        
+remote:             
+remote:             
+remote:       —— Sendinblue SMTP Key ———————————————————————————————        
+remote:        locations:        
+remote:          - commit: 0f2617c207434ed883ffc036d51af07a90e2c6ca        
+remote:            path: .env:25        
+remote:             
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.        
+remote:        https://github.com/bibi231/star-ranker/security/secret-scanning/unblock-secret/3AlEt6lsbFLn2879ZnfIzj9Ay1m        
+remote:             
+remote: 
+remote: 
+To https://github.com/bibi231/star-ranker.git
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/bibi231/star-ranker.git'

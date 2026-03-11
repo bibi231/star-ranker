@@ -38,13 +38,19 @@ const app = express();
 const PORT = parseInt(process.env.PORT || "3001");
 
 // Middleware
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://star-ranker-beryl.vercel.app",
+    "https://star-ranker.web.app",
+    process.env.CORS_ORIGIN
+].filter(Boolean);
+
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow any localhost origin in development
-        if (!origin || origin.match(/^https?:\/\/localhost/)) {
+        if (!origin || origin.match(/^https?:\/\/localhost/) || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            callback(null, process.env.CORS_ORIGIN || "http://localhost:5173");
+            callback(new Error('Not allowed by CORS'));
         }
     },
     credentials: true,
