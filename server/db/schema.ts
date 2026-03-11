@@ -110,6 +110,7 @@ export const users = pgTable("users", {
     firebaseUid: text("firebase_uid").notNull().unique(),
     email: text("email"),
     displayName: text("display_name"),
+    walletAddress: varchar("wallet_address", { length: 42 }).unique(),
     balance: real("balance").default(10000), // Starting balance
     reputation: integer("reputation").default(100),
     tier: text("tier").default("Initiate"), // Initiate, Peer, Sage, Oracle

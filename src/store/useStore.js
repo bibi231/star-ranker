@@ -305,6 +305,23 @@ export const useStore = create((set, get) => ({
         }
     },
 
+    bindWallet: async (walletAddress) => {
+        try {
+            const result = await apiPost("/api/auth/bind-wallet", { walletAddress });
+            if (result.success) {
+                const { user } = get();
+                if (user) {
+                    set({ user: { ...user, walletAddress } });
+                }
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error("Failed to bind wallet:", error);
+            return false;
+        }
+    },
+
     vote: async (itemId, direction) => {
         const { user, items, currentCategorySlug, userVotes = {} } = get();
         if (!user) return;

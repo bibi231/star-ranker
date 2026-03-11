@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useAccount, useDisconnect } from 'wagmi';
 import { useStore } from '../store/useStore';
 import { useIsMobile } from '../hooks/useIsMobile';
 import {
@@ -22,10 +23,18 @@ import { cn } from '../lib/utils';
 import { ReferralPanel } from '../components/ReferralPanel';
 
 export function UserDashboard() {
-    const { user, balance, reputation, stakes, reputationHistory, tier, emailVerified, sendVerificationEmail, refreshUser } = useStore();
+    const { user, balance, reputation, stakes, reputationHistory, tier, emailVerified, sendVerificationEmail, refreshUser, bindWallet } = useStore();
     const [isResending, setIsResending] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const isMobile = useIsMobile();
+    const { address, isConnected } = useAccount();
+    const { disconnect } = useDisconnect();
+
+    useEffect(() => {
+        if (isConnected && address && user && user.walletAddress !== address) {
+            bindWallet(address);
+        }
+    }, [isConnected, address, user, bindWallet]);
 
     const handleResendVerification = async () => {
         setIsResending(true);
@@ -183,6 +192,32 @@ export function UserDashboard() {
                             Your account is fully synchronized with the Anomalous Velocity Detection engine. All votes are currently processed with full weight.
                         </p>
                     </div>
+
+                    <SectionBox title="Linked Web3 Identity" icon={<Wallet size={16} />}>
+                        {isConnected ? (
+                            <div className="flex flex-col gap-4">
+                                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col gap-2">
+                                    <div className="text-[10px] text-emerald-500 font-black uppercase flex items-center gap-2">
+                                        <ShieldCheck size={14} /> Wallet Connected
+                                    </div>
+                                    <div className="font-mono text-xs text-white truncate px-1">
+                                        {address}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => disconnect()}
+                                    className="w-full py-3 rounded-xl border border-rose-500/30 text-[10px] font-black uppercase text-rose-500 hover:bg-rose-500/10 transition-all"
+                                >
+                                    Disconnect Wallet
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="text-center py-6 border border-dashed border-slate-800 rounded-2xl">
+                                <Wallet size={24} className="mx-auto text-slate-600 mb-3" />
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">No active Web3 connection. Use the terminal in the navigation bar to connect.</p>
+                            </div>
+                        )}
+                    </SectionBox>
                 </div>
             </div>
         </div>
