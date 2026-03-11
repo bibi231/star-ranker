@@ -33,7 +33,8 @@ export function VotePackModal({ isOpen, onClose }) {
     };
 
     const handlePurchase = async (pack) => {
-        if (balance < pack.priceNgn) {
+        const costUsd = pack.priceNgn / 1500;
+        if (balance < costUsd) {
             setError('Insufficient funds. Please fund your wallet.');
             return;
         }
@@ -133,7 +134,7 @@ export function VotePackModal({ isOpen, onClose }) {
                                             disabled={isPurchasing}
                                             className="px-6 py-3 rounded-xl bg-amber-500 text-slate-950 font-black text-xs uppercase tracking-widest hover:bg-amber-400 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            {formatValue(pack.priceNgn)}
+                                            {formatValue(pack.priceNgn / 1500)}
                                         </button>
                                     </div>
                                 ))}

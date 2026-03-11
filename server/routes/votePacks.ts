@@ -50,15 +50,17 @@ router.post("/purchase", requireAuth, async (req, res) => {
                 return { error: "User not found" };
             }
 
-            if (user.balance < pack.priceNgn) {
+            const costUsd = pack.priceNgn / 1500;
+
+            if (user.balance < costUsd) {
                 return { error: "Insufficient balance to purchase this pack" };
             }
 
             // Deduct balance and add powerVotes
             const [updatedUser] = await tx.update(users)
                 .set({
-                    balance: user.balance - pack.priceNgn,
-                    powerVotes: (user.powerVotes || 0) + pack.votes,
+                    balance: sql`${users.balance} - ${costUsd}`,
+                    powerVotes: sql`${users.powerVotes} + ${pack.votes}`,
                 })
                 .where(eq(users.firebaseUid, userUid))
                 .returning({ balance: users.balance, powerVotes: users.powerVotes });
@@ -71,10 +73,10 @@ router.post("/purchase", requireAuth, async (req, res) => {
 
             const globalMetaSlug = 'platform_global';
             await tx.insert(marketMeta)
-                .values({ categorySlug: globalMetaSlug, totalStaked: 0, platformRevenue: pack.priceNgn })
+                .values({ categorySlug: globalMetaSlug, totalStaked: 0, platformRevenue: costUsd })
                 .onConflictDoUpdate({
                     target: marketMeta.categorySlug,
-                    set: { platformRevenue: db.raw(`${marketMeta.platformRevenue.name} + ${pack.priceNgn}`) }
+                    set: { platformRevenue: sql`${marketMeta.platformRevenue} + ${costUsd}` }
                 });
 
             return { success: true, newPowerVotes: updatedUser.powerVotes, newBalance: updatedUser.balance };

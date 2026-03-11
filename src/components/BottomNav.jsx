@@ -1,10 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BarChart2, Layers, Star, User } from 'lucide-react';
+import { BarChart2, Activity, Award, User } from 'lucide-react';
 
 const tabs = [
     { label: 'Markets', icon: BarChart2, path: '/markets' },
-    { label: 'Stake', icon: Layers, path: '/stake' },
-    { label: 'Rankings', icon: Star, path: '/' },
+    { label: 'Activity', icon: Activity, path: '/activity' },
+    { label: 'Rankings', icon: Award, path: '/leaderboards' },
     { label: 'Profile', icon: User, path: '/dashboard' },
 ];
 

@@ -62,19 +62,19 @@ export function MarketPage() {
                     ))}
                 </div>
 
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-4xl font-black text-white uppercase tracking-tighter">{activeCategory?.title}</h1>
-                            <div className="px-3 py-1 rounded bg-slate-900 border border-brand-accent/20 text-[10px] font-black text-brand-accent uppercase tracking-widest">Live Oracle Feed</div>
+                <div className="flex flex-col md:flex-row justify-between items-start gap-6 mt-4">
+                    <div className="space-y-2 flex-grow">
+                        <div className="flex flex-wrap items-center gap-3">
+                            <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">{activeCategory?.title}</h1>
+                            <div className="px-3 py-1 rounded bg-slate-900 border border-brand-accent/20 text-[10px] font-black text-brand-accent uppercase tracking-widest shrink-0">Live Oracle Feed</div>
                         </div>
                         <p className="text-xs text-slate-500 font-bold max-w-xl leading-relaxed">
                             {activeCategory?.description} Rankings are reified every 30 minutes via the Star Oracle protocol.
                         </p>
                     </div>
 
-                    <div className="flex gap-4 w-full md:w-auto">
-                        <div className="relative flex-1 md:w-64">
+                    <div className="flex flex-col gap-4 w-full md:w-auto shrink-0">
+                        <div className="relative w-full md:w-80">
                             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                             <input
                                 type="text"
@@ -84,7 +84,7 @@ export function MarketPage() {
                                 className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-[10px] font-black uppercase text-white placeholder-slate-700 transition-all focus:ring-1 focus:ring-brand-accent focus:outline-none"
                             />
                         </div>
-                        <div className="flex bg-slate-950 border border-slate-800 rounded-2xl p-1 shrink-0">
+                        <div className="flex bg-slate-950 border border-slate-800 rounded-2xl p-1 w-full md:w-auto overflow-x-auto custom-scrollbar">
                             <FilterButton
                                 active={activeFilter === 'all'}
                                 onClick={() => setActiveFilter('all')}
