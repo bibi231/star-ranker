@@ -42,13 +42,17 @@ function App() {
   } = useStore();
 
   useEffect(() => {
+    // Only call syncUser once on mount
     syncUser();
     useStore.getState().fetchCategories();
-    // Fetch notifications if user is already logged in
+  }, [syncUser]);
+
+  useEffect(() => {
+    // Secondary effects when user profile is ready
     if (user) {
       useStore.getState().fetchNotifications();
     }
-  }, [syncUser, user]);
+  }, [user]);
 
   if (isAuthLoading) {
     return (

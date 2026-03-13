@@ -40,6 +40,9 @@ async function fetchWithRetry(url, options = {}, retries = 2, backoff = 500) {
             clearTimeout(timeoutId);
 
             if (!res.ok) {
+                if (res.status === 429) {
+                    throw new Error("Rate limit exceeded. Please wait a moment.");
+                }
                 const error = await res.json().catch(() => ({ error: res.statusText }));
                 throw new Error(error.error || `API error: ${res.status}`);
             }
@@ -49,6 +52,11 @@ async function fetchWithRetry(url, options = {}, retries = 2, backoff = 500) {
 
             if (err.name === 'AbortError') {
                 err.message = 'Request timed out (10s)';
+            }
+
+            // Stop retrying if rate limited
+            if (err.message === "Rate limit exceeded. Please wait a moment.") {
+                throw err;
             }
 
             if (attempt < retries) {
