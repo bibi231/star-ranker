@@ -1,9 +1,5 @@
-import { Bell } from 'lucide-react';
-import { useStore } from '../store/storeModel';
-import EpochIndicator from './epochs/EpochIndicator';
-
-export default function MobileHeader() {
-    const { balance } = useStore();
+export default function MobileHeader({ onMenuClick, onFundClick }) {
+    const { balance, formatValue } = useStore();
 
     return (
         <header
@@ -12,11 +8,14 @@ export default function MobileHeader() {
                  border-b border-white/10 sticky top-0 z-30 md:hidden'
             style={{ paddingTop: 'var(--safe-top)' }}
         >
-            {/* LEFT: Logo */}
-            <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-[#0D1B2A] font-black text-xl leading-none">
-                    ★
-                </div>
+            {/* LEFT: Menu Toggle */}
+            <div className="flex items-center gap-3">
+                <button
+                    onClick={onMenuClick}
+                    className="p-2 -ml-2 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-slate-400"
+                >
+                    <Menu size={20} />
+                </button>
             </div>
 
             {/* CENTER: Compact Epoch Indicator */}
@@ -26,18 +25,23 @@ export default function MobileHeader() {
                 </div>
             </div>
 
-            {/* RIGHT: Balance & Notifications */}
-            <div className="flex items-center gap-3">
-                <div className="text-right">
-                    <p className="text-[10px] text-gray-400 uppercase tracking-widest leading-none mb-1">balance</p>
+            {/* RIGHT: Balance & Actions */}
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={onFundClick}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-[10px] uppercase tracking-wider"
+                >
+                    Fund
+                </button>
+                <div className="text-right ml-1">
                     <div className="font-mono text-sm font-bold text-[#C9A84C] leading-none">
-                        ₦{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatValue(balance)}
                     </div>
                 </div>
-                <button className="relative p-2 rounded-full hover:bg-white/5 active:bg-white/10 transition-colors">
-                    <Bell size={18} className="text-gray-300" />
-                </button>
             </div>
         </header>
     );
 }
+
+// Add Menu import
+import { Bell, Menu } from 'lucide-react';

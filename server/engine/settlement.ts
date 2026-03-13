@@ -57,16 +57,21 @@ export async function settleBets() {
         const actualRank = itemResult[0].rank ?? 999;
         let isWin = false;
 
+        const target: any = stake.target;
+
         if (stake.betType === "exact") {
-            isWin = actualRank === stake.target;
+            const targetVal = typeof target === 'number' ? target : parseInt(target);
+            isWin = actualRank === targetVal;
         } else if (stake.betType === "range") {
-            isWin = Math.abs(actualRank - stake.target) <= 2;
+            // Target is {min, max}
+            isWin = actualRank >= target.min && actualRank <= target.max;
         } else if (stake.betType === "directional") {
+            // Target is {dir: 'up'|'down', k: number}
             const initial = stake.initialRank || 50;
-            if (stake.target < initial) {
-                isWin = actualRank <= stake.target;
+            if (target.dir === 'up') {
+                isWin = actualRank <= (initial - target.k);
             } else {
-                isWin = actualRank >= stake.target;
+                isWin = actualRank >= (initial + target.k);
             }
         }
 

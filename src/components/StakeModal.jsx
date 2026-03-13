@@ -115,7 +115,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
 
     // Extract the shared body and footer content
     const ModalContent = (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col">
             {/* Body */}
             <div className="p-6 md:p-8 space-y-8 flex-1">
                 {/* Item Context */}
@@ -190,16 +190,17 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                                     <Target size={12} className="text-blue-500" /> Pred. Rank
                                 </label>
                                 <div className="relative">
-                                    <select
+                                    <input
+                                        type="number"
+                                        inputMode="numeric"
                                         value={targetRank}
+                                        min="1"
+                                        max="1000"
                                         onChange={(e) => setTargetRank(e.target.value)}
-                                        className="w-full bg-slate-950 border border-white/5 rounded-2xl px-6 py-4 text-xl font-mono font-black text-white focus:outline-none focus:border-blue-500/50 appearance-none cursor-pointer shadow-inner touch-target"
-                                    >
-                                        {[1, 2, 3, 5, 10, 25, 50].map(r => (
-                                            <option key={r} value={r}>#{r}</option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={20} />
+                                        className="w-full bg-slate-950 border border-white/5 rounded-2xl pl-10 pr-4 py-4 text-xl font-mono font-black text-white focus:outline-none focus:border-blue-500/50 shadow-inner touch-target"
+                                        placeholder="Target #"
+                                    />
+                                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-lg font-black">#</span>
                                 </div>
                             </>
                         )}
@@ -378,7 +379,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
             </div>
 
             {/* Footer Controls */}
-            <div className="p-6 md:p-8 pt-0 flex gap-4 shrink-0">
+            <div className="p-6 md:p-8 pt-0 flex gap-4 shrink-0 mb-8 md:mb-0">
                 <button
                     onClick={onClose}
                     className="flex-1 min-h-[56px] py-4 rounded-3xl border border-white/5 text-[10px] font-black uppercase text-slate-500 hover:text-white hover:bg-white/5 transition-all outline-none active:scale-[0.97]"

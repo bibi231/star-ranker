@@ -51,10 +51,8 @@ export function MarketPage() {
                             key={cat.id}
                             onClick={() => navigate(`/category/${cat.slug}`)}
                             className={cn(
-                                "px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                                currentCategorySlug === cat.slug
-                                    ? "bg-brand-accent text-slate-950 shadow-lg shadow-brand-accent/20"
-                                    : "text-slate-500 hover:text-white"
+                                "px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all",
+                                cat.slug === currentCategorySlug ? "bg-slate-800 text-white" : "text-slate-600 hover:text-slate-400"
                             )}
                         >
                             {cat.title}
@@ -65,8 +63,8 @@ export function MarketPage() {
                 <div className="flex flex-col md:flex-row justify-between items-start gap-6 mt-4">
                     <div className="space-y-2 flex-grow">
                         <div className="flex flex-wrap items-center gap-3">
-                            <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">{activeCategory?.title}</h1>
-                            <div className="px-3 py-1 rounded bg-slate-900 border border-brand-accent/20 text-[10px] font-black text-brand-accent uppercase tracking-widest shrink-0">Live Oracle Feed</div>
+                            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter">{activeCategory?.title}</h1>
+                            <div className="px-3 py-1 rounded bg-slate-900 border border-brand-accent/20 text-[10px] font-black text-brand-accent tracking-widest shrink-0">Live Oracle Feed</div>
                         </div>
                         <p className="text-xs text-slate-500 font-bold max-w-xl leading-relaxed">
                             {activeCategory?.description} Rankings are reified every 30 minutes via the Star Oracle protocol.
@@ -81,7 +79,7 @@ export function MarketPage() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search inventory..."
-                                className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-[10px] font-black uppercase text-white placeholder-slate-700 transition-all focus:ring-1 focus:ring-brand-accent focus:outline-none"
+                                className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-[10px] font-black text-white placeholder-slate-700 transition-all focus:ring-1 focus:ring-brand-accent focus:outline-none"
                             />
                         </div>
                         <div className="flex bg-slate-950 border border-slate-800 rounded-2xl p-1 w-full md:w-auto overflow-x-auto custom-scrollbar">
@@ -143,7 +141,7 @@ function FilterButton({ active, onClick, icon, label }) {
         <button
             onClick={onClick}
             className={cn(
-                "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all",
+                "px-4 py-2 rounded-xl text-[10px] font-black tracking-widest flex items-center gap-2 transition-all",
                 active ? "bg-slate-800 text-white" : "text-slate-600 hover:text-slate-400"
             )}
         >

@@ -1,7 +1,7 @@
 import express from "express";
 import { db } from "../db/index";
 import { votePacks, users, marketMeta } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { requireAuth } from "../middleware/auth";
 import { z } from "zod";
 
@@ -24,15 +24,15 @@ const purchaseSchema = z.object({
     packId: z.number().int().positive(),
 });
 
-router.post("/purchase", requireAuth, async (req, res) => {
+router.post("/purchase", requireAuth, async (req: any, res) => {
     try {
         const result = purchaseSchema.safeParse(req.body);
         if (!result.success) {
-            return res.status(400).json({ error: "Invalid payload", details: result.error.errors });
+            return res.status(400).json({ error: "Invalid payload", details: result.error.flatten().fieldErrors });
         }
 
         const { packId } = result.data;
-        const userUid = req.user!.uid;
+        const userUid = req.uid;
 
         // Fetch pack
         const pack = await db.query.votePacks.findFirst({
@@ -52,7 +52,7 @@ router.post("/purchase", requireAuth, async (req, res) => {
 
             const costUsd = pack.priceNgn / 1500;
 
-            if (user.balance < costUsd) {
+            if ((user.balance || 0) < costUsd) {
                 return { error: "Insufficient balance to purchase this pack" };
             }
 

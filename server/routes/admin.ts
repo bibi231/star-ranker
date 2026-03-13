@@ -1,17 +1,29 @@
 import { Router } from "express";
 import { db } from "../db/index";
-import { categories, items, epochs, marketMeta, users, stakes } from "../db/schema";
+import { categories, items, epochs, marketMeta, users, stakes, betaInvites } from "../db/schema";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { eq, sql, count } from "drizzle-orm";
 import { settleBets } from "../engine/settlement";
 import { sendEmail, templates } from "../lib/email";
+import { reifyRankings } from "../engine/rankingEngine";
 import { CATEGORIES, SEED_ITEMS } from "../data/seedData";
 
 const router = Router();
 
+// Helper to check for Super Admin bypass
+const isSuperAdmin = (email: string | undefined) => email === 'peterjohn2343@gmail.com';
+
 // POST /api/admin/seed — Seed database with initial data
 router.post("/seed", requireAuth, async (req: AuthRequest, res) => {
     try {
+        // Log actor
+        console.log(`Admin action: SEED by ${req.userEmail}`);
+
+        // Check permission (must be Oracle OR Super Admin)
+        const caller = await db.select().from(users).where(eq(users.firebaseUid, req.uid!)).limit(1);
+        if (!isSuperAdmin(req.userEmail) && caller[0]?.tier !== 'Oracle') {
+            return res.status(403).json({ error: "Access Denied: Level 4 Clearance Required" });
+        }
 
         let itemCount = 0;
 
@@ -60,6 +72,12 @@ router.post("/seed", requireAuth, async (req: AuthRequest, res) => {
             duration: epochDuration,
         }).onConflictDoNothing();
 
+        // Seed re-usable beta invite code
+        await db.insert(betaInvites).values({
+            code: "BETA2026",
+            isReusable: true
+        }).onConflictDoNothing();
+
         // Upsert market meta
         for (const cat of CATEGORIES) {
             await db.insert(marketMeta).values({
@@ -76,8 +94,8 @@ router.post("/seed", requireAuth, async (req: AuthRequest, res) => {
         await db.insert(users).values({
             firebaseUid: req.uid!,
             email: req.userEmail || null,
-            balance: 10000,
-            reputation: 1000,
+            balance: 0,
+            reputation: 100,
             tier: "Oracle",
         }).onConflictDoNothing();
 
@@ -89,12 +107,30 @@ router.post("/seed", requireAuth, async (req: AuthRequest, res) => {
 });
 
 // POST /api/admin/settle — Manually trigger stake settlement
-router.post("/settle", requireAuth, async (_req, res) => {
+router.post("/settle", requireAuth, async (req: AuthRequest, res) => {
     try {
+        if (!isSuperAdmin(req.userEmail)) {
+            const caller = await db.select().from(users).where(eq(users.firebaseUid, req.uid!)).limit(1);
+            if (caller[0]?.tier !== 'Oracle') return res.status(403).json({ error: "Unauthorized" });
+        }
+
         const result = await settleBets();
+        // Also reify rankings after manual settle
+        await reifyRankings();
         res.json(result);
     } catch (error: any) {
         console.error("Settle error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/admin/reify — Manually trigger ranking reification
+router.post("/reify", requireAuth, async (_req, res) => {
+    try {
+        await reifyRankings();
+        res.json({ success: true, message: "Rankings reified across all categories" });
+    } catch (error: any) {
+        console.error("Reify error:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -121,38 +157,51 @@ router.get("/stats", requireAuth, async (_req, res) => {
 // GET /api/admin/users/me — Get or create user profile
 router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
     try {
+        const email = req.userEmail;
         let user = await db.select().from(users).where(eq(users.firebaseUid, req.uid!)).limit(1);
 
         if (user.length === 0) {
-            // Extract optional referral code from query
+            // ... (keep referral code logic)
             const referredBy = typeof req.query.ref === "string" ? req.query.ref.trim() : null;
-
-            // Generate unique 8-char referral code
             const referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
 
-            // Auto-create user on first visit
+            // Super admin gets Oracle tier by default
+            const initialTier = isSuperAdmin(email) ? "Oracle" : "Initiate";
+            const initialRep = isSuperAdmin(email) ? 1000 : 100;
+
             const newUser = await db.insert(users).values({
                 firebaseUid: req.uid!,
-                email: req.userEmail || null,
-                balance: 10000,
-                reputation: 100,
-                tier: "Initiate",
+                email: email || null,
+                balance: 0,
+                reputation: initialRep,
+                tier: initialTier,
+                isAdmin: isSuperAdmin(email),
                 referralCode,
                 referredBy,
             }).returning();
             user = newUser;
-
-            // Send welcome email (asynchronous, don't block response)
-            if (newUser[0].email) {
-                sendEmail(newUser[0].email, templates.welcome(newUser[0].email).subject, templates.welcome(newUser[0].email).html)
-                    .catch(err => console.error("Welcome email failed:", err));
+        } else {
+            // Update existing user if super admin
+            if (isSuperAdmin(email) && !user[0].isAdmin) {
+                const updated = await db.update(users)
+                    .set({ isAdmin: true, tier: 'Oracle' })
+                    .where(eq(users.firebaseUid, req.uid!))
+                    .returning();
+                user = updated;
             }
         }
 
-        res.json(user[0]);
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+        // Send welcome email (asynchronous, don't block response)
+        if (newUser[0].email) {
+            sendEmail(newUser[0].email, templates.welcome(newUser[0].email).subject, templates.welcome(newUser[0].email).html)
+                .catch(err => console.error("Welcome email failed:", err));
+        }
     }
+
+        res.json(user[0]);
+} catch (error: any) {
+    res.status(500).json({ error: error.message });
+}
 });
 
 // POST /api/admin/test-email — Test SMTP configuration

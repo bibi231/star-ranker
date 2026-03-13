@@ -23,21 +23,33 @@ const router = Router();
  */
 function calculateBaseProbability(
     physics: { momentum: number; velocity: number; volatility: number; currentRank: number },
-    target: number,
+    target: any,
     betType: string,
     timeRemaining: number
 ): number {
     const { momentum, velocity, volatility, currentRank } = physics;
-    const rankDelta = Math.abs(target - currentRank);
+
+    let targetRankValue = 50;
+    if (betType === "exact") {
+        targetRankValue = typeof target === 'number' ? target : parseInt(target);
+    } else if (betType === "range") {
+        const mid = (target.min + target.max) / 2;
+        targetRankValue = mid;
+    } else if (betType === "directional") {
+        targetRankValue = target.dir === 'up' ? currentRank - (target.k || 1) : currentRank + (target.k || 1);
+    }
+
+    const rankDelta = Math.abs(targetRankValue - currentRank);
 
     let pBase: number;
     if (betType === "exact") {
         pBase = Math.max(0.01, 0.5 * Math.exp(-rankDelta * 0.15));
     } else if (betType === "range") {
+        // Ranges have higher probability than exact numbers
         pBase = Math.max(0.05, 0.7 * Math.exp(-rankDelta * 0.08));
     } else {
         // directional
-        const movingRight = (target > currentRank && velocity > 0) || (target < currentRank && velocity < 0);
+        const movingRight = (target.dir === 'up' && velocity < 0) || (target.dir === 'down' && velocity > 0);
         pBase = movingRight
             ? Math.min(0.85, 0.5 + Math.abs(velocity) * 0.02 + momentum * 0.01)
             : Math.max(0.05, 0.3 - Math.abs(velocity) * 0.01);
@@ -77,9 +89,11 @@ function generateOddsQuote(
 // GET /api/stakes/odds — Get live odds quote
 router.get("/odds", [requireAuth, requireStakeAccess], async (req: AuthRequest, res) => {
     try {
+        console.log("[STAKE_ODDS] Request Query:", req.query);
         const { itemDocId, amount, target, categorySlug, betType } = req.query;
 
         if (!itemDocId || !amount || !target || !categorySlug || !betType) {
+            console.warn("[STAKE_ODDS] Missing required params:", { itemDocId, amount, target, categorySlug, betType });
             return res.status(400).json({ error: "Missing required params" });
         }
 
@@ -98,6 +112,18 @@ router.get("/odds", [requireAuth, requireStakeAccess], async (req: AuthRequest, 
         if (epochResult.length === 0) return res.status(400).json({ error: "No active epoch" });
         const timeRemaining = epochResult[0].endTime.getTime() - Date.now();
 
+        let parsedTarget: any = target;
+        try {
+            // Attempt to parse JSON if it's a stringified object (from frontend apiGet)
+            if (typeof target === "string" && (target.startsWith("{") || target.startsWith("["))) {
+                parsedTarget = JSON.parse(target);
+            } else if (typeof target === "string") {
+                parsedTarget = parseInt(target);
+            }
+        } catch (e) {
+            parsedTarget = parseInt(target as string);
+        }
+
         const pBase = calculateBaseProbability(
             {
                 momentum: item.momentum ?? 0,
@@ -105,7 +131,7 @@ router.get("/odds", [requireAuth, requireStakeAccess], async (req: AuthRequest, 
                 volatility: item.volatility ?? 5,
                 currentRank: item.rank ?? 50,
             },
-            parseInt(target as string),
+            parsedTarget,
             betType as string,
             timeRemaining
         );
@@ -126,9 +152,11 @@ router.get("/odds", [requireAuth, requireStakeAccess], async (req: AuthRequest, 
 // POST /api/stakes — Place a stake
 router.post("/", [requireAuth, requireStakeAccess], async (req: AuthRequest, res) => {
     try {
+        console.log("[STAKE_POST] Request Body:", req.body);
         // ===== ZOD VALIDATION =====
         const parsed = stakeSchema.safeParse(req.body);
         if (!parsed.success) {
+            console.error("[STAKE_POST] Validation failed:", parsed.error.flatten().fieldErrors);
             return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten().fieldErrors });
         }
         const { itemDocId, amount, target, categorySlug, itemName, betType, quotedEpoch } = parsed.data;

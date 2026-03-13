@@ -99,6 +99,20 @@ function App() {
               </EmailVerificationGuard>
             ) : <Navigate to="/signin" replace />
           } />
+          <Route path="/portfolio" element={
+            user ? (
+              <EmailVerificationGuard>
+                <DashboardPage />
+              </EmailVerificationGuard>
+            ) : <Navigate to="/signin" replace />
+          } />
+          <Route path="/profile/me" element={
+            user ? (
+              <EmailVerificationGuard>
+                <UserProfilePage />
+              </EmailVerificationGuard>
+            ) : <Navigate to="/signin" replace />
+          } />
           <Route path="/settings" element={
             user ? (
               <EmailVerificationGuard>
@@ -109,10 +123,10 @@ function App() {
           <Route path="/profile/:username" element={<UserProfilePage />} />
 
           {/* Operational Overwatch (Admin) */}
-          <Route path="/admin" element={user && tier === 'Oracle' ? <AdminPage /> : <Navigate to="/markets" replace />} />
-          <Route path="/admin/zmg" element={user && tier === 'Oracle' ? <AdminZMGPage /> : <Navigate to="/markets" replace />} />
+          <Route path="/admin" element={user && user.isAdmin ? <AdminPage /> : <Navigate to="/markets" replace />} />
+          <Route path="/admin/zmg" element={user && user.isAdmin ? <AdminZMGPage /> : <Navigate to="/markets" replace />} />
           <Route path="/admin/ops" element={user && (user.isAdmin || user.isModerator) ? <AdminOpsPage /> : <Navigate to="/markets" replace />} />
-          <Route path="/health" element={user ? <HealthPage /> : <Navigate to="/markets" replace />} />
+          <Route path="/health" element={user && user.isAdmin ? <HealthPage /> : <Navigate to="/markets" replace />} />
         </Route>
 
         {/* Global Fallback */}

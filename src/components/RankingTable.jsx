@@ -25,7 +25,7 @@ export function RankingTable() {
             <div className="w-full border border-slate-800 rounded-3xl bg-slate-900 shadow-2xl overflow-hidden">
                 <div className="flex items-center justify-center flex-col gap-4 py-32">
                     <Loader2 className="w-8 h-8 text-brand-accent animate-spin" />
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Synchronizing Oracle Data...</span>
+                    <span className="text-[10px] font-black text-slate-500 tracking-[0.2em]">Synchronizing Oracle Data...</span>
                 </div>
             </div>
         );
@@ -36,7 +36,7 @@ export function RankingTable() {
             <div className="w-full border border-slate-800 rounded-3xl bg-slate-900 shadow-2xl overflow-hidden">
                 <div className="flex items-center justify-center flex-col gap-4 py-32">
                     <Star size={32} className="text-slate-700" />
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">No items found in this category</span>
+                    <span className="text-[10px] font-black text-slate-500 tracking-[0.2em]">No items found in this category</span>
                 </div>
             </div>
         );
@@ -56,11 +56,11 @@ export function RankingTable() {
         <div className="w-full border border-slate-800 rounded-3xl bg-slate-900 shadow-2xl overflow-hidden flex flex-col">
             {/* Desktop Table Header */}
             <div className="hidden md:flex items-center px-6 py-4 bg-slate-950/50 border-b border-slate-800 shrink-0">
-                <div className="w-16 shrink-0 text-center font-black text-[9px] text-slate-500 uppercase tracking-widest">Rank</div>
-                <div className="flex-1 font-black text-[9px] text-slate-500 uppercase tracking-widest">Oracle Context</div>
-                <div className="w-28 shrink-0 text-right font-black text-[9px] text-slate-500 uppercase tracking-widest">Score</div>
-                <div className="w-28 shrink-0 text-right pr-4 font-black text-[9px] text-slate-500 uppercase tracking-widest">Velocity</div>
-                <div className="w-40 shrink-0 text-center font-black text-[9px] text-slate-500 uppercase tracking-widest">Operations</div>
+                <div className="w-16 shrink-0 text-center font-black text-[9px] text-slate-500 tracking-widest">Rank</div>
+                <div className="flex-1 font-black text-[9px] text-slate-500 tracking-widest">Oracle Context</div>
+                <div className="w-28 shrink-0 text-right font-black text-[9px] text-slate-500 tracking-widest">Score</div>
+                <div className="w-28 shrink-0 text-right pr-4 font-black text-[9px] text-slate-500 tracking-widest">Velocity</div>
+                <div className="w-40 shrink-0 text-center font-black text-[9px] text-slate-500 tracking-widest">Operations</div>
             </div>
 
             {/* Scrollable Item List */}
@@ -100,11 +100,11 @@ export function RankingTable() {
                                     </div>
                                     <div className="flex flex-col min-w-0">
                                         <div className="flex items-center gap-1.5 min-w-0">
-                                            <span className="font-black text-white uppercase tracking-tight text-xs truncate">{item.name}</span>
+                                            <span className="font-black text-white tracking-tight text-xs truncate">{item.name}</span>
                                             {item.symbol && <span className="text-[8px] text-slate-600 font-bold">{item.symbol}</span>}
                                             {item.isSponsored && (
                                                 <div className="px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/30 rounded flex items-center gap-1 shrink-0 animate-pulse">
-                                                    <span className="text-[7px] font-black text-amber-500 uppercase tracking-widest">{item.sponsorLabel || 'SPONSORED'}</span>
+                                                    <span className="text-[7px] font-black text-amber-500 tracking-widest">{item.sponsorLabel || 'SPONSORED'}</span>
                                                 </div>
                                             )}
                                             {item.isDampened && (
@@ -112,7 +112,7 @@ export function RankingTable() {
                                             )}
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest shrink-0">Vol: {item.totalVotes?.toLocaleString()}</span>
+                                            <span className="text-[8px] text-slate-500 font-black tracking-widest shrink-0">Vol: {item.totalVotes?.toLocaleString()}</span>
                                             <Sparkline data={item.trend} color={item.velocity >= 0 ? "#10b981" : "#ef4444"} />
                                         </div>
                                     </div>
@@ -169,7 +169,7 @@ export function RankingTable() {
                                     </div>
                                     <button
                                         onClick={() => openModal('stake', item)}
-                                        className="h-8 px-3 rounded-lg bg-emerald-500 text-slate-950 font-black text-[9px] uppercase tracking-widest hover:bg-white hover:scale-105 transition-all shadow-lg shadow-emerald-500/10 flex items-center gap-1.5"
+                                        className="h-8 px-3 rounded-lg bg-emerald-500 text-slate-950 font-black text-[9px] tracking-widest hover:bg-white hover:scale-105 transition-all shadow-lg shadow-emerald-500/10 flex items-center gap-1.5"
                                     >
                                         <Zap size={12} fill="currentColor" />
                                         Stake
@@ -240,7 +240,7 @@ export function RankingTable() {
                                     </button>
                                     <button
                                         onClick={() => openModal('stake', item)}
-                                        className="h-8 px-2.5 rounded-lg bg-emerald-500 text-slate-950 font-black text-[8px] uppercase tracking-wider active:scale-95 transition-all flex items-center gap-1"
+                                        className="h-8 px-2.5 rounded-lg bg-emerald-500 text-slate-950 font-black text-[8px] tracking-wider active:scale-95 transition-all flex items-center gap-1"
                                     >
                                         <Zap size={10} fill="currentColor" />
                                         Stake
@@ -253,7 +253,7 @@ export function RankingTable() {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-2 bg-slate-950 border-t border-slate-800 flex justify-between items-center text-[8px] font-black text-slate-600 uppercase tracking-widest">
+            <div className="px-6 py-2 bg-slate-950 border-t border-slate-800 flex justify-between items-center text-[8px] font-black text-slate-600 tracking-widest">
                 <span>Rendering {items.length} Units</span>
                 <span className="flex items-center gap-1">
                     <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />

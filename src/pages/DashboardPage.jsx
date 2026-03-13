@@ -23,7 +23,7 @@ import { cn } from '../lib/utils';
 import { ReferralPanel } from '../components/ReferralPanel';
 
 export function UserDashboard() {
-    const { user, balance, reputation, stakes, reputationHistory, tier, emailVerified, sendVerificationEmail, refreshUser, bindWallet } = useStore();
+    const { user, balance, reputation, stakes, reputationHistory, tier, emailVerified, sendVerificationEmail, refreshUser, bindWallet, formatValue } = useStore();
     const [isResending, setIsResending] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const isMobile = useIsMobile();
@@ -36,185 +36,142 @@ export function UserDashboard() {
         }
     }, [isConnected, address, user, bindWallet]);
 
-    const handleResendVerification = async () => {
-        setIsResending(true);
-        try {
-            await sendVerificationEmail();
-        } finally {
-            setIsResending(false);
-        }
-    };
-
-    const handleRefreshStatus = async () => {
-        setIsRefreshing(true);
-        try {
-            await refreshUser();
-        } finally {
-            setIsRefreshing(false);
-        }
-    };
-
     return (
-        <div className="p-4 md:p-8 space-y-6 md:space-y-8 bg-[#020617] min-h-screen">
+        <div className="p-4 md:p-8 space-y-8 md:space-y-12 bg-[#020617] min-h-screen">
 
             {/* Header / Stats Bar */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-4">
-                <div className="space-y-2">
-                    <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">Oracle Portfolio</h1>
-                    <p className="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-widest leading-none">Session established: {new Date().toLocaleDateString()}</p>
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 mb-4">
+                <div className="space-y-3">
+                    <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-none">Oracle Portfolio</h1>
+                    <p className="text-[10px] md:text-xs text-slate-500 font-black uppercase tracking-[0.25em] leading-none opacity-80">
+                        Session established: {new Date().toLocaleDateString()}
+                    </p>
                 </div>
 
-                <div className="flex flex-wrap gap-3 md:gap-4 w-full md:w-auto">
-                    <StatCard label="Available Capital" value={`$${balance.toLocaleString()}`} icon={<Wallet size={16} />} color="text-emerald-400" />
-                    <StatCard label="Oracle Reputation" value={reputation.toLocaleString()} icon={<Star size={16} />} color="text-amber-400" />
+                <div className="flex flex-wrap gap-4 md:gap-6 w-full lg:w-auto">
+                    <StatCard label="Available Capital" value={formatValue(balance)} icon={<Wallet size={16} />} color="text-emerald-400" />
+                    <StatCard label="Oracle Reputation" value={reputation.toLocaleString()} icon={<Star size={16} />} color="text-[#C9A84C]" />
                     <StatCard label="Identity Tier" value={tier} icon={<ShieldCheck size={16} />} color="text-brand-accent" />
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 md:gap-10">
                 {/* Left Col: Active Stakes & Portfolio */}
-                <div className="lg:col-span-2 space-y-6 md:space-y-8">
+                <div className="xl:col-span-2 space-y-8 md:space-y-12">
                     {/* Active Stakes */}
                     <SectionBox title="Active Deployments" icon={<Briefcase size={16} />}>
                         {stakes.length > 0 ? (
-                            isMobile ? (
-                                <div className="space-y-3">
-                                    {stakes.map(stake => (
-                                        <div key={stake.id} className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-emerald-500">
-                                                    <Zap size={14} fill="currentColor" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="text-xs font-black text-white uppercase truncate">{stake.itemName}</div>
-                                                    <div className="text-[10px] text-slate-500 font-bold uppercase">Target: #{stake.targetRank}</div>
-                                                </div>
-                                            </div>
-                                            <div className="flex justify-between items-center bg-slate-900 p-3 rounded-xl border border-slate-800/50">
-                                                <div>
-                                                    <div className="text-[9px] text-slate-500 font-black uppercase mb-0.5">Magnitude</div>
-                                                    <div className="font-mono text-sm font-bold text-slate-300">${stake.amount.toLocaleString()}</div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="text-[9px] text-emerald-500/70 font-black uppercase mb-0.5">Est Yield</div>
-                                                    <div className="font-mono text-sm font-black text-emerald-400">+{((stake.amount * stake.odds) - stake.amount).toFixed(2)}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left">
-                                        <thead>
-                                            <tr className="border-b border-slate-800 text-[10px] font-black text-slate-500 uppercase">
-                                                <th className="py-4">Market Item</th>
-                                                <th className="py-4 text-right">Magnitude</th>
-                                                <th className="py-4 text-right">Target Rank</th>
-                                                <th className="py-4 text-right">Est. Yield</th>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="border-b border-white/5 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                            <th className="py-4">Market Item</th>
+                                            <th className="py-4 text-right">Magnitude</th>
+                                            <th className="py-4 text-right">Target</th>
+                                            <th className="py-4 text-right">Est. Yield</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {stakes.map(stake => (
+                                            <tr key={stake.id} className="group hover:bg-white/[0.02] transition-colors">
+                                                <td className="py-5 flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-slate-950 border border-white/10 flex items-center justify-center text-slate-600 group-hover:border-brand-accent/30 transition-all">
+                                                        <Zap size={16} fill="currentColor" className="text-emerald-500" />
+                                                    </div>
+                                                    <span className="text-xs font-black text-white uppercase tracking-tight">{stake.itemName}</span>
+                                                </td>
+                                                <td className="py-5 text-right font-mono text-xs font-black text-slate-300">{formatValue(stake.amount)}</td>
+                                                <td className="py-5 text-right font-mono text-xs font-black text-brand-accent">#{stake.targetRank}</td>
+                                                <td className="py-5 text-right font-mono text-xs font-black text-emerald-400">+{formatValue((stake.amount * stake.odds) - stake.amount)}</td>
                                             </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-800/50">
-                                            {stakes.map(stake => (
-                                                <tr key={stake.id} className="group hover:bg-slate-800/20 transition-colors">
-                                                    <td className="py-4 flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-600 group-hover:border-brand-accent/30 transition-all">
-                                                            <Zap size={14} fill="currentColor" className="text-emerald-500" />
-                                                        </div>
-                                                        <span className="text-xs font-black text-white uppercase">{stake.itemName}</span>
-                                                    </td>
-                                                    <td className="py-4 text-right font-mono text-xs font-bold text-slate-300">${stake.amount.toLocaleString()}</td>
-                                                    <td className="py-4 text-right font-mono text-xs font-black text-brand-accent">#{stake.targetRank}</td>
-                                                    <td className="py-4 text-right font-mono text-xs font-black text-emerald-400">+{((stake.amount * stake.odds) - stake.amount).toFixed(2)}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         ) : (
-                            <div className="py-12 md:py-16 text-center border-2 border-dashed border-slate-900 rounded-3xl">
-                                <Zap size={32} className="mx-auto text-slate-800 mb-4" />
-                                <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest px-4">No active market participation detected.</p>
+                            <div className="py-24 text-center border-2 border-dashed border-white/5 rounded-[2.5rem]">
+                                <Zap size={40} className="mx-auto text-slate-800 mb-6 opacity-20" />
+                                <p className="text-[11px] font-black text-slate-700 uppercase tracking-[0.3em]">No active market participation detected.</p>
                             </div>
                         )}
                     </SectionBox>
 
-                    {/* Analytics / Reputation Chart (Placeholder for visual) */}
+                    {/* Reputation Velocity Chart */}
                     <SectionBox title="Reputation Velocity" icon={<TrendingUp size={16} />}>
-                        <div className="h-48 flex items-end gap-1 px-4">
-                            {[40, 60, 45, 70, 85, 90, 80, 75, 95, 100, 85, 110, 120].map((h, i) => (
+                        <div className="h-56 flex items-end gap-1.5 px-2">
+                            {[40, 60, 45, 70, 85, 90, 80, 75, 95, 100, 85, 110, 120, 105, 90, 115, 130].map((h, i) => (
                                 <motion.div
                                     key={i}
                                     initial={{ height: 0 }}
-                                    animate={{ height: `${h}%` }}
-                                    className="flex-1 bg-gradient-to-t from-brand-accent/5 via-brand-accent/20 to-brand-accent rounded-t-sm"
+                                    animate={{ height: `${(h / 140) * 100}%` }}
+                                    transition={{ delay: i * 0.03 }}
+                                    className="flex-1 bg-gradient-to-t from-[#1E3A5F]/10 via-[#38bdf8]/40 to-[#38bdf8] rounded-t-sm"
                                 />
                             ))}
                         </div>
                     </SectionBox>
                 </div>
 
-                {/* Right Col: Activity & Identity */}
-                <div className="space-y-8">
+                {/* Right Col: Identity & History */}
+                <div className="space-y-8 md:space-y-12">
                     <SectionBox title="Influence Archive" icon={<History size={16} />}>
-                        <div className="space-y-6">
+                        <div className="space-y-8">
                             {[1, 2, 3, 4, 5].map(i => (
                                 <div key={i} className="flex gap-4 items-start group">
-                                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-brand-accent transition-all shrink-0" />
-                                    <div className="space-y-1">
-                                        <p className="text-[11px] font-bold text-slate-300 leading-tight">
-                                            Executed rank up command on <span className="text-white underline decoration-brand-accent/20">Bitcoin</span> in global market.
+                                    <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-800 group-hover:bg-[#C9A84C] transition-all shrink-0 shadow-[0_0_8px_rgba(201,168,76,0.3)]" />
+                                    <div className="space-y-1.5">
+                                        <p className="text-[11px] font-bold text-slate-300 leading-tight uppercase tracking-tight">
+                                            Executed rank up command on <span className="text-white border-b border-brand-accent/30">Bitcoin</span> in global market.
                                         </p>
-                                        <p className="text-[10px] font-mono text-slate-600 font-bold uppercase tracking-tighter">04:22:15 UTC • BATCH #482</p>
+                                        <p className="text-[9px] font-mono text-slate-600 font-black uppercase tracking-widest">04:22:15 UTC • BATCH #482</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <button className="w-full mt-6 py-3 rounded-xl border border-slate-800 text-[10px] font-black uppercase text-slate-500 hover:text-white transition-all flex items-center justify-center gap-2">
-                            View Full Logs <ChevronRight size={12} />
+                        <button className="w-full mt-8 py-4 rounded-2xl border border-white/5 text-[10px] font-black uppercase text-slate-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-3 tracking-widest">
+                            View Full Logs <ChevronRight size={14} />
                         </button>
                     </SectionBox>
 
-                    <ReferralPanel />
-
-                    <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-brand-accent flex items-center justify-center text-slate-950">
-                                <ShieldCheck size={20} />
+                    <div className="p-8 rounded-[2.5rem] bg-[#0D1B2A] border border-[#1E3A5F]/30 shadow-2xl space-y-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-brand-accent/10 border border-brand-accent/20 flex items-center justify-center text-brand-accent shadow-[0_0_20px_rgba(56,189,248,0.1)]">
+                                <ShieldCheck size={24} />
                             </div>
                             <div>
-                                <h3 className="text-xs font-black text-white uppercase">AVD Verification</h3>
-                                <p className="text-[10px] text-emerald-500/80 font-black uppercase">TRUST SCORE: 98.4%</p>
+                                <h3 className="text-xs font-black text-white uppercase tracking-wider">AVD Verification</h3>
+                                <p className="text-[11px] text-emerald-400 font-mono font-black italic">TRUST SCORE: 98.4%</p>
                             </div>
                         </div>
-                        <p className="text-[10px] text-slate-500 leading-relaxed italic">
-                            Your account is fully synchronized with the Anomalous Velocity Detection engine. All votes are currently processed with full weight.
+                        <p className="text-[10px] text-slate-500 leading-relaxed font-bold uppercase tracking-wide italic opacity-70">
+                            "Account synchronized with Anomalous Velocity Detection engine. Oracle clearance active."
                         </p>
                     </div>
 
                     <SectionBox title="Linked Web3 Identity" icon={<Wallet size={16} />}>
                         {isConnected ? (
-                            <div className="flex flex-col gap-4">
-                                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col gap-2">
-                                    <div className="text-[10px] text-emerald-500 font-black uppercase flex items-center gap-2">
-                                        <ShieldCheck size={14} /> Wallet Connected
+                            <div className="space-y-4">
+                                <div className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex flex-col gap-3">
+                                    <div className="text-[10px] text-emerald-400 font-[900] uppercase flex items-center gap-2 tracking-[0.2em]">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Linked
                                     </div>
-                                    <div className="font-mono text-xs text-white truncate px-1">
+                                    <div className="font-mono text-[11px] text-slate-400 break-all leading-relaxed px-1">
                                         {address}
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => disconnect()}
-                                    className="w-full py-3 rounded-xl border border-rose-500/30 text-[10px] font-black uppercase text-rose-500 hover:bg-rose-500/10 transition-all"
+                                    className="w-full py-4 rounded-2xl bg-rose-500/5 hover:bg-rose-500/10 text-rose-400 font-black text-[10px] uppercase tracking-[0.2em] transition-all"
                                 >
-                                    Disconnect Wallet
+                                    Terminate Link
                                 </button>
                             </div>
                         ) : (
-                            <div className="text-center py-6 border border-dashed border-slate-800 rounded-2xl">
-                                <Wallet size={24} className="mx-auto text-slate-600 mb-3" />
-                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">No active Web3 connection. Use the terminal in the navigation bar to connect.</p>
+                            <div className="text-center py-10 border border-dashed border-white/5 rounded-3xl">
+                                <Wallet size={32} className="mx-auto text-slate-800 mb-4 opacity-50" />
+                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] px-6 leading-relaxed">
+                                    Establishing Web3 protocol bridge... Use the Terminal console to bind identity.
+                                </p>
                             </div>
                         )}
                     </SectionBox>
@@ -226,23 +183,28 @@ export function UserDashboard() {
 
 function StatCard({ label, value, icon, color }) {
     return (
-        <div className="px-6 py-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl min-w-[160px]">
-            <div className="flex items-center gap-2 mb-2">
-                <span className="text-slate-500">{icon}</span>
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
+        <div className="px-8 py-5 rounded-[2rem] bg-[#0D1B2A] border border-[#1E3A5F]/30 shadow-2xl min-w-[200px] group hover:border-[#38bdf8]/30 transition-all">
+            <div className="flex items-center gap-3 mb-3">
+                <span className="text-slate-500 group-hover:text-brand-accent transition-colors">{icon}</span>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{label}</span>
             </div>
-            <div className={cn("text-xl font-mono font-black italic", color)}>{value}</div>
+            <div className={cn("text-2xl md:text-3xl font-mono font-black italic tracking-tighter", color)}>{value}</div>
         </div>
     );
 }
 
 function SectionBox({ title, icon, children }) {
     return (
-        <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-6">
-            <h2 className="text-sm font-black text-white uppercase tracking-[0.2em] flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div className="p-8 md:p-10 rounded-[2.5rem] bg-[#0D1B2A] border border-[#1E3A5F]/20 shadow-2xl space-y-8 overflow-hidden relative group">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none">
+                {icon}
+            </div>
+            <h2 className="text-xs font-[900] text-slate-400 uppercase tracking-[0.3em] flex items-center gap-4 opacity-80">
                 <span className="text-brand-accent">{icon}</span> {title}
             </h2>
-            {children}
+            <div className="relative z-10">
+                {children}
+            </div>
         </div>
     );
 }

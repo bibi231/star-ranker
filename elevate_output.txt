@@ -1,0 +1,18 @@
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+Elevating user: peterjohn2343@gmail.com to Oracle tier...
+Success! User elevated: {
+  id: 1,
+  firebaseUid: 'sZpcv1u7QOhd4CSSzxZBd7mHCuf1',
+  email: 'peterjohn2343@gmail.com',
+  displayName: null,
+  walletAddress: null,
+  balance: 1000000,
+  reputation: 1000,
+  tier: 'Oracle',
+  powerVotes: 994,
+  referralCode: null,
+  referredBy: null,
+  referralEarnings: 0,
+  isBanned: false,
+  createdAt: 2026-03-05T00:40:02.633Z
+}

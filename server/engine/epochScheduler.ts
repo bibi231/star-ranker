@@ -9,6 +9,7 @@ import { db } from "../db/index";
 import { epochs } from "../db/schema";
 import { eq, desc } from "drizzle-orm";
 import { settleBets } from "./settlement";
+import { reifyRankings, createEpochSnapshot } from "./rankingEngine";
 
 const CHECK_INTERVAL = 30_000;  // Check every 30 seconds
 const EPOCH_DURATION = 30 * 60 * 1000; // 30 minutes
@@ -38,8 +39,14 @@ export async function checkAndRollEpoch() {
                 .set({ isActive: false })
                 .where(eq(epochs.id, current.id));
 
+            // Capture final rankings for this epoch
+            await createEpochSnapshot(current.epochNumber);
+
             // Settle stakes from expired epoch
             await settleBets();
+
+            // Force a global ranking reification immediately
+            await reifyRankings();
 
             // Create new epoch
             await createNewEpoch(current.epochNumber + 1);

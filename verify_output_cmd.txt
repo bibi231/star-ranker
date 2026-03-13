@@ -1,0 +1,21 @@
+[dotenv@17.3.1] injecting env (18) from .env -- tip: ⚙️  override existing env vars with { override: true }
+Checking user: peterjohn2343@gmail.com...
+Error checking user: DrizzleQueryError: Failed query: select "id", "firebase_uid", "email", "display_name", "wallet_address", "balance", "reputation", "tier", "power_votes", "referral_code", "referred_by", "referral_earnings", "is_banned", "created_at" from "users" where "users"."email" = $1 limit $2
+params: peterjohn2343@gmail.com,1
+    at NeonPreparedQuery.queryWithCache (C:\Users\bgadz\Documents\star-ranker\node_modules\src\pg-core\session.ts:73:11)
+    at async NeonPreparedQuery.execute (C:\Users\bgadz\Documents\star-ranker\node_modules\src\neon-serverless\session.ts:152:18)
+    at async verifyUser (C:\Users\bgadz\Documents\star-ranker\server\scripts\verify-user.ts:13:22) {
+  query: 'select "id", "firebase_uid", "email", "display_name", "wallet_address", "balance", "reputation", "tier", "power_votes", "referral_code", "referred_by", "referral_earnings", "is_banned", "created_at" from "users" where "users"."email" = $1 limit $2',
+  params: [ 'peterjohn2343@gmail.com', 1 ],
+  cause: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: bgadz, db: bgadz, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+      at kn.connect (file:///C:/Users/bgadz/Documents/star-ranker/node_modules/@neondatabase/serverless/index.mjs:1316:50)
+      at Un.newClient (file:///C:/Users/bgadz/Documents/star-ranker/node_modules/@neondatabase/serverless/index.mjs:1118:85)
+      at Un.connect (file:///C:/Users/bgadz/Documents/star-ranker/node_modules/@neondatabase/serverless/index.mjs:1115:1)
+      at Un.query (file:///C:/Users/bgadz/Documents/star-ranker/node_modules/@neondatabase/serverless/index.mjs:1139:1)
+      at Un.query (file:///C:/Users/bgadz/Documents/star-ranker/node_modules/@neondatabase/serverless/index.mjs:1352:96)
+      at <anonymous> (C:\Users\bgadz\Documents\star-ranker\node_modules\src\neon-serverless\session.ts:153:24)
+      at NeonPreparedQuery.queryWithCache (C:\Users\bgadz\Documents\star-ranker\node_modules\src\pg-core\session.ts:71:18)
+      at NeonPreparedQuery.execute (C:\Users\bgadz\Documents\star-ranker\node_modules\src\neon-serverless\session.ts:152:29)
+      at <anonymous> (C:\Users\bgadz\Documents\star-ranker\node_modules\src\pg-core\query-builders\select.ts:1120:27)
+      at Object.startActiveSpan (C:\Users\bgadz\Documents\star-ranker\node_modules\src\tracing.ts:27:11)
+}

@@ -19,28 +19,32 @@ export default function EpochHistoryPage() {
 
     useEffect(() => {
         if (selectedEpoch) {
-            fetchSnapshots(selectedEpoch.epochNumber || selectedEpoch.epochId);
+            const categoryMatch = categories.find(c => c.id === selectedCategory);
+            const slug = categoryMatch?.slug || 'crypto';
+            fetchSnapshots(selectedEpoch.epochNumber, slug);
         }
-    }, [selectedEpoch, selectedCategory]);
+    }, [selectedEpoch, selectedCategory, categories]);
 
     const fetchEpochs = async () => {
         setIsLoading(true);
         try {
-            // For now, fetch current epoch — full history would need a dedicated endpoint
-            const epoch = await apiGet("/api/epochs/current");
-            const epochData = epoch ? [epoch] : [];
-            setEpochs(epochData);
-            if (epochData.length > 0) setSelectedEpoch(epochData[0]);
+            const data = await apiGet("/api/epochs");
+            setEpochs(data);
+            if (data.length > 0 && !selectedEpoch) setSelectedEpoch(data[0]);
         } catch (error) {
             console.error("Error fetching epochs:", error);
         }
         setIsLoading(false);
     };
 
-    const fetchSnapshots = async (epochId) => {
-        // Snapshots not yet implemented in the Express API
-        // Will be populated once the ranking engine runs
-        setSnapshots([]);
+    const fetchSnapshots = async (epochNumber, categorySlug) => {
+        try {
+            const data = await apiGet(`/api/epochs/${epochNumber}/snapshots`, { categorySlug });
+            setSnapshots(data);
+        } catch (error) {
+            console.error("Error fetching snapshots:", error);
+            setSnapshots([]);
+        }
     };
 
 

@@ -65,7 +65,7 @@ export const stakes = pgTable("stakes", {
     itemName: text("item_name"),
     categorySlug: text("category_slug").notNull(),
     amount: real("amount").notNull(),
-    target: integer("target").notNull(),
+    target: jsonb("target").notNull(),
     betType: text("bet_type").notNull(), // exact, range, directional
     initialRank: integer("initial_rank"),
     status: text("status").default("active"),
@@ -94,6 +94,21 @@ export const epochs = pgTable("epochs", {
     createdAt: timestamp("created_at").defaultNow(),
 });
 
+// ===== EPOCH SNAPSHOTS =====
+export const epochSnapshots = pgTable("epoch_snapshots", {
+    id: serial("id").primaryKey(),
+    epochId: integer("epoch_id").notNull(),
+    itemId: text("item_id").notNull(),
+    categorySlug: text("category_slug").notNull(),
+    rank: integer("rank").notNull(),
+    score: real("score").notNull(),
+    velocity: real("velocity").default(0),
+    createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+    index("epoch_snapshots_epoch_idx").on(table.epochId),
+    index("epoch_snapshots_item_idx").on(table.itemId),
+]);
+
 // ===== MARKET META =====
 export const marketMeta = pgTable("market_meta", {
     id: serial("id").primaryKey(),
@@ -111,13 +126,15 @@ export const users = pgTable("users", {
     email: text("email"),
     displayName: text("display_name"),
     walletAddress: varchar("wallet_address", { length: 42 }).unique(),
-    balance: real("balance").default(10000), // Starting balance
+    balance: real("balance").default(0), // Starting balance
     reputation: integer("reputation").default(100),
     tier: text("tier").default("Initiate"), // Initiate, Peer, Sage, Oracle
     powerVotes: integer("power_votes").default(0),
     referralCode: text("referral_code").unique(),
     referredBy: text("referred_by"),
     referralEarnings: real("referral_earnings").default(0),
+    isAdmin: boolean("is_admin").default(false),
+    isModerator: boolean("is_moderator").default(false),
     isBanned: boolean("is_banned").default(false),
     createdAt: timestamp("created_at").defaultNow(),
 });

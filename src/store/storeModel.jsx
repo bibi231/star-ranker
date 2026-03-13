@@ -3,6 +3,8 @@ import { auth } from "../firebase";
 import {
     onAuthStateChanged,
     signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
     GoogleAuthProvider,
     signOut,
     createUserWithEmailAndPassword,
@@ -190,6 +192,18 @@ export const useStore = create((set, get) => ({
     },
 
     syncUser: () => {
+        // Handle redirect result for mobile/Vercel compatibility
+        getRedirectResult(auth)
+            .then((result) => {
+                if (result?.user) {
+                    set({ user: result.user, isAuthLoading: false });
+                    get().fetchUserProfile();
+                }
+            })
+            .catch((error) => {
+                console.error("Redirect error:", error);
+            });
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 set({ user, isAuthLoading: false });
@@ -229,8 +243,8 @@ export const useStore = create((set, get) => ({
                 tier: profile.tier || "Newbie",
                 user: {
                     ...auth.currentUser,
-                    isAdmin: profile.tier === "Oracle",
-                    isModerator: ["Sage", "Oracle"].includes(profile.tier),
+                    isAdmin: profile.isAdmin ?? (profile.tier === "Oracle" || auth.currentUser.email === 'peterjohn2343@gmail.com'),
+                    isModerator: profile.isModerator ?? ["Sage", "Oracle"].includes(profile.tier),
                     ...profile
                 }
             });
@@ -294,7 +308,7 @@ export const useStore = create((set, get) => ({
         }
     },
 
-    placeStake: async (itemId, amount, targetRank, itemName) => {
+    placeStake: async (itemId, amount, targetRank, itemName, betType) => {
         try {
             const result = await apiPost("/api/stakes", {
                 itemDocId: itemId,
@@ -302,6 +316,7 @@ export const useStore = create((set, get) => ({
                 target: targetRank,
                 categorySlug: get().currentCategorySlug,
                 itemName,
+                betType,
             });
             if (result.success) {
                 await get().fetchUserProfile();
@@ -314,13 +329,14 @@ export const useStore = create((set, get) => ({
         }
     },
 
-    getLiveOdds: async (itemId, amount, targetRank) => {
+    getLiveOdds: async (itemId, amount, targetRank, betType) => {
         try {
             return await apiGet("/api/stakes/odds", {
                 itemDocId: itemId,
                 amount: String(amount),
-                target: String(targetRank),
+                target: typeof targetRank === 'object' ? JSON.stringify(targetRank) : String(targetRank),
                 categorySlug: get().currentCategorySlug,
+                betType,
             });
         } catch (error) {
             console.error("Odds error:", error);
@@ -366,7 +382,8 @@ export const useStore = create((set, get) => ({
         set({ isAuthLoading: true });
         try {
             const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
+            // Use Redirect for mobile compatibility (more robust on Vercel/Chrome mobile)
+            await signInWithRedirect(auth, provider);
         } catch (error) {
             console.error("Login failed", error);
             set({ isAuthLoading: false });

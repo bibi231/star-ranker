@@ -62,6 +62,12 @@ export function DepositModal({ isOpen, onClose }) {
         }
     }, [isOpen]);
 
+    const handleReset = () => {
+        setSuccess(null);
+        setError('');
+        setAmountNGN('5000');
+    };
+
     const verifyPayment = async (reference) => {
         setIsProcessing(true);
         setError('');
@@ -158,7 +164,7 @@ export function DepositModal({ isOpen, onClose }) {
                                             <p className="text-slate-400">₦{success.amountNGN?.toLocaleString()} → <span className="text-emerald-400 font-bold">${success.credits?.toFixed(2)}</span> credited</p>
                                             <p className="text-slate-500">New Balance: <span className="text-white font-bold">{formatValue(success.newBalance)}</span></p>
                                         </div>
-                                        <button onClick={onClose} className="mt-4 px-8 py-3 bg-emerald-500 text-slate-950 rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full md:w-auto touch-target">
+                                        <button onClick={handleReset} className="mt-4 px-8 py-3 bg-emerald-500 text-slate-950 rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full md:w-auto touch-target">
                                             Done
                                         </button>
                                     </div>
@@ -280,7 +286,7 @@ export function DepositModal({ isOpen, onClose }) {
                                             <p className="text-slate-400">₦{success.amountNGN?.toLocaleString()} → <span className="text-emerald-400 font-bold">${success.credits?.toFixed(2)}</span> credited</p>
                                             <p className="text-slate-500">New Balance: <span className="text-white font-bold">{formatValue(success.newBalance)}</span></p>
                                         </div>
-                                        <button onClick={onClose} className="mt-4 px-8 py-3 bg-emerald-500 text-slate-950 rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full md:w-auto touch-target">
+                                        <button onClick={handleReset} className="mt-4 px-8 py-3 bg-emerald-500 text-slate-950 rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full md:w-auto touch-target">
                                             Done
                                         </button>
                                     </div>
@@ -367,4 +373,3 @@ export function DepositModal({ isOpen, onClose }) {
         </AnimatePresence>
     );
 }
-

@@ -7,7 +7,7 @@
  */
 
 import { db } from "../db/index";
-import { items, votes } from "../db/schema";
+import { items, votes, epochSnapshots } from "../db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 
 const GRAVITY = 0.05;   // Decay constant
@@ -52,22 +52,56 @@ export async function reifyRankings() {
         // Sort by score descending and assign ranks
         updated.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
-        for (let i = 0; i < updated.length; i++) {
-            const item = updated[i];
-            const newRank = i + 1;
+        // Prepare updates for batching
+        const updates = updated.map((item, i) => ({
+            id: item.id,
+            rank: i + 1,
+            momentum: item.momentum,
+            velocity: item.velocity,
+            score: item.score, // Ensure score is synced
+        }));
 
-            // Only update if values actually changed
-            if (item.rank !== newRank || Math.abs((item.momentum ?? 0) - (updated[i].momentum ?? 0)) > 0.001) {
-                await db.update(items).set({
-                    rank: newRank,
-                    momentum: updated[i].momentum,
-                    velocity: updated[i].velocity,
-                }).where(eq(items.id, item.id));
-            }
+        // Perform batch update for all items in the category
+        if (updates.length > 0) {
+            await db.transaction(async (tx) => {
+                for (const update of updates) {
+                    await tx.update(items)
+                        .set({
+                            rank: update.rank,
+                            momentum: update.momentum,
+                            velocity: update.velocity,
+                            score: update.score,
+                        })
+                        .where(eq(items.id, update.id));
+                }
+            });
         }
     }
 
     console.log(`[MWR] Reified ${allItems.length} items across ${Object.keys(byCategory).length} categories`);
+}
+
+/**
+ * Capture an immutable snapshot of current rankings for an epoch.
+ */
+export async function createEpochSnapshot(epochId: number) {
+    console.log(`[Snapshot] Capturing state for epoch #${epochId}...`);
+
+    const allItems = await db.select().from(items).where(eq(items.status, "active"));
+
+    if (allItems.length === 0) return;
+
+    const snapshots = allItems.map(item => ({
+        epochId,
+        itemId: item.docId,
+        categorySlug: item.categorySlug,
+        rank: item.rank || 0,
+        score: item.score || 0,
+        velocity: item.velocity || 0,
+    }));
+
+    await db.insert(epochSnapshots).values(snapshots);
+    console.log(`[Snapshot] Saved ${snapshots.length} item records for epoch #${epochId}`);
 }
 
 /**

@@ -101,7 +101,7 @@ export function SignInPage() {
 
                     <button
                         onClick={() => setShowReset(true)}
-                        className="w-full text-center text-[10px] text-slate-500 font-bold uppercase pt-4 hover:text-brand-accent transition-colors"
+                        className="w-full text-center text-[10px] text-slate-500 font-bold pt-4 hover:text-brand-accent transition-colors"
                     >
                         Forgot passphrase?
                     </button>
@@ -158,7 +158,7 @@ function PasswordResetForm({ onBack }) {
                 </div>
                 <div>
                     <h3 className="text-lg font-black text-white uppercase mb-2">Reset Link Transmitted</h3>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                    <p className="text-[10px] text-slate-500 font-bold tracking-widest">
                         Check your inbox for recovery instructions.
                     </p>
                 </div>
@@ -176,7 +176,7 @@ function PasswordResetForm({ onBack }) {
         <form onSubmit={handleReset} className="space-y-4">
             <div className="text-center mb-6">
                 <KeyRound size={32} className="mx-auto text-brand-accent mb-4" />
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                <p className="text-[10px] text-slate-500 font-bold tracking-widest">
                     Enter your email to receive a password reset link.
                 </p>
             </div>
@@ -363,7 +363,7 @@ export function SignUpPage() {
                 </button>
             </form>
 
-            <p className="text-center text-[10px] text-slate-500 font-bold uppercase pt-8">
+            <p className="text-center text-[10px] text-slate-500 font-bold pt-8">
                 Existing identity? <button onClick={() => navigate('/signin')} className="text-brand-accent hover:underline">Sign In</button>
             </p>
         </AuthShell>

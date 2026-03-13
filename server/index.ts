@@ -59,10 +59,10 @@ app.use(cors({
 app.use(express.json());
 app.use(geoMiddleware);
 
-// Rate Limiting
-const globalLimiter = rateLimit({ windowMs: 60 * 1000, max: 100, message: { error: "Too many requests" } });
-const stakeLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, message: { error: "Staking rate limit reached" } });
-const adminLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, message: { error: "Admin rate limit reached" } });
+// Rate Limiting — Drastically relaxed for beta testing
+const globalLimiter = rateLimit({ windowMs: 60 * 1000, max: 1000, message: { error: "Too many requests" } });
+const stakeLimiter = rateLimit({ windowMs: 60 * 1000, max: 500, message: { error: "Staking rate limit reached" } });
+const adminLimiter = rateLimit({ windowMs: 60 * 1000, max: 500, message: { error: "Admin rate limit reached" } });
 
 app.use(globalLimiter);
 

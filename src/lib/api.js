@@ -12,9 +12,9 @@ const isProductionHost = typeof window !== 'undefined' &&
         window.location.hostname.includes('web.app'));
 
 // Absolute priority to Render if on production host
-export const API_URL = isProductionHost
-    ? "https://star-ranker.onrender.com"
-    : (import.meta.env.VITE_API_URL || "http://localhost:3001");
+export const API_URL = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
+    ? (import.meta.env.VITE_API_URL || "http://localhost:3001")
+    : (isProductionHost ? "https://star-ranker.onrender.com" : "http://localhost:3001");
 
 async function getAuthHeaders() {
     const user = auth.currentUser;
