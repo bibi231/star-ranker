@@ -5,7 +5,8 @@
 
 import { auth } from "../firebase";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+// In production, Vite bakes in the variables. If VITE_API_URL is missing, we use a robust fallback for the Render backend.
+export const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://star-ranker.onrender.com" : "http://localhost:3001");
 
 async function getAuthHeaders() {
     const user = auth.currentUser;

@@ -20,6 +20,7 @@ import {
     Phone
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { API_URL } from '../lib/api';
 
 export function SignInPage() {
     const { login, loginWithEmail, user } = useStore();
@@ -259,7 +260,7 @@ export function SignUpPage() {
         setIsLoading(true);
         try {
             // 1. Validate Invite Code
-            const validateRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/validate-invite`, {
+            const validateRes = await fetch(`${API_URL}/api/auth/validate-invite`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code: inviteCode })
