@@ -1,5 +1,12 @@
+import React from 'react';
+import { Menu, Zap } from 'lucide-react';
+import { useStore } from '../store/storeModel';
+import { EpochIndicator } from './epochs/EpochIndicator';
+
 export default function MobileHeader({ onMenuClick, onFundClick }) {
-    const { balance, formatValue } = useStore();
+    const { balance = 0, formatValue } = useStore();
+
+    const displayBalance = typeof formatValue === 'function' ? formatValue(balance) : `$${balance.toLocaleString()}`;
 
     return (
         <header
@@ -35,13 +42,10 @@ export default function MobileHeader({ onMenuClick, onFundClick }) {
                 </button>
                 <div className="text-right ml-1">
                     <div className="font-mono text-sm font-bold text-[#C9A84C] leading-none">
-                        {formatValue(balance)}
+                        {displayBalance}
                     </div>
                 </div>
             </div>
         </header>
     );
 }
-
-// Add Menu import
-import { Bell, Menu } from 'lucide-react';

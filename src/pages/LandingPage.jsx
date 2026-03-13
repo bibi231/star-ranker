@@ -20,7 +20,7 @@ export function LandingPage() {
                 <div className="hidden md:flex items-center gap-8 text-[10px] font-black uppercase tracking-widest text-slate-400">
                     <button onClick={() => navigate('/markets')} className="hover:text-white transition-colors">Markets</button>
                     <button onClick={() => navigate('/how-it-works')} className="hover:text-white transition-colors">Oracle Protocol</button>
-                    <button onClick={() => navigate('/leaderboards')} className="hover:text-white transition-colors">Alpha</button>
+                    <button onClick={() => navigate('/leaderboards')} className="hover:text-white transition-colors">Beta 2.0</button>
                 </div>
                 <button
                     onClick={() => navigate('/signin')}
@@ -36,7 +36,7 @@ export function LandingPage() {
 
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[10px] font-black uppercase text-brand-accent tracking-[0.2em] mb-4">
                     <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse" />
-                    Operational Mainnet v1.5
+                    Operational Beta 2.0
                 </div>
 
                 <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-[0.85]">

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Lock, ShieldCheck, AlertTriangle, Info } from 'lucide-react';
 import clsx from 'clsx';
 
-export default function EpochIndicator() {
+export function EpochIndicator() {
     const { currentEpoch, serverTimeOffset, refreshCurrentCategory } = useStore();
     const [timeLeft, setTimeLeft] = useState(null);
     const [status, setStatus] = useState('stable'); // stable | closing | locking
@@ -111,3 +111,5 @@ export default function EpochIndicator() {
         </div>
     );
 }
+
+export default EpochIndicator;
