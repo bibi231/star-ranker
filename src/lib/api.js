@@ -5,13 +5,16 @@
 
 import { auth } from "../firebase";
 
-// Use hostname detection to force production URL on Vercel/Firebase
+// Forced production domains
 const isProductionHost = typeof window !== 'undefined' &&
     (window.location.hostname.includes('vercel.app') ||
         window.location.hostname.includes('starranker.io') ||
         window.location.hostname.includes('web.app'));
 
-export const API_URL = import.meta.env.VITE_API_URL || (isProductionHost ? "https://star-ranker.onrender.com" : "http://localhost:3001");
+// Absolute priority to Render if on production host
+export const API_URL = isProductionHost
+    ? "https://star-ranker.onrender.com"
+    : (import.meta.env.VITE_API_URL || "http://localhost:3001");
 
 async function getAuthHeaders() {
     const user = auth.currentUser;
