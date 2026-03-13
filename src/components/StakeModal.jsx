@@ -6,7 +6,7 @@ import {
     TrendingUp, Activity, AlertTriangle,
     ChevronDown, Info
 } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 import { cn } from '../lib/utils';
 import debounce from 'lodash-es/debounce';
 import { useIsMobile } from '../hooks/useIsMobile';

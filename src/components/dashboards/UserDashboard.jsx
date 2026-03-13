@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Wallet, TrendingUp, History, Bell, Award, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { useStore } from '../../store/useStore';
+import { useStore } from '../../store/storeModel';
 import { cn } from '../../lib/utils';
 
 export function UserDashboard() {

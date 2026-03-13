@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Bell, ShieldCheck, Zap, X, Trash2, CheckCircle2 } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 import { cn } from '../lib/utils';
 
 export function AlertsPage() {

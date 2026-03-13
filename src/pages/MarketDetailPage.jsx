@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 import {
     ChevronLeft,
     Activity,

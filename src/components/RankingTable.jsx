@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Star, Zap, ChevronUp, ChevronDown, ShieldAlert, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useIsMobile';
 

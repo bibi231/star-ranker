@@ -20,7 +20,7 @@ import {
     DollarSign,
     Users
 } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 import { cn } from '../lib/utils';
 import { apiGet } from '../lib/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';

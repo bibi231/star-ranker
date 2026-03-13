@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 import { useNavigate } from 'react-router-dom';
 import {
     Zap,

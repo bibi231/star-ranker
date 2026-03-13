@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 import { RankingTable } from '../components/RankingTable';
 import { LiveTicker } from '../components/LiveTicker';
 import { StakeModal } from '../components/StakeModal';

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useStore } from "./store/useStore";
+import { useStore } from "./store/storeModel";
 import { Loader2 } from "lucide-react";
 
 // Layouts

@@ -23,7 +23,7 @@ import {
     History
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../../store/useStore';
+import { useStore } from '../../store/storeModel';
 import { cn } from '../../lib/utils';
 import EpochIndicator from '../epochs/EpochIndicator';
 import { LiveTicker } from '../LiveTicker';

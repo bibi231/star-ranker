@@ -28,3 +28,8 @@ dist-ssr
 .env
 .env.vercel.prod
 serviceAccountKey.json
+
+# Build logs and test results
+build_output*.txt
+api_test_results.txt
+admin_err.*

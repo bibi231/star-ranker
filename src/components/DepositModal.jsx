@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Wallet, ArrowUpRight, AlertTriangle, Info, CreditCard } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 import { apiPost, apiGet } from '../lib/api';
 import { cn } from '../lib/utils';
 import { useIsMobile } from '../hooks/useIsMobile';

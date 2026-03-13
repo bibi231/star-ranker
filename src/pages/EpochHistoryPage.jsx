@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 import { apiGet } from '../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { History, Search, ChevronRight, Calendar, Box, Activity, ArrowUp, ArrowDown } from 'lucide-react';

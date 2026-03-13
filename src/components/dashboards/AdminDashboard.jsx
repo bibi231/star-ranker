@@ -14,7 +14,7 @@ import {
     CheckCircle2,
     RefreshCw
 } from 'lucide-react';
-import { useStore } from '../../store/useStore';
+import { useStore } from '../../store/storeModel';
 import { cn } from '../../lib/utils';
 
 export function AdminDashboard() {

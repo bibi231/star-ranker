@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 import { apiGet, apiPost } from '../lib/api';
 
 export function VotePackModal({ isOpen, onClose }) {

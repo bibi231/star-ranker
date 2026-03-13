@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAccount, useDisconnect } from 'wagmi';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 import { useIsMobile } from '../hooks/useIsMobile';
 import {
     LayoutDashboard,

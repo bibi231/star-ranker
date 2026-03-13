@@ -1,5 +1,5 @@
 import { Bell } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 import EpochIndicator from './epochs/EpochIndicator';
 
 export default function MobileHeader() {

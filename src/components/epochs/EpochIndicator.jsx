@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useStore } from '../../store/useStore';
+import { useStore } from '../../store/storeModel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Lock, ShieldCheck, AlertTriangle, Info } from 'lucide-react';
 import clsx from 'clsx';

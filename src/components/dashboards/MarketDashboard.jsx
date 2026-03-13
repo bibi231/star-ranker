@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Activity, ShieldAlert, Users, Zap, BarChart3, AlertCircle } from 'lucide-react';
-import { useStore } from '../../store/useStore';
+import { useStore } from '../../store/storeModel';
 import { cn } from '../../lib/utils';
 
 export function MarketDashboard() {

@@ -23,7 +23,7 @@ import {
     Clock
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/storeModel';
 
 export function AdminPage() {
     const { user, tier } = useStore();
