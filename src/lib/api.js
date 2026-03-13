@@ -5,8 +5,13 @@
 
 import { auth } from "../firebase";
 
-// In production, Vite bakes in the variables. If VITE_API_URL is missing, we use a robust fallback for the Render backend.
-export const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://star-ranker.onrender.com" : "http://localhost:3001");
+// Use hostname detection to force production URL on Vercel/Firebase
+const isProductionHost = typeof window !== 'undefined' &&
+    (window.location.hostname.includes('vercel.app') ||
+        window.location.hostname.includes('starranker.io') ||
+        window.location.hostname.includes('web.app'));
+
+export const API_URL = import.meta.env.VITE_API_URL || (isProductionHost ? "https://star-ranker.onrender.com" : "http://localhost:3001");
 
 async function getAuthHeaders() {
     const user = auth.currentUser;
