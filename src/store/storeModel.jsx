@@ -323,12 +323,11 @@ export const useStore = create((set, get) => ({
             });
             if (result.success) {
                 await get().fetchUserProfile();
-                return true;
             }
-            return false;
+            return result;
         } catch (error) {
             console.error("Stake error:", error);
-            return false;
+            return { success: false, error: error.message };
         }
     },
 
