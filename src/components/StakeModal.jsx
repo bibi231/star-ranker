@@ -24,6 +24,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
     const [isLocked, setIsLocked] = useState(false);
     const [quote, setQuote] = useState(null);
     const [loadingQuote, setLoadingQuote] = useState(false);
+    const [error, setError] = useState(null);
     const [viewportHeight, setViewportHeight] = useState('100vh');
     const isMobile = useIsMobile();
 
@@ -99,12 +100,20 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
         if (parseFloat(amount) > balance) return;
 
         setIsProcessing(true);
-        const target = betType === 'exact' ? parseInt(targetRank) : betType === 'range' ? { min: parseInt(rangeMin), max: parseInt(rangeMax) } : { dir: direction, k: parseInt(kPositions) };
-        const success = await placeStake(itemId, parseFloat(amount), target, itemName, betType);
-        setIsProcessing(false);
+        setError(null);
+        try {
+            const target = betType === 'exact' ? parseInt(targetRank) : betType === 'range' ? { min: parseInt(rangeMin), max: parseInt(rangeMax) } : { dir: direction, k: parseInt(kPositions) };
+            const response = await placeStake(itemId, parseFloat(amount), target, itemName, betType);
 
-        if (success) {
-            onClose();
+            if (response.success) {
+                onClose();
+            } else {
+                setError(response.error || "Transaction failed. Please try again.");
+            }
+        } catch (err) {
+            setError(err.message || "An unexpected error occurred.");
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -373,6 +382,24 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                             <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase">
                                 Quotes are real-time. Final payout based on rank reification.
                             </p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Error Feedback */}
+                <AnimatePresence>
+                    {error && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex gap-3 items-start"
+                        >
+                            <ShieldAlert className="text-rose-500 shrink-0 mt-0.5" size={16} />
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Protocol Error</p>
+                                <p className="text-[10px] font-bold text-rose-400/80 uppercase">{error}</p>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>

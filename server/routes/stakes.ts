@@ -290,7 +290,7 @@ router.post("/", [requireAuth, requireStakeAccess], async (req: AuthRequest, res
                 status: "active",
                 epochId: epoch.epochNumber,
                 impliedProbability: quote.probability,
-                effectiveMultiplier: cappedMultiplier,
+                effectiveMultiplier: quote.effectiveMultiplier,
                 multiplierUsed: quote.multiplier,
                 slippageApplied: quote.slippage,
                 platformFee,
@@ -304,7 +304,7 @@ router.post("/", [requireAuth, requireStakeAccess], async (req: AuthRequest, res
             stakeId,
             fee: platformFee,
             netStake,
-            potentialPayout: cappedPayout
+            potentialPayout: quote.potentialPayout
         });
     } catch (error: any) {
         console.error("Stake error:", error);
