@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db/index";
-import { votes, items, users } from "../db/schema";
+import { votes, items, users, marketActivity } from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 
@@ -40,7 +40,7 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
                 powerVoteDeducted = true;
             }
         } else if (usePowerVote) {
-            scoreDelta *= 3;
+            scoreDelta * 3;
         }
 
         await db.transaction(async (tx) => {
@@ -82,6 +82,16 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
                     direction,
                 });
             }
+
+            // Log to market activity
+            await tx.insert(marketActivity).values({
+                type: "vote",
+                userId,
+                itemDocId,
+                categorySlug,
+                description: `${powerVoteDeducted ? 'POWER VOTE' : 'Vote'} cast (${direction === 1 ? 'up' : direction === -1 ? 'down' : 'cleared'}) on ${itemDocId}`,
+                metadata: { direction, usePowerVote: powerVoteDeducted }
+            });
         });
 
         // Get updated score

@@ -20,7 +20,9 @@ import {
     BarChart3,
     CheckCircle,
     XCircle,
-    Clock
+    Clock,
+    DollarSign,
+    TrendingUp
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStore } from '../store/storeModel';
@@ -42,8 +44,12 @@ export function AdminPage() {
 
     const fetchSystemStats = async () => {
         try {
-            const result = await apiGet("/api/admin/stats");
-            setStats(result);
+            // Fetch both stats and revenue
+            const [basicStats, revenueStats] = await Promise.all([
+                apiGet("/api/admin/stats"),
+                apiGet("/api/admin/revenue")
+            ]);
+            setStats({ ...basicStats, ...revenueStats });
         } catch (error) {
             console.error('Failed to fetch system stats:', error);
         } finally {
@@ -184,40 +190,28 @@ export function AdminPage() {
                 {/* System Stats */}
                 <div className="lg:col-span-1 space-y-4">
                     <AdminStat
-                        label="Network Status"
-                        value={isLoading ? "..." : "Nominal"}
-                        icon={<Wifi size={14} />}
-                        color="text-emerald-400"
-                    />
-                    <AdminStat
-                        label="Total Users"
-                        value={isLoading ? "..." : (stats?.userCount || 0).toLocaleString()}
-                        icon={<Users size={14} />}
+                        label="Platform Revenue"
+                        value={isLoading ? "..." : `$${(stats?.platformRevenue || 0).toLocaleString()}`}
+                        icon={<DollarSign size={14} />}
                         color="text-brand-accent"
                     />
                     <AdminStat
-                        label="Markets"
-                        value={isLoading ? "..." : stats?.categoryCount || 0}
+                        label="Total Volume"
+                        value={isLoading ? "..." : `$${(stats?.stakingStats?.totalVolume || 0).toLocaleString()}`}
+                        icon={<TrendingUp size={14} />}
+                        color="text-emerald-400"
+                    />
+                    <AdminStat
+                        label="Referral Paid"
+                        value={isLoading ? "..." : `$${(stats?.referralEarnings || 0).toLocaleString()}`}
+                        icon={<Users size={14} />}
+                        color="text-rose-400"
+                    />
+                    <AdminStat
+                        label="User Balances"
+                        value={isLoading ? "..." : `$${(stats?.totalBalances || 0).toLocaleString()}`}
                         icon={<Database size={14} />}
                         color="text-slate-300"
-                    />
-                    <AdminStat
-                        label="Total Items"
-                        value={isLoading ? "..." : (stats?.itemCount || 0).toLocaleString()}
-                        icon={<BarChart3 size={14} />}
-                        color="text-purple-400"
-                    />
-                    <AdminStat
-                        label="Active Stakes"
-                        value={isLoading ? "..." : (stats?.stakeCount || 0).toLocaleString()}
-                        icon={<Zap size={14} />}
-                        color="text-amber-400"
-                    />
-                    <AdminStat
-                        label="Admin Actions (24h)"
-                        value={isLoading ? "..." : stats?.adminActionsToday || 0}
-                        icon={<Activity size={14} />}
-                        color="text-rose-400"
                     />
                 </div>
 
@@ -269,33 +263,51 @@ export function AdminPage() {
 
                     {/* Market Operations */}
                     <AdminBox title="Market Operations" icon={<BarChart3 size={16} />}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {['crypto', 'smartphones', 'music', 'websites', 'tech'].map(market => (
-                                <div key={market} className="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex justify-between items-center">
-                                    <div>
-                                        <h4 className="text-xs font-black text-white uppercase">{market}</h4>
-                                        <span className="text-[9px] text-slate-500">Active Market</span>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => handleTriggerSnapshot(market)}
-                                            disabled={actionLoading === `snapshot-${market}`}
-                                            className="p-2 rounded-lg bg-brand-accent/10 text-brand-accent hover:bg-brand-accent/20 transition-all"
-                                            title="Trigger Snapshot"
-                                        >
-                                            {actionLoading === `snapshot-${market}` ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-                                        </button>
-                                        <button
-                                            onClick={() => handleFreezeMarket(market, true)}
-                                            disabled={actionLoading === `freeze-${market}`}
-                                            className="p-2 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all"
-                                            title="Freeze Market"
-                                        >
-                                            {actionLoading === `freeze-${market}` ? <Loader2 size={14} className="animate-spin" /> : <Pause size={14} />}
-                                        </button>
-                                    </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Performance by Category</h4>
+                                <div className="space-y-2">
+                                    {(stats?.categoryBreakdown || []).map(cat => (
+                                        <div key={cat.name} className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800 flex justify-between items-center group hover:bg-slate-900 transition-all">
+                                            <div>
+                                                <h4 className="text-xs font-black text-white uppercase tracking-tight">{cat.name}</h4>
+                                                <span className="text-[9px] text-slate-500 uppercase font-black">Volume: ${cat.volume.toLocaleString()}</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs font-black text-brand-accent italic">${cat.revenue.toLocaleString()}</p>
+                                                <span className="text-[9px] text-slate-600 uppercase font-black">Revenue</span>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+                            </div>
+
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Action Registry</h4>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {['crypto', 'smartphones', 'music', 'lifestyle', 'tech'].map(market => (
+                                        <div key={market} className="p-3 px-4 rounded-2xl bg-slate-950 border border-slate-800 flex justify-between items-center">
+                                            <h4 className="text-[10px] font-black text-slate-400 uppercase">{market}</h4>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleTriggerSnapshot(market)}
+                                                    disabled={actionLoading === `snapshot-${market}`}
+                                                    className="p-1.5 rounded-lg bg-brand-accent/5 text-brand-accent hover:bg-brand-accent/20 transition-all"
+                                                >
+                                                    <Camera size={12} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleFreezeMarket(market, true)}
+                                                    disabled={actionLoading === `freeze-${market}`}
+                                                    className="p-1.5 rounded-lg bg-amber-500/5 text-amber-500 hover:bg-amber-500/20 transition-all"
+                                                >
+                                                    <Pause size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </AdminBox>
 

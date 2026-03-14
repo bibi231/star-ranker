@@ -6,7 +6,7 @@
  */
 
 import { db } from "../db/index";
-import { epochs } from "../db/schema";
+import { epochs, marketActivity } from "../db/schema";
 import { eq, desc } from "drizzle-orm";
 import { settleBets } from "./settlement";
 import { reifyRankings, createEpochSnapshot } from "./rankingEngine";
@@ -56,6 +56,13 @@ export async function checkAndRollEpoch() {
                 // Create new epoch
                 await createNewEpoch(current.epochNumber + 1);
 
+                // Log transition
+                await db.insert(marketActivity).values({
+                    type: "epoch_roll",
+                    description: `Epoch #${current.epochNumber} closed. Sequence advanced to #${current.epochNumber + 1}.`,
+                    metadata: { oldEpoch: current.epochNumber, newEpoch: current.epochNumber + 1 }
+                });
+
                 console.log(`[Epoch] Rolled to epoch ${current.epochNumber + 1}`);
             } catch (err) {
                 console.error(`[Epoch] Failed during rollover operations for #${current.epochNumber}:`, err);
@@ -69,11 +76,21 @@ export async function checkAndRollEpoch() {
 
 async function createNewEpoch(epochNumber: number) {
     const now = new Date();
+    const mins = now.getMinutes();
+
+    // Align to GMT boundaries (:00 or :30)
+    const startTime = new Date(now);
+    startTime.setMinutes(mins < 30 ? 0 : 30, 0, 0);
+
+    const endTime = new Date(startTime.getTime() + EPOCH_DURATION);
+
+    console.log(`[Epoch] Creating synchronized epoch #${epochNumber}: ${startTime.toISOString()} -> ${endTime.toISOString()}`);
+
     await db.insert(epochs).values({
         epochNumber,
         isActive: true,
-        startTime: now,
-        endTime: new Date(now.getTime() + EPOCH_DURATION),
+        startTime,
+        endTime,
         duration: EPOCH_DURATION,
     });
 }

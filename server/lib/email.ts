@@ -42,18 +42,30 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
 };
 
 export const templates = {
-    welcome: (name: string) => ({
-        subject: "Terminal Access Granted - Welcome to Star Ranker",
+    welcome: (identity: string) => ({
+        subject: "ACCESS GRANTED: Star Ranker Terminal Onboarding",
         html: `
-            <div style="background: #020617; color: #f8fafc; padding: 40px; font-family: sans-serif;">
-                <h1 style="color: #38bdf8; text-transform: uppercase;">Oracle Identified: ${name}</h1>
-                <p>Welcome to the cultural zeitgeist terminal. Your reputation units have been initialized.</p>
-                <div style="border-left: 4px solid #38bdf8; padding-left: 20px; margin: 20px 0;">
-                    <p><strong>Status:</strong> Active Beta</p>
-                    <p><strong>Reputation:</strong> 100</p>
-                    <p><strong>Balance:</strong> $10,000 (Simulated)</p>
+            <div style="background: #020617; color: #f8fafc; padding: 40px; font-family: 'Courier New', Courier, monospace; line-height: 1.6;">
+                <div style="border: 1px solid #38bdf8; padding: 20px; border-radius: 8px; background: #0f172a;">
+                    <h1 style="color: #38bdf8; text-transform: uppercase; margin-top: 0; font-size: 20px; letter-spacing: 2px;">
+                        [ AUTHENTICATION SUCCESSFUL ]
+                    </h1>
+                    <p style="color: #94a3b8; font-size: 14px;">Oracle Handle: ${identity}</p>
+                    <hr style="border: none; border-top: 1px solid #1e293b; margin: 20px 0;" />
+                    
+                    <p>Welcome to the Star Ranker Oracle Network. Your access to the cultural zeitgeist terminal has been initialized.</p>
+                    
+                    <div style="background: #020617; border-left: 4px solid #38bdf8; padding: 15px; margin: 20px 0;">
+                        <p style="margin: 5px 0;"><strong>PROVISIONED TIER:</strong> Initiate</p>
+                        <p style="margin: 5px 0;"><strong>INITIAL REPUTATION:</strong> 100 UNITS</p>
+                        <p style="margin: 5px 0;"><strong>SECURITY STATUS:</strong> ACTIVE BETA</p>
+                    </div>
+                    
+                    <p style="color: #38bdf8;">Your handle is now linked to the primary ranking engine.</p>
+                    <p style="font-size: 12px; color: #64748b; margin-top: 30px;">
+                        System sync confirmed at ${new Date().toUTCString()}
+                    </p>
                 </div>
-                <p>Deploy your influence strategically.</p>
             </div>
         `
     }),

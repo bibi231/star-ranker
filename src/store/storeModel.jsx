@@ -208,7 +208,9 @@ export const useStore = create((set, get) => ({
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                set({ user, isAuthLoading: false });
+                // Determine if Google provider is used
+                const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
+                set({ user, emailVerified: user.emailVerified || isGoogle, isAuthLoading: false });
                 await get().fetchUserProfile();
                 // Also fetch votes for current category
                 const { currentCategorySlug } = get();
@@ -238,7 +240,8 @@ export const useStore = create((set, get) => ({
     fetchUserProfile: async () => {
         if (!auth.currentUser) return;
         try {
-            const profile = await apiGet("/api/admin/users/me");
+            const ref = sessionStorage.getItem('starranker_ref');
+            const profile = await apiGet("/api/admin/users/me", ref ? { ref } : {});
             set({
                 balance: profile.balance || 0,
                 reputation: profile.reputation || 0,
@@ -412,7 +415,7 @@ export const useStore = create((set, get) => ({
         }
     },
 
-    registerWithEmail: async (email, password, username) => {
+    registerWithEmail: async (email, password, username, phoneNumber) => {
         set({ isAuthLoading: true });
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -438,7 +441,9 @@ export const useStore = create((set, get) => ({
     refreshUser: async () => {
         if (auth.currentUser) {
             await auth.currentUser.reload();
-            set({ emailVerified: auth.currentUser.emailVerified });
+            const { emailVerified, providerData } = auth.currentUser;
+            const isGoogle = providerData.some(p => p.providerId === 'google.com');
+            set({ emailVerified: emailVerified || isGoogle });
             await get().fetchUserProfile();
         }
     },

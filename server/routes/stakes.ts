@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db/index";
-import { stakes, items, epochs, marketMeta, users, transactions, notifications } from "../db/schema";
+import { stakes, items, epochs, marketMeta, users, transactions, notifications, marketActivity } from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { requireStakeAccess } from "../middleware/geo";
@@ -87,7 +87,7 @@ function generateOddsQuote(
 }
 
 // GET /api/stakes/odds — Get live odds quote
-router.get("/odds", [requireAuth, requireStakeAccess], async (req: AuthRequest, res) => {
+router.get("/odds", [requireAuth, requireStakeAccess], async (req: AuthRequest, res: any) => {
     try {
         console.log("[STAKE_ODDS] Request Query:", req.query);
         const { itemDocId, amount, target, categorySlug, betType } = req.query;
@@ -294,6 +294,18 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
                 slippageApplied: quote.slippage,
                 platformFee,
             }).returning({ id: stakes.id });
+
+            // 7. Log to Market Activity
+            await tx.insert(marketActivity).values({
+                type: "stake",
+                userId,
+                itemDocId,
+                itemName,
+                categorySlug,
+                amount,
+                description: `Stake of ${amount.toFixed(2)} placed on ${itemName} (Epoch #${epoch.epochNumber})`,
+                metadata: { betType, target, multiplier: quote.effectiveMultiplier }
+            });
 
             return stakeResult[0].id;
         });

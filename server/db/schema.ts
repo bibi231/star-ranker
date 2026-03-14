@@ -216,3 +216,19 @@ export const platformRevenue = pgTable("platform_revenue", {
     netProfitUsd: real("net_profit_usd").default(0),
     recordedAt: timestamp("recorded_at").defaultNow(),
 });
+// ===== MARKET ACTIVITY (Public Feed / Audit Log) =====
+export const marketActivity = pgTable("market_activity", {
+    id: serial("id").primaryKey(),
+    type: text("type").notNull(), // stake, vote, epoch_roll, settlement, deposit
+    userId: text("user_id"),
+    itemDocId: text("item_doc_id"),
+    itemName: text("item_name"),
+    categorySlug: text("category_slug"),
+    amount: real("amount"),
+    description: text("description"),
+    metadata: jsonb("metadata").default({}),
+    createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+    index("market_activity_type_idx").on(table.type),
+    index("market_activity_created_idx").on(table.createdAt),
+]);

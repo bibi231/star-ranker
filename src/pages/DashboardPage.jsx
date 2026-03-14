@@ -17,7 +17,9 @@ import {
     Mail,
     AlertTriangle,
     Loader2,
-    RefreshCw
+    RefreshCw,
+    Share2,
+    Twitter
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { ReferralPanel } from '../components/ReferralPanel';
@@ -35,6 +37,23 @@ export function UserDashboard() {
             bindWallet(address);
         }
     }, [isConnected, address, user, bindWallet]);
+
+    const shareToX = (stake) => {
+        const url = `${window.location.origin}/signup?ref=${user?.referralCode || ''}`;
+        const message = `Just deployed ${formatValue(stake.amount)} units on ${stake.itemName} to rank #${stake.targetRank} — @StarRanker Oracle Beta 🚀\n\nJoin the network: ${url}`;
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`, '_blank');
+    };
+
+    const getRelativeTime = (date) => {
+        const now = new Date();
+        const diff = now - new Date(date);
+        const minutes = Math.floor(diff / 60000);
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        return new Date(date).toLocaleDateString();
+    };
 
     return (
         <div className="p-4 md:p-8 space-y-8 md:space-y-12 bg-[#020617] min-h-screen">
@@ -69,6 +88,7 @@ export function UserDashboard() {
                                             <th className="py-4 text-right">Magnitude</th>
                                             <th className="py-4 text-right">Target</th>
                                             <th className="py-4 text-right">Est. Yield</th>
+                                            <th className="py-4 text-right">Share</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
@@ -83,6 +103,14 @@ export function UserDashboard() {
                                                 <td className="py-5 text-right font-mono text-xs font-black text-slate-300">{formatValue(stake.amount)}</td>
                                                 <td className="py-5 text-right font-mono text-xs font-black text-brand-accent">#{stake.targetRank}</td>
                                                 <td className="py-5 text-right font-mono text-xs font-black text-emerald-400">+{formatValue((stake.amount * stake.odds) - stake.amount)}</td>
+                                                <td className="py-5 text-right">
+                                                    <button
+                                                        onClick={() => shareToX(stake)}
+                                                        className="p-2 ml-auto rounded-lg bg-white/5 text-slate-500 hover:text-brand-accent hover:bg-brand-accent/10 transition-all flex items-center justify-center border border-white/5"
+                                                    >
+                                                        <Twitter size={12} fill="currentColor" />
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -116,17 +144,25 @@ export function UserDashboard() {
                 <div className="space-y-8 md:space-y-12">
                     <SectionBox title="Influence Archive" icon={<History size={16} />}>
                         <div className="space-y-8">
-                            {[1, 2, 3, 4, 5].map(i => (
-                                <div key={i} className="flex gap-4 items-start group">
-                                    <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-800 group-hover:bg-[#C9A84C] transition-all shrink-0 shadow-[0_0_8px_rgba(201,168,76,0.3)]" />
-                                    <div className="space-y-1.5">
-                                        <p className="text-[11px] font-bold text-slate-300 leading-tight uppercase tracking-tight">
-                                            Executed rank up command on <span className="text-white border-b border-brand-accent/30">Bitcoin</span> in global market.
-                                        </p>
-                                        <p className="text-[9px] font-mono text-slate-600 font-black uppercase tracking-widest">04:22:15 UTC • BATCH #482</p>
+                            {user?.recentActivity?.length > 0 ? (
+                                user.recentActivity.map((act, i) => (
+                                    <div key={act.id || i} className="flex gap-4 items-start group">
+                                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-800 group-hover:bg-brand-accent transition-all shrink-0 shadow-[0_0_8px_rgba(56,189,248,0.3)]" />
+                                        <div className="space-y-1.5">
+                                            <p className="text-[11px] font-bold text-slate-300 leading-tight uppercase tracking-tight">
+                                                {act.description}
+                                            </p>
+                                            <p className="text-[9px] font-mono text-slate-600 font-black uppercase tracking-widest">
+                                                {getRelativeTime(act.createdAt)} • {act.type.toUpperCase()}
+                                            </p>
+                                        </div>
                                     </div>
+                                ))
+                            ) : (
+                                <div className="py-12 text-center">
+                                    <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest">No archival data available.</p>
                                 </div>
-                            ))}
+                            )}
                         </div>
                         <button className="w-full mt-8 py-4 rounded-2xl border border-white/5 text-[10px] font-black uppercase text-slate-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-3 tracking-widest">
                             View Full Logs <ChevronRight size={14} />

@@ -30,6 +30,7 @@ export async function requireAuth(req: AuthRequest, res: Response, next: NextFun
         const decoded = await admin.auth().verifyIdToken(idToken);
         req.uid = decoded.uid;
         req.userEmail = decoded.email;
+        (req as any).userName = decoded.name; // Capture display name if present
         next();
     } catch (error) {
         return res.status(401).json({ error: "Invalid or expired token" });
@@ -47,6 +48,7 @@ export async function optionalAuth(req: AuthRequest, res: Response, next: NextFu
             const decoded = await admin.auth().verifyIdToken(authHeader.split("Bearer ")[1]);
             req.uid = decoded.uid;
             req.userEmail = decoded.email;
+            (req as any).userName = decoded.name; // Capture display name if present
         } catch {
             // Token invalid — proceed without auth
         }

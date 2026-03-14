@@ -10,7 +10,7 @@
  */
 
 import { db } from "../db/index";
-import { stakes, items, users, notifications, transactions, platformRevenue } from "../db/schema";
+import { stakes, items, users, notifications, transactions, platformRevenue, marketActivity } from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { sendEmail, templates } from "../lib/email";
 
@@ -194,6 +194,14 @@ export async function settleBets() {
                 netProfitUsd: netProfit,
                 recordedAt: new Date(),
             }
+        });
+
+        // Log to Market Activity
+        await db.insert(marketActivity).values({
+            type: "settlement",
+            description: `Epoch #${currentEpochId} settlement complete. Staked: ${totalGrossStaked.toFixed(2)}, Paid: ${totalPaidOut.toFixed(2)}, Platform Net: ${netProfit.toFixed(2)}`,
+            amount: totalGrossStaked,
+            metadata: { epochId: currentEpochId, staked: totalGrossStaked, paid: totalPaidOut, net: netProfit }
         });
     }
 

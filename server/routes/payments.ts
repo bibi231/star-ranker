@@ -8,7 +8,7 @@
 
 import { Router } from "express";
 import { db } from "../db/index";
-import { users, transactions } from "../db/schema";
+import { users, transactions, marketActivity } from "../db/schema";
 import { eq, sql } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { z } from "zod";
@@ -95,7 +95,7 @@ router.post("/initialize", requireAuth, async (req: AuthRequest, res) => {
  */
 router.get("/verify/:reference", requireAuth, async (req: AuthRequest, res) => {
     try {
-        const { reference } = req.params;
+        const reference = req.params.reference as string;
 
         if (!PAYSTACK_SECRET) {
             return res.status(503).json({ error: "Payment service not configured" });
@@ -149,12 +149,21 @@ router.get("/verify/:reference", requireAuth, async (req: AuthRequest, res) => {
                     amountNgn: amountNGN,
                     amountUsd: platformCredits,
                     netAmountUsd: platformCredits,
-                    reference,
+                    reference: reference,
                     status: "completed",
                     paystackRef: data.data.id?.toString(),
                     settledAt: new Date()
                 });
             }
+
+            // Log to market activity
+            await tx.insert(marketActivity).values({
+                type: "deposit",
+                userId: req.uid!,
+                amount: platformCredits,
+                description: `Deposit of ${platformCredits.toFixed(2)} units confirmed (Ref: ${reference})`,
+                metadata: { reference, paystackId: data.data.id }
+            });
         });
 
         const userResult = await db.select({ balance: users.balance })
@@ -195,6 +204,7 @@ router.post("/webhook", async (req, res) => {
 
         if (event.event === "charge.success") {
             const { reference, amount, metadata, id: paystackId } = event.data;
+            const refStr = reference as string;
 
             if (metadata?.userId) {
                 const amountNGN = amount / 100;
@@ -203,7 +213,7 @@ router.post("/webhook", async (req, res) => {
                 await db.transaction(async (tx) => {
                     const existing = await tx.select()
                         .from(transactions)
-                        .where(eq(transactions.reference, reference))
+                        .where(eq(transactions.reference, refStr))
                         .limit(1)
                         .for("update");
 
@@ -233,14 +243,23 @@ router.post("/webhook", async (req, res) => {
                             amountNgn: amountNGN,
                             amountUsd: platformCredits,
                             netAmountUsd: platformCredits,
-                            reference,
+                            reference: refStr,
                             status: "completed",
                             paystackRef: paystackId?.toString(),
                             settledAt: new Date()
                         });
                     }
+
+                    // Log to market activity
+                    await tx.insert(marketActivity).values({
+                        type: "deposit",
+                        userId: metadata.userId,
+                        amount: platformCredits,
+                        description: `Deposit of ${platformCredits.toFixed(2)} units confirmed via Webhook (Ref: ${refStr})`,
+                        metadata: { reference: refStr, paystackId, source: "webhook" }
+                    });
                 });
-                console.log(`[Paystack Webhook] Credited ${platformCredits} to ${metadata.userId} (Ref: ${reference})`);
+                console.log(`[Paystack Webhook] Credited ${platformCredits} to ${metadata.userId} (Ref: ${refStr})`);
             }
         }
 

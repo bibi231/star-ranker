@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { db } from "../db/index";
-import { categories, items, epochs, marketMeta, users, stakes, betaInvites } from "../db/schema";
+import { categories, items, epochs, marketMeta, users, stakes, betaInvites, marketActivity } from "../db/schema";
 import { requireAuth, AuthRequest } from "../middleware/auth";
-import { eq, sql, count } from "drizzle-orm";
+import { eq, sql, count, desc } from "drizzle-orm";
 import { settleBets } from "../engine/settlement";
 import { sendEmail, templates } from "../lib/email";
 import { reifyRankings } from "../engine/rankingEngine";
@@ -171,6 +171,7 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
             const newUser = await db.insert(users).values({
                 firebaseUid: req.uid!,
                 email: email || null,
+                displayName: (req as any).userName || null,
                 balance: 0,
                 reputation: initialRep,
                 tier: initialTier,
@@ -182,7 +183,8 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
 
             // Send welcome email for NEW users (asynchronous)
             if (newUser[0].email) {
-                sendEmail(newUser[0].email, templates.welcome(newUser[0].email).subject, templates.welcome(newUser[0].email).html)
+                const identity = newUser[0].displayName || newUser[0].email || "Oracle";
+                sendEmail(newUser[0].email, templates.welcome(identity).subject, templates.welcome(identity).html)
                     .catch(err => console.error("Welcome email failed:", err));
             }
         } else {
@@ -196,7 +198,17 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
             }
         }
 
-        res.json(user[0]);
+        // Fetch last 10 user activities
+        const recentActivity = await db.select()
+            .from(marketActivity)
+            .where(eq(marketActivity.userId, req.uid!))
+            .orderBy(desc(marketActivity.createdAt))
+            .limit(10);
+
+        res.json({
+            ...user[0],
+            recentActivity
+        });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }
