@@ -51,7 +51,7 @@ async function fetchWithRetry(url, options = {}, retries = 2, backoff = 500) {
             clearTimeout(timeoutId);
 
             if (err.name === 'AbortError') {
-                err.message = 'Request timed out (10s)';
+                throw new Error('Request timed out (10s)');
             }
 
             // Stop retrying if rate limited

@@ -22,6 +22,7 @@ export const useStore = create((set, get) => ({
     tier: "Newbie",
     emailVerified: false,
     isAuthLoading: true,
+    usePowerVote: false,
 
     // Currency System
     currency: 'USD',
@@ -106,6 +107,7 @@ export const useStore = create((set, get) => ({
     setSearchQuery: (query) => set({ searchQuery: query }),
     openModal: (modal, item) => set({ activeModal: modal, selectedItem: item }),
     closeModal: () => set({ activeModal: null, selectedItem: null }),
+    togglePowerVote: () => set((state) => ({ usePowerVote: !state.usePowerVote })),
 
     callAdminFunction: async (func, args) => {
         const { adminState, items, currentEpoch } = get();
@@ -221,7 +223,7 @@ export const useStore = create((set, get) => ({
         if (!epochData) return;
         set({
             currentEpoch: {
-                epochId: epochData.epochId || epochData.epochNumber,
+                epochId: epochData.epochNumber || epochData.epochId,
                 startTime: epochData.startTime,
                 endTime: epochData.endTime,
             }
@@ -298,6 +300,7 @@ export const useStore = create((set, get) => ({
                 itemDocId: itemId,
                 direction: finalDirection,
                 categorySlug: currentCategorySlug,
+                usePowerVote: get().usePowerVote
             });
             // Profile may change if power votes used or reputation gained
             get().fetchUserProfile();

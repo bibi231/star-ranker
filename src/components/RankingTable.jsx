@@ -14,7 +14,9 @@ export function RankingTable() {
         userVotes,
         openModal,
         isSyncing,
-        user
+        user,
+        usePowerVote,
+        togglePowerVote
     } = useStore();
 
     const isMobile = useIsMobile();
@@ -45,6 +47,25 @@ export function RankingTable() {
     if (isMobile) {
         return (
             <div className="flex flex-col gap-2 px-3 py-2 pb-6">
+                {user?.powerVotes > 0 && (
+                    <div className="flex items-center justify-between px-4 py-3 bg-[#1E3A5F]/40 rounded-xl border border-amber-500/20 mb-1">
+                        <div className="flex items-center gap-2">
+                            <Zap size={14} className="text-amber-500 fill-amber-500 animate-pulse" />
+                            <span className="text-[10px] font-black text-amber-500 uppercase tracking-tighter">{user.powerVotes} P-VOTES</span>
+                        </div>
+                        <button
+                            onClick={() => togglePowerVote()}
+                            className={cn(
+                                "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all border",
+                                usePowerVote
+                                    ? "bg-amber-500 border-amber-500 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                                    : "bg-slate-950 border-slate-800 text-slate-500 font-bold"
+                            )}
+                        >
+                            <span className="text-[9px] uppercase tracking-widest leading-none">{usePowerVote ? 'ACTIVE' : 'USE POWER VOTE'}</span>
+                        </button>
+                    </div>
+                )}
                 {items.map((item, index) => (
                     <MobileItemCard key={item.id} item={item} index={index} />
                 ))}
@@ -62,6 +83,36 @@ export function RankingTable() {
                 <div className="w-28 shrink-0 text-right pr-4 font-black text-[9px] text-slate-500 tracking-widest">Velocity</div>
                 <div className="w-40 shrink-0 text-center font-black text-[9px] text-slate-500 tracking-widest">Operations</div>
             </div>
+
+            {/* Power Vote Global Toggle */}
+            {user?.powerVotes > 0 && (
+                <div className="flex items-center justify-end px-6 py-2 bg-slate-900/80 border-b border-slate-800 gap-3">
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 shadow-sm">
+                        <Zap size={10} className="text-amber-500 fill-amber-500 animate-pulse" />
+                        <span className="text-[9px] font-black text-amber-500 tracking-tighter uppercase">{user.powerVotes} Power Votes available</span>
+                    </div>
+                    <button
+                        onClick={() => togglePowerVote()}
+                        className={cn(
+                            "flex items-center gap-2 px-3 py-1 rounded-full transition-all border",
+                            usePowerVote
+                                ? "bg-amber-500 border-amber-500 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                                : "bg-slate-950 border-slate-800 text-slate-500 font-bold hover:border-slate-600"
+                        )}
+                    >
+                        <span className="text-[9px] uppercase tracking-widest leading-none">Use Power Vote</span>
+                        <div className={cn(
+                            "w-6 h-3 rounded-full relative transition-colors duration-300",
+                            usePowerVote ? "bg-slate-950" : "bg-slate-800"
+                        )}>
+                            <div className={cn(
+                                "absolute top-0.5 w-2 h-2 rounded-full bg-current transition-transform duration-300",
+                                usePowerVote ? "left-[14px]" : "left-1"
+                            )} />
+                        </div>
+                    </button>
+                </div>
+            )}
 
             {/* Scrollable Item List */}
             <div className="max-h-[70vh] overflow-y-auto custom-scrollbar divide-y divide-slate-800/50">
