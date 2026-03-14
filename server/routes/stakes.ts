@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db/index";
-import { stakes, items, epochs, marketMeta, users } from "../db/schema";
+import { stakes, items, epochs, marketMeta, users, transactions, notifications } from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { requireStakeAccess } from "../middleware/geo";
@@ -150,7 +150,7 @@ router.get("/odds", [requireAuth, requireStakeAccess], async (req: AuthRequest, 
 });
 
 // POST /api/stakes — Place a stake
-router.post("/", [requireAuth, requireStakeAccess], async (req: AuthRequest, res) => {
+router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: any) => {
     try {
         console.log("[STAKE_POST] Request Body:", req.body);
         // ===== ZOD VALIDATION =====
@@ -216,7 +216,6 @@ router.post("/", [requireAuth, requireStakeAccess], async (req: AuthRequest, res
         const exposure = (meta.itemExposure as Record<string, number>) || {};
         const itemOI = exposure[itemDocId] || 0;
 
-        const timeRemaining = epoch.endTime.getTime() - Date.now();
 
         const pBase = calculateBaseProbability(
             { momentum: item.momentum ?? 0, velocity: item.velocity ?? 0, volatility: item.volatility ?? 5, currentRank: item.rank ?? 50 },
@@ -284,7 +283,7 @@ router.post("/", [requireAuth, requireStakeAccess], async (req: AuthRequest, res
                 itemName,
                 categorySlug,
                 amount: netStake,
-                target,
+                target: target as any,
                 betType,
                 initialRank: item.rank ?? 50,
                 status: "active",
@@ -313,7 +312,7 @@ router.post("/", [requireAuth, requireStakeAccess], async (req: AuthRequest, res
 });
 
 // GET /api/stakes/mine — Get user's active stakes
-router.get("/mine", requireAuth, async (req: AuthRequest, res) => {
+router.get("/my", requireAuth, async (req: AuthRequest, res: any) => {
     try {
         const result = await db
             .select()

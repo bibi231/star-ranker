@@ -22,14 +22,18 @@ export async function checkAndRollEpoch() {
             .where(eq(epochs.isActive, true))
             .limit(1);
 
+        const now = Date.now();
+
         if (activeEpochs.length === 0) {
-            console.log("[Epoch] No active epoch — creating first one");
-            await createNewEpoch(1);
+            console.log("[Epoch] No active epoch found. Finding last epoch number...");
+            const lastEpoch = await db.select().from(epochs).orderBy(desc(epochs.epochNumber)).limit(1);
+            const nextNum = lastEpoch.length > 0 ? lastEpoch[0].epochNumber + 1 : 1;
+            console.log(`[Epoch] Starting new epoch sequence from #${nextNum}`);
+            await createNewEpoch(nextNum);
             return;
         }
 
         const current = activeEpochs[0];
-        const now = Date.now();
 
         if (now >= current.endTime.getTime()) {
             console.log(`[Epoch] Epoch ${current.epochNumber} expired. Rolling over...`);
@@ -39,19 +43,24 @@ export async function checkAndRollEpoch() {
                 .set({ isActive: false })
                 .where(eq(epochs.id, current.id));
 
-            // Capture final rankings for this epoch
-            await createEpochSnapshot(current.epochNumber);
+            try {
+                // Capture final rankings for this epoch
+                await createEpochSnapshot(current.epochNumber);
 
-            // Settle stakes from expired epoch
-            await settleBets();
+                // Settle stakes from expired epoch
+                await settleBets();
 
-            // Force a global ranking reification immediately
-            await reifyRankings();
+                // Force a global ranking reification immediately
+                await reifyRankings();
 
-            // Create new epoch
-            await createNewEpoch(current.epochNumber + 1);
+                // Create new epoch
+                await createNewEpoch(current.epochNumber + 1);
 
-            console.log(`[Epoch] Rolled to epoch ${current.epochNumber + 1}`);
+                console.log(`[Epoch] Rolled to epoch ${current.epochNumber + 1}`);
+            } catch (err) {
+                console.error(`[Epoch] Failed during rollover operations for #${current.epochNumber}:`, err);
+                // System will retry on next check since no "active" epoch exists now
+            }
         }
     } catch (error) {
         console.error("[Epoch] Rollover check failed:", error);

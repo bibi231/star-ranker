@@ -65,7 +65,7 @@ export const stakes = pgTable("stakes", {
     itemName: text("item_name"),
     categorySlug: text("category_slug").notNull(),
     amount: real("amount").notNull(),
-    target: integer("target").notNull(),
+    target: jsonb("target").notNull(),
     betType: text("bet_type").notNull(), // exact, range, directional
     initialRank: integer("initial_rank"),
     status: text("status").default("active"),

@@ -161,7 +161,6 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
         let user = await db.select().from(users).where(eq(users.firebaseUid, req.uid!)).limit(1);
 
         if (user.length === 0) {
-            // ... (keep referral code logic)
             const referredBy = typeof req.query.ref === "string" ? req.query.ref.trim() : null;
             const referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
 
@@ -180,6 +179,12 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
                 referredBy,
             }).returning();
             user = newUser;
+
+            // Send welcome email for NEW users (asynchronous)
+            if (newUser[0].email) {
+                sendEmail(newUser[0].email, templates.welcome(newUser[0].email).subject, templates.welcome(newUser[0].email).html)
+                    .catch(err => console.error("Welcome email failed:", err));
+            }
         } else {
             // Update existing user if super admin
             if (isSuperAdmin(email) && !user[0].isAdmin) {
@@ -191,17 +196,10 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
             }
         }
 
-        // Send welcome email (asynchronous, don't block response)
-        if (newUser[0].email) {
-            sendEmail(newUser[0].email, templates.welcome(newUser[0].email).subject, templates.welcome(newUser[0].email).html)
-                .catch(err => console.error("Welcome email failed:", err));
-        }
-    }
-
         res.json(user[0]);
-} catch (error: any) {
-    res.status(500).json({ error: error.message });
-}
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // POST /api/admin/test-email — Test SMTP configuration
