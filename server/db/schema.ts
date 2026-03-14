@@ -65,7 +65,7 @@ export const stakes = pgTable("stakes", {
     itemName: text("item_name"),
     categorySlug: text("category_slug").notNull(),
     amount: real("amount").notNull(),
-    target: jsonb("target").notNull(),
+    target: integer("target").notNull(),
     betType: text("bet_type").notNull(), // exact, range, directional
     initialRank: integer("initial_rank"),
     status: text("status").default("active"),
@@ -183,3 +183,36 @@ export const notifications = pgTable("notifications", {
 }, (table) => [
     index("notifications_user_idx").on(table.userId),
 ]);
+
+// ===== TRANSACTIONS (The Financial Ledger) =====
+export const transactions = pgTable("transactions", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    type: text("type").notNull(), // deposit, withdrawal, stake, win, fee, refund
+    amountNgn: real("amount_ngn").default(0),
+    amountUsd: real("amount_usd").default(0),
+    platformFeeUsd: real("platform_fee_usd").default(0),
+    netAmountUsd: real("net_amount_usd").default(0),
+    status: text("status").default("pending"), // pending, completed, failed
+    reference: text("reference").notNull().unique(), // Internal or Paystack ref
+    paystackRef: text("paystack_ref"),
+    metadata: jsonb("metadata").default({}),
+    epochId: integer("epoch_id"),
+    marketId: text("market_id"),
+    createdAt: timestamp("created_at").defaultNow(),
+    settledAt: timestamp("settled_at"),
+}, (table) => [
+    index("transactions_user_idx").on(table.userId),
+    index("transactions_ref_idx").on(table.reference),
+]);
+
+// ===== PLATFORM REVENUE (Epoch Level Summary) =====
+export const platformRevenue = pgTable("platform_revenue", {
+    id: serial("id").primaryKey(),
+    epochId: integer("epoch_id").notNull().unique(),
+    grossStakedUsd: real("gross_staked_usd").default(0),
+    totalFeesUsd: real("total_fees_usd").default(0),
+    totalWinningsUsd: real("total_winnings_usd").default(0),
+    netProfitUsd: real("net_profit_usd").default(0),
+    recordedAt: timestamp("recorded_at").defaultNow(),
+});

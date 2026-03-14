@@ -10,7 +10,7 @@
  */
 
 import { db } from "../db/index";
-import { stakes, items, users, marketMeta, notifications } from "../db/schema";
+import { stakes, items, users, notifications, transactions, platformRevenue } from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { sendEmail, templates } from "../lib/email";
 
@@ -99,37 +99,68 @@ export async function settleBets() {
         ? Math.min(1, loserPool / totalTargetPayouts)
         : 0;
 
+    // ===== PHASE 3: Settle each stake =====
+    let totalGrossStaked = 0;
     let totalPaidOut = 0;
+    let totalFees = 0;
     let settledCount = 0;
 
-    // ===== PHASE 3: Settle each stake =====
     for (const result of results) {
         const { stake, userEmail, isWin, targetPayout } = result;
         const actualPayout = isWin ? Math.floor(targetPayout * scaleFactor * 100) / 100 : 0;
+        totalGrossStaked += stake.amount;
+        totalFees += (stake.platformFee || 0);
 
-        // Update stake record
-        await db.update(stakes).set({
-            isSettled: true,
-            status: isWin ? "won" : "lost",
-            payout: actualPayout,
-        }).where(eq(stakes.id, stake.id));
+        await db.transaction(async (tx) => {
+            // 1. Update stake record
+            await tx.update(stakes).set({
+                isSettled: true,
+                status: isWin ? "won" : "lost",
+                payout: actualPayout,
+            }).where(eq(stakes.id, stake.id));
 
-        // Credit winner's balance (payout + original stake back)
-        if (actualPayout > 0) {
-            const totalCredit = actualPayout + stake.amount; // Return stake + winnings
-            await db.update(users).set({
-                balance: sql`${users.balance} + ${totalCredit}`,
-                reputation: sql`${users.reputation} + 10`, // Bonus rep for winning
-            }).where(eq(users.firebaseUid, stake.userId));
-            totalPaidOut += actualPayout;
-        } else {
-            // Losers lose reputation
-            await db.update(users).set({
-                reputation: sql`GREATEST(0, ${users.reputation} - 5)`,
-            }).where(eq(users.firebaseUid, stake.userId));
-        }
+            // 2. Log in Transactions Ledger
+            const txType = isWin ? "win" : "fee"; // Loser stake is kept as pool/fee
+            const txRef = `stl_${Date.now()}_${stake.id}`;
 
-        // Send settlement email
+            await tx.insert(transactions).values({
+                userId: stake.userId,
+                type: txType,
+                amountUsd: isWin ? actualPayout : -stake.amount,
+                netAmountUsd: isWin ? actualPayout + stake.amount : -stake.amount, // Winner gets winnings + stake back
+                status: "completed",
+                reference: txRef,
+                epochId: stake.epochId,
+                marketId: stake.itemDocId,
+                metadata: { outcome: isWin ? "win" : "loss", stakeId: stake.id }
+            });
+
+            // 3. Credit winner's balance (payout + original stake back) or deduct reputaton
+            if (isWin && actualPayout >= 0) {
+                const totalCredit = actualPayout + stake.amount;
+                await tx.update(users).set({
+                    balance: sql`${users.balance} + ${totalCredit}`,
+                    reputation: sql`${users.reputation} + 10`,
+                }).where(eq(users.firebaseUid, stake.userId));
+                totalPaidOut += actualPayout;
+            } else {
+                await tx.update(users).set({
+                    reputation: sql`GREATEST(0, ${users.reputation} - 5)`,
+                }).where(eq(users.firebaseUid, stake.userId));
+            }
+
+            // 4. Add in-app notification
+            await tx.insert(notifications).values({
+                userId: stake.userId,
+                title: isWin ? "Oracle Alignment Successful" : "Market Divergence Detected",
+                message: isWin
+                    ? `Profit reified on ${stake.itemName || 'asset'}. +${actualPayout.toLocaleString()} units credited.`
+                    : `Stake on ${stake.itemName || 'asset'} dissolved into the pool. -${stake.amount.toLocaleString()} units.`,
+                type: isWin ? "win" : "loss"
+            });
+        });
+
+        // Send settlement email (outside transaction)
         if (userEmail) {
             const template = templates.settlement(
                 stake.itemName || "Unknown Asset",
@@ -140,29 +171,38 @@ export async function settleBets() {
                 .catch(err => console.error("Settlement email failed:", err));
         }
 
-        // Add in-app notification
-        await db.insert(notifications).values({
-            userId: stake.userId,
-            title: isWin ? "Oracle Alignment Successful" : "Market Divergence Detected",
-            message: isWin
-                ? `Profit reified on ${stake.itemName || 'asset'}. +${actualPayout.toLocaleString()} units credited.`
-                : `Stake on ${stake.itemName || 'asset'} dissolved into the pool. -${stake.amount.toLocaleString()} units.`,
-            type: isWin ? "win" : "loss"
-        });
-
         settledCount++;
-        console.log(`[Settlement] Stake #${stake.id}: ${stake.betType} | ${isWin ? "WIN" : "LOSS"} | Payout: ${actualPayout}`);
     }
 
-    // ===== PHASE 4: Platform captures leftover pool =====
-    const platformExtra = Math.max(0, loserPool - totalPaidOut);
+    // ===== PHASE 4: Platform Revenue Logging =====
+    const netProfit = totalGrossStaked - totalPaidOut;
+    const currentEpochId = results[0]?.stake.epochId || 0;
+
+    if (currentEpochId > 0) {
+        await db.insert(platformRevenue).values({
+            epochId: currentEpochId,
+            grossStakedUsd: totalGrossStaked,
+            totalFeesUsd: totalFees,
+            totalWinningsUsd: totalPaidOut,
+            netProfitUsd: netProfit,
+        }).onConflictDoUpdate({
+            target: platformRevenue.epochId,
+            set: {
+                grossStakedUsd: totalGrossStaked,
+                totalFeesUsd: totalFees,
+                totalWinningsUsd: totalPaidOut,
+                netProfitUsd: netProfit,
+                recordedAt: new Date(),
+            }
+        });
+    }
 
     console.log(`[Settlement] === EPOCH SUMMARY ===`);
+    console.log(`  Epoch ID:       ${currentEpochId}`);
     console.log(`  Stakes settled: ${settledCount}`);
-    console.log(`  Loser pool:     ${loserPool.toFixed(2)}`);
+    console.log(`  Total Stake:    ${totalGrossStaked.toFixed(2)}`);
     console.log(`  Total paid out: ${totalPaidOut.toFixed(2)}`);
-    console.log(`  Scale factor:   ${(scaleFactor * 100).toFixed(1)}%`);
-    console.log(`  Platform extra: ${platformExtra.toFixed(2)}`);
+    console.log(`  Platform Net:   ${netProfit.toFixed(2)}`);
 
-    return { settled: settledCount, poolSize: loserPool, totalPaid: totalPaidOut, platformExtra };
+    return { settled: settledCount, poolSize: totalGrossStaked, totalPaid: totalPaidOut, netProfit };
 }

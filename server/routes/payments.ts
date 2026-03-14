@@ -8,7 +8,7 @@
 
 import { Router } from "express";
 import { db } from "../db/index";
-import { users } from "../db/schema";
+import { users, transactions } from "../db/schema";
 import { eq, sql } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { z } from "zod";
@@ -19,8 +19,7 @@ const router = Router();
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || "";
 const PAYSTACK_BASE = "https://api.paystack.co";
 
-// Track processed references for idempotency
-const processedRefs = new Set<string>();
+const NGN_USD_RATE = 1500; // As per master prompt v3.0
 
 const initSchema = z.object({
     amount: z.number().int().min(100000).max(100000000), // in kobo, min ₦1,000 max ₦1,000,000
@@ -69,6 +68,17 @@ router.post("/initialize", requireAuth, async (req: AuthRequest, res) => {
             return res.status(400).json({ error: data.message || "Paystack initialization failed" });
         }
 
+        // Record pending transaction
+        await db.insert(transactions).values({
+            userId: req.uid!,
+            type: "deposit",
+            amountNgn: amount / 100,
+            amountUsd: (amount / 100) / NGN_USD_RATE,
+            reference,
+            status: "pending",
+            metadata: { initResponse: data.data }
+        });
+
         res.json({
             authorization_url: data.data.authorization_url,
             reference: data.data.reference,
@@ -91,8 +101,9 @@ router.get("/verify/:reference", requireAuth, async (req: AuthRequest, res) => {
             return res.status(503).json({ error: "Payment service not configured" });
         }
 
-        // Idempotency check
-        if (processedRefs.has(reference)) {
+        // Check if already completed in ledger
+        const existing = await db.select().from(transactions).where(eq(transactions.reference, reference)).limit(1);
+        if (existing.length > 0 && existing[0].status === "completed") {
             return res.json({ credited: true, message: "Already processed" });
         }
 
@@ -106,20 +117,46 @@ router.get("/verify/:reference", requireAuth, async (req: AuthRequest, res) => {
             return res.status(400).json({ error: "Payment not verified", paystackStatus: data.data?.status });
         }
 
-        // Credit user balance (amount comes back in kobo, convert to NGN)
         const amountKobo = data.data.amount;
         const amountNGN = amountKobo / 100;
+        const platformCredits = Math.floor(amountNGN / NGN_USD_RATE * 100) / 100;
 
-        // Convert NGN to platform USD equivalent (simplified)
-        const platformCredits = Math.floor(amountNGN / 1500 * 100) / 100; // ~₦1500/USD
+        // Atomic Transaction: Credit User + Update Ledger
+        await db.transaction(async (tx) => {
+            // Re-verify status within transaction to prevent race conditions
+            const check = await tx.select().from(transactions).where(eq(transactions.reference, reference)).limit(1).for("update");
+            if (check.length > 0 && check[0].status === "completed") return;
 
-        await db.update(users)
-            .set({ balance: sql`${users.balance} + ${platformCredits}` })
-            .where(eq(users.firebaseUid, req.uid!));
+            await tx.update(users)
+                .set({ balance: sql`${users.balance} + ${platformCredits}` })
+                .where(eq(users.firebaseUid, req.uid!));
 
-        processedRefs.add(reference);
+            if (check.length > 0) {
+                await tx.update(transactions)
+                    .set({
+                        status: "completed",
+                        amountNgn: amountNGN,
+                        amountUsd: platformCredits,
+                        netAmountUsd: platformCredits,
+                        paystackRef: data.data.id?.toString(),
+                        settledAt: new Date()
+                    })
+                    .where(eq(transactions.id, check[0].id));
+            } else {
+                await tx.insert(transactions).values({
+                    userId: req.uid as string,
+                    type: "deposit",
+                    amountNgn: amountNGN,
+                    amountUsd: platformCredits,
+                    netAmountUsd: platformCredits,
+                    reference,
+                    status: "completed",
+                    paystackRef: data.data.id?.toString(),
+                    settledAt: new Date()
+                });
+            }
+        });
 
-        // Fetch updated balance
         const userResult = await db.select({ balance: users.balance })
             .from(users).where(eq(users.firebaseUid, req.uid!)).limit(1);
 
@@ -143,7 +180,7 @@ router.get("/verify/:reference", requireAuth, async (req: AuthRequest, res) => {
 router.post("/webhook", async (req, res) => {
     try {
         const secret = process.env.PAYSTACK_WEBHOOK_SECRET || PAYSTACK_SECRET;
-        if (!secret) return res.sendStatus(200); // Can't verify without secret
+        if (!secret) return res.sendStatus(200);
 
         const hash = crypto
             .createHmac("sha512", secret)
@@ -157,30 +194,60 @@ router.post("/webhook", async (req, res) => {
         const event = req.body;
 
         if (event.event === "charge.success") {
-            const { reference, amount, metadata } = event.data;
-
-            // Idempotency
-            if (processedRefs.has(reference)) {
-                return res.sendStatus(200);
-            }
+            const { reference, amount, metadata, id: paystackId } = event.data;
 
             if (metadata?.userId) {
                 const amountNGN = amount / 100;
-                const platformCredits = Math.floor(amountNGN / 1500 * 100) / 100;
+                const platformCredits = Math.floor(amountNGN / NGN_USD_RATE * 100) / 100;
 
-                await db.update(users)
-                    .set({ balance: sql`${users.balance} + ${platformCredits}` })
-                    .where(eq(users.firebaseUid, metadata.userId));
+                await db.transaction(async (tx) => {
+                    const existing = await tx.select()
+                        .from(transactions)
+                        .where(eq(transactions.reference, reference))
+                        .limit(1)
+                        .for("update");
 
-                processedRefs.add(reference);
-                console.log(`[Paystack] Webhook credited ${platformCredits} to ${metadata.userId}`);
+                    if (existing.length > 0 && existing[0].status === "completed") {
+                        return; // Idempotency
+                    }
+
+                    await tx.update(users)
+                        .set({ balance: sql`${users.balance} + ${platformCredits}` })
+                        .where(eq(users.firebaseUid, metadata.userId));
+
+                    if (existing.length > 0) {
+                        await tx.update(transactions)
+                            .set({
+                                status: "completed",
+                                amountNgn: amountNGN,
+                                amountUsd: platformCredits,
+                                netAmountUsd: platformCredits,
+                                paystackRef: paystackId?.toString(),
+                                settledAt: new Date()
+                            })
+                            .where(eq(transactions.id, existing[0].id));
+                    } else {
+                        await tx.insert(transactions).values({
+                            userId: metadata.userId,
+                            type: "deposit",
+                            amountNgn: amountNGN,
+                            amountUsd: platformCredits,
+                            netAmountUsd: platformCredits,
+                            reference,
+                            status: "completed",
+                            paystackRef: paystackId?.toString(),
+                            settledAt: new Date()
+                        });
+                    }
+                });
+                console.log(`[Paystack Webhook] Credited ${platformCredits} to ${metadata.userId} (Ref: ${reference})`);
             }
         }
 
         res.sendStatus(200);
     } catch (error: any) {
-        console.error("[Paystack] Webhook error:", error);
-        res.sendStatus(200); // Always return 200 to Paystack
+        console.error("[Paystack Webhook] Error:", error);
+        res.sendStatus(200);
     }
 });
 

@@ -186,9 +186,12 @@ router.post("/", [requireAuth, requireStakeAccess], async (req: AuthRequest, res
         if (epochResult.length === 0) return res.status(400).json({ error: "No active epoch" });
         const epoch = epochResult[0];
 
-        // 60s lockout (server-enforced)
-        if (epoch.endTime.getTime() - Date.now() < 60000) {
-            return res.status(400).json({ error: "Market is locked for snapshot" });
+        // 120s lockout (server-enforced)
+        const timeRemaining = epoch.endTime.getTime() - Date.now();
+        console.log(`[Stakes] Epoch ${epoch.epochNumber} - Time remaining: ${Math.round(timeRemaining / 1000)}s`);
+
+        if (timeRemaining < 120000) {
+            return res.status(400).json({ error: "Market is locked for snapshot (120s window)" });
         }
 
         // Stale quote rejection: if user quoted on a different epoch, reject
@@ -227,60 +230,78 @@ router.post("/", [requireAuth, requireStakeAccess], async (req: AuthRequest, res
             netStake
         );
 
-        // ===== MAX PAYOUT CAP: No single stake exceeds 2% of total pool =====
-        const totalPool = (meta.totalStaked ?? 0) + netStake;
-        const cappedPayout = Math.min(quote.potentialPayout, totalPool * 0.02 || netStake * 8);
-        const cappedMultiplier = cappedPayout / Math.max(netStake, 0.01);
+        // ===== ATOMIC TRANSACTION: Debit User + Credit Referrer + Update Meta + Log Transaction + Create Stake =====
+        const stakeId = await db.transaction(async (tx) => {
+            // 1. Re-fetch user balance within transaction for absolute consistency
+            const activeUser = await tx.select().from(users).where(eq(users.firebaseUid, userId)).limit(1).for("update");
+            if (activeUser.length === 0) throw new Error("User lost during transaction");
+            if ((activeUser[0].balance ?? 0) < amount) throw new Error("Insufficient funds (race condition)");
 
-        // Deduct FULL amount from user (they pay amount + fee is embedded)
-        await db.update(users)
-            .set({ balance: sql`${users.balance} - ${amount}` })
-            .where(eq(users.firebaseUid, userId));
+            // 2. Deduct FULL amount from user
+            await tx.update(users)
+                .set({ balance: sql`${users.balance} - ${amount}` })
+                .where(eq(users.firebaseUid, userId));
 
-        // Credit referrer if applicable
-        if (powerReferrer && referralFee > 0) {
-            await db.update(users)
-                .set({
-                    balance: sql`${users.balance} + ${referralFee}`,
-                    referralEarnings: sql`${users.referralEarnings} + ${referralFee}`
-                })
-                .where(eq(users.referralCode, powerReferrer));
-        }
+            // 3. Credit referrer if applicable
+            if (powerReferrer && referralFee > 0) {
+                await tx.update(users)
+                    .set({
+                        balance: sql`${users.balance} + ${referralFee}`,
+                        referralEarnings: sql`${users.referralEarnings} + ${referralFee}`
+                    })
+                    .where(eq(users.referralCode, powerReferrer));
+            }
 
-        // Update market pool: net stake goes to pool, fee goes to platformRevenue
-        const newExposure = { ...exposure, [itemDocId]: itemOI + netStake };
-        if (metaResult.length > 0) {
-            await db.update(marketMeta)
+            // 4. Update market pool
+            const newExposure = { ...exposure, [itemDocId]: itemOI + netStake };
+            await tx.update(marketMeta)
                 .set({
                     totalStaked: sql`${marketMeta.totalStaked} + ${netStake}`,
                     platformRevenue: sql`${marketMeta.platformRevenue} + ${platformFee}`,
                     itemExposure: newExposure,
                 })
                 .where(eq(marketMeta.categorySlug, categorySlug));
-        }
 
-        // Create stake record (amount = net stake that's at risk)
-        const stakeResult = await db.insert(stakes).values({
-            userId,
-            itemDocId,
-            itemName,
-            categorySlug,
-            amount: netStake,
-            target,
-            betType,
-            initialRank: item.rank ?? 50,
-            status: "active",
-            epochId: epoch.epochNumber,
-            impliedProbability: quote.probability,
-            effectiveMultiplier: cappedMultiplier,
-            multiplierUsed: quote.multiplier,
-            slippageApplied: quote.slippage,
-            platformFee,
-        }).returning({ id: stakes.id });
+            // 5. Create Ledger Entry (Transaction)
+            const txRef = `stk_${Date.now()}_${userId.slice(-4)}`;
+            await tx.insert(transactions).values({
+                userId,
+                type: "stake",
+                amountUsd: netStake,
+                platformFeeUsd: platformFee,
+                netAmountUsd: -amount, // Impact on balance is negative
+                reference: txRef,
+                status: "completed",
+                epochId: epoch.epochNumber,
+                marketId: itemDocId,
+                metadata: { betType, target, itemName }
+            });
+
+            // 6. Create Stake Record
+            const stakeResult = await tx.insert(stakes).values({
+                userId,
+                itemDocId,
+                itemName,
+                categorySlug,
+                amount: netStake,
+                target,
+                betType,
+                initialRank: item.rank ?? 50,
+                status: "active",
+                epochId: epoch.epochNumber,
+                impliedProbability: quote.probability,
+                effectiveMultiplier: cappedMultiplier,
+                multiplierUsed: quote.multiplier,
+                slippageApplied: quote.slippage,
+                platformFee,
+            }).returning({ id: stakes.id });
+
+            return stakeResult[0].id;
+        });
 
         res.json({
             success: true,
-            stakeId: stakeResult[0].id,
+            stakeId,
             fee: platformFee,
             netStake,
             potentialPayout: cappedPayout
