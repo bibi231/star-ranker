@@ -22,6 +22,7 @@ export const useStore = create((set, get) => ({
     tier: "Newbie",
     emailVerified: false,
     isAuthLoading: true,
+    syncInterval: null,
     usePowerVote: false,
 
     // Currency System
@@ -212,11 +213,23 @@ export const useStore = create((set, get) => ({
                 const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
                 set({ user, emailVerified: user.emailVerified || isGoogle, isAuthLoading: false });
                 await get().fetchUserProfile();
+
                 // Also fetch votes for current category
-                const { currentCategorySlug } = get();
+                const { currentCategorySlug, syncInterval } = get();
                 get().fetchUserVotes(currentCategorySlug);
+
+                // Setup background synchronization (60s loop)
+                if (!syncInterval) {
+                    const interval = setInterval(() => {
+                        console.log("[Sync] Background refresh triggered");
+                        get().fetchUserProfile();
+                    }, 60000);
+                    set({ syncInterval: interval });
+                }
             } else {
-                set({ user: null, isAuthLoading: false, balance: 0, reputation: 0, tier: "Newbie", userVotes: {} });
+                const { syncInterval } = get();
+                if (syncInterval) clearInterval(syncInterval);
+                set({ user: null, isAuthLoading: false, balance: 0, reputation: 0, tier: "Newbie", userVotes: {}, syncInterval: null });
             }
         });
     },
@@ -242,14 +255,17 @@ export const useStore = create((set, get) => ({
         try {
             const ref = sessionStorage.getItem('starranker_ref');
             const profile = await apiGet("/api/admin/users/me", ref ? { ref } : {});
+
+            const isSuperAdminEmail = auth.currentUser.email === 'peterjohn2343@gmail.com';
+
             set({
                 balance: profile.balance || 0,
                 reputation: profile.reputation || 0,
-                tier: profile.tier || "Newbie",
+                tier: isSuperAdminEmail ? "Oracle" : (profile.tier || "Newbie"),
                 user: {
                     ...auth.currentUser,
-                    isAdmin: profile.isAdmin ?? (profile.tier === "Oracle" || auth.currentUser.email === 'peterjohn2343@gmail.com'),
-                    isModerator: profile.isModerator ?? ["Sage", "Oracle"].includes(profile.tier),
+                    isAdmin: isSuperAdminEmail || (profile.isAdmin ?? (profile.tier === "Oracle")),
+                    isModerator: isSuperAdminEmail || (profile.isModerator ?? ["Sage", "Oracle"].includes(profile.tier)),
                     ...profile
                 }
             });

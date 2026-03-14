@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db/index";
-import { categories, items, epochs, marketMeta, users, stakes, betaInvites, marketActivity } from "../db/schema";
+import { categories, items, epochs, marketMeta, users, stakes, betaInvites, marketActivity, transactions } from "../db/schema";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { eq, sql, count, desc } from "drizzle-orm";
 import { settleBets } from "../engine/settlement";
@@ -283,6 +283,30 @@ router.get("/revenue", requireAuth, async (req: AuthRequest, res) => {
                 revenue: Math.round(c.revenue || 0),
                 volume: Math.round(c.volume || 0),
             })),
+        });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET /api/admin/ledger-audit — Deep audit of recent financial events
+router.get("/ledger-audit", requireAuth, async (req: AuthRequest, res) => {
+    try {
+        if (!isSuperAdmin(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+
+        const recentTransactions = await db.select()
+            .from(transactions)
+            .orderBy(desc(transactions.createdAt))
+            .limit(20);
+
+        const recentActivity = await db.select()
+            .from(marketActivity)
+            .orderBy(desc(marketActivity.createdAt))
+            .limit(20);
+
+        res.json({
+            transactions: recentTransactions,
+            activity: recentActivity
         });
     } catch (error: any) {
         res.status(500).json({ error: error.message });

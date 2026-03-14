@@ -28,10 +28,10 @@ import { cn } from '../lib/utils';
 import { useStore } from '../store/storeModel';
 
 export function AdminPage() {
-    const { user, tier } = useStore();
+    const { user, tier, formatValue } = useStore();
     const [isKillswitchArmed, setKillswitchArmed] = useState(false);
     const [stats, setStats] = useState(null);
-    const [auditLogs, setAuditLogs] = useState([]);
+    const [auditLogs, setAuditLogs] = useState({ transactions: [], activity: [] });
     const [isLoading, setIsLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
     const [actionResult, setActionResult] = useState(null);
@@ -58,8 +58,12 @@ export function AdminPage() {
     };
 
     const fetchAuditLogs = async () => {
-        // Audit logs endpoint not yet implemented — show empty
-        setAuditLogs([]);
+        try {
+            const data = await apiGet("/api/admin/ledger-audit");
+            setAuditLogs(data || { transactions: [], activity: [] });
+        } catch (error) {
+            console.error('Failed to fetch audit logs:', error);
+        }
     };
 
     const handleTriggerIngestor = async (ingestorType) => {
@@ -153,7 +157,7 @@ export function AdminPage() {
 
                 <div className="flex gap-4">
                     <button
-                        onClick={() => fetchSystemStats()}
+                        onClick={() => { fetchSystemStats(); fetchAuditLogs(); }}
                         disabled={isLoading}
                         className="px-4 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-white hover:border-slate-700 transition-all flex items-center gap-2"
                     >
@@ -191,25 +195,25 @@ export function AdminPage() {
                 <div className="lg:col-span-1 space-y-4">
                     <AdminStat
                         label="Platform Revenue"
-                        value={isLoading ? "..." : `$${(stats?.platformRevenue || 0).toLocaleString()}`}
+                        value={isLoading ? "..." : formatValue(stats?.platformRevenue || 0)}
                         icon={<DollarSign size={14} />}
                         color="text-brand-accent"
                     />
                     <AdminStat
                         label="Total Volume"
-                        value={isLoading ? "..." : `$${(stats?.stakingStats?.totalVolume || 0).toLocaleString()}`}
+                        value={isLoading ? "..." : formatValue(stats?.stakingStats?.totalVolume || 0)}
                         icon={<TrendingUp size={14} />}
                         color="text-emerald-400"
                     />
                     <AdminStat
                         label="Referral Paid"
-                        value={isLoading ? "..." : `$${(stats?.referralEarnings || 0).toLocaleString()}`}
+                        value={isLoading ? "..." : formatValue(stats?.referralEarnings || 0)}
                         icon={<Users size={14} />}
                         color="text-rose-400"
                     />
                     <AdminStat
                         label="User Balances"
-                        value={isLoading ? "..." : `$${(stats?.totalBalances || 0).toLocaleString()}`}
+                        value={isLoading ? "..." : formatValue(stats?.totalBalances || 0)}
                         icon={<Database size={14} />}
                         color="text-slate-300"
                     />
@@ -271,10 +275,10 @@ export function AdminPage() {
                                         <div key={cat.name} className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800 flex justify-between items-center group hover:bg-slate-900 transition-all">
                                             <div>
                                                 <h4 className="text-xs font-black text-white uppercase tracking-tight">{cat.name}</h4>
-                                                <span className="text-[9px] text-slate-500 uppercase font-black">Volume: ${cat.volume.toLocaleString()}</span>
+                                                <span className="text-[9px] text-slate-500 uppercase font-black">Volume: {formatValue(cat.volume)}</span>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-xs font-black text-brand-accent italic">${cat.revenue.toLocaleString()}</p>
+                                                <p className="text-xs font-black text-brand-accent italic">{formatValue(cat.revenue)}</p>
                                                 <span className="text-[9px] text-slate-600 uppercase font-black">Revenue</span>
                                             </div>
                                         </div>
@@ -333,28 +337,64 @@ export function AdminPage() {
                         </div>
                     </AdminBox>
 
-                    {/* Audit Log */}
-                    <AdminBox title="Security Registry" icon={<Terminal size={16} />}>
-                        <div className="bg-slate-950 rounded-2xl border border-slate-800 p-4 font-mono text-[10px] space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
-                            {auditLogs.length === 0 ? (
-                                <p className="text-slate-600 text-center py-4">No audit logs available</p>
-                            ) : (
-                                auditLogs.map((log, i) => (
-                                    <div key={log.id || i} className="flex gap-3">
-                                        <span className="text-slate-600 shrink-0">
-                                            [{new Date(log.timestamp).toLocaleTimeString()}]
-                                        </span>
-                                        <span className={cn(
-                                            log.success ? "text-emerald-500" : "text-rose-500"
-                                        )}>
-                                            {log.action}:
-                                        </span>
-                                        <span className="text-slate-400">
-                                            {log.targetType}/{log.targetId} by {log.actorEmail?.split('@')[0]}
-                                        </span>
-                                    </div>
-                                ))
-                            )}
+                    {/* Financial Ledger Audit */}
+                    <AdminBox title="Financial Ledger Audit" icon={<Terminal size={16} />}>
+                        <div className="grid grid-cols-1 gap-6">
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Recent Transactions (Paystack)</h4>
+                                <div className="bg-slate-950 rounded-2xl border border-slate-800 divide-y divide-slate-900 overflow-hidden">
+                                    {auditLogs?.transactions?.length === 0 ? (
+                                        <p className="text-slate-600 text-center py-8 text-[10px] uppercase font-black tracking-widest">No transactions found</p>
+                                    ) : (
+                                        (auditLogs?.transactions || []).map((tx, i) => (
+                                            <div key={tx.id || i} className="p-4 flex justify-between items-center group hover:bg-white/5 transition-all">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={cn(
+                                                        "w-8 h-8 rounded-lg flex items-center justify-center",
+                                                        tx.status === 'completed' ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"
+                                                    )}>
+                                                        {tx.status === 'completed' ? <CheckCircle size={14} /> : <Clock size={14} />}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[11px] font-black text-white uppercase">₦{tx.amountNgn?.toLocaleString()}</p>
+                                                        <p className="text-[9px] font-mono text-slate-500 uppercase">{tx.reference}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-[10px] font-black text-slate-300">${tx.amountUsd?.toFixed(2)}</p>
+                                                    <p className="text-[8px] font-mono text-slate-600 uppercase italic">{new Date(tx.createdAt).toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">System Activity Registry</h4>
+                                <div className="bg-slate-950 rounded-2xl border border-slate-800 p-4 font-mono text-[9px] space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
+                                    {auditLogs?.activity?.length === 0 ? (
+                                        <p className="text-slate-600 text-center py-4 uppercase tracking-[0.2em]">Registry empty</p>
+                                    ) : (
+                                        (auditLogs?.activity || []).map((log, i) => (
+                                            <div key={log.id || i} className="flex gap-3 border-l border-slate-800 pl-3">
+                                                <span className="text-slate-600 shrink-0 italic">
+                                                    [{new Date(log.createdAt).toLocaleTimeString()}]
+                                                </span>
+                                                <span className={cn(
+                                                    "font-black uppercase",
+                                                    log.type === 'deposit' ? "text-emerald-500" : "text-amber-500"
+                                                )}>
+                                                    {log.type}:
+                                                </span>
+                                                <span className="text-slate-400">
+                                                    {log.description}
+                                                </span>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </AdminBox>
                 </div>

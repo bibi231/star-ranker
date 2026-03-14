@@ -5,7 +5,7 @@ import { useStore } from '../../store/storeModel';
 import { cn } from '../../lib/utils';
 
 export function MarketDashboard() {
-    const { items, currentCategorySlug, categories } = useStore();
+    const { items, currentCategorySlug, categories, formatValue } = useStore();
     const category = categories.find(c => c.slug === currentCategorySlug);
 
     // Mock Market Metrics (In Prod: Pulled from Analytics Engine)
@@ -36,7 +36,7 @@ export function MarketDashboard() {
 
             {/* Health Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <MarketStat cardTitle="Liquidity Depth" value={`$${(metrics.liquidity / 1000000).toFixed(1)}M`} icon={<Zap size={16} />} color="text-brand-accent" />
+                <MarketStat cardTitle="Liquidity Depth" value={`${formatValue(metrics.liquidity / 1000000)}M`} icon={<Zap size={16} />} color="text-brand-accent" />
                 <MarketStat cardTitle="Volatility (24h)" value={`${metrics.volatility}%`} icon={<Activity size={16} />} color="text-amber-400" />
                 <MarketStat cardTitle="Participation" value={metrics.participation.toLocaleString()} icon={<Users size={16} />} color="text-slate-200" />
                 <MarketStat cardTitle="AVD Flags" value={metrics.avdFlags} icon={<ShieldAlert size={16} />} color="text-rose-500" />
@@ -53,7 +53,7 @@ export function MarketDashboard() {
                             <div key={item.id} className="space-y-1">
                                 <div className="flex justify-between text-[10px] font-bold uppercase">
                                     <span className="text-slate-200">{item.name}</span>
-                                    <span className="text-brand-accent">${(item.score * 12.5).toLocaleString()}</span>
+                                    <span className="text-brand-accent">{formatValue(item.score * 12.5)}</span>
                                 </div>
                                 <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
                                     <motion.div

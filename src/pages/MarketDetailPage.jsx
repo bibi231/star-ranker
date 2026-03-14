@@ -18,7 +18,7 @@ import { LiveTicker } from '../components/LiveTicker';
 export function MarketDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { categories, items } = useStore();
+    const { categories, items, formatValue } = useStore();
     const [activeTab, setActiveTab] = useState('ranking');
 
     // In a real app, fetch market metadata by ID. Here we find it in current items or default.
@@ -56,7 +56,7 @@ export function MarketDetailPage() {
 
                     <div className="flex gap-4">
                         <StatBox label="Total Volume" value={`${market.totalVotes.toLocaleString()} STARS`} />
-                        <StatBox label="Open Interest" value="$12.4k" color="text-brand-accent" />
+                        <StatBox label="Open Interest" value={formatValue(12400)} color="text-brand-accent" />
                         <StatBox label="Settlement" value="T-42m" />
                     </div>
                 </div>

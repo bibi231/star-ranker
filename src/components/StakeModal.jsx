@@ -12,7 +12,7 @@ import debounce from 'lodash-es/debounce';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 export function StakeModal({ isOpen, onClose, itemId, itemName }) {
-    const { balance, placeStake, getLiveOdds, currentEpoch, serverTimeOffset } = useStore();
+    const { balance, placeStake, getLiveOdds, currentEpoch, serverTimeOffset, formatValue, currency } = useStore();
     const [amount, setAmount] = useState('10');
     const [betType, setBetType] = useState('exact'); // exact, range, directional
     const [targetRank, setTargetRank] = useState('1');
@@ -163,7 +163,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                             <BadgeDollarSign size={12} className="text-emerald-500" /> Stake Capital
                         </label>
                         <div className="relative group">
-                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-lg font-black">$</span>
+                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-lg font-black">{currency === 'NGN' ? '₦' : currency === 'EUR' ? '€' : '$'}</span>
                             <input
                                 type="number"
                                 inputMode="decimal"
@@ -186,7 +186,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                                             : "border-white/5 text-slate-500 hover:text-white"
                                     )}
                                 >
-                                    ${v >= 1000 ? `${v / 1000}K` : v}
+                                    {currency === 'NGN' ? '₦' : currency === 'EUR' ? '€' : '$'}{v >= 1000 ? `${v / 1000}K` : v}
                                 </button>
                             ))}
                         </div>
@@ -306,7 +306,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                             <div>
                                 <div className="text-[9px] font-black text-emerald-500/50 uppercase mb-1">Potential Payout</div>
                                 <div className="text-2xl md:text-3xl font-mono font-black text-emerald-400 drop-shadow-lg">
-                                    ${quote ? (parseFloat(amount || 0) * quote.effectiveMultiplier).toFixed(2) : '0.00'}
+                                    {formatValue(quote ? (parseFloat(amount || 0) * quote.effectiveMultiplier) : 0)}
                                 </div>
                             </div>
                             <div>
@@ -335,15 +335,15 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                         <div className="mt-4 pt-4 border-t border-slate-800/50 space-y-2">
                             <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                                 <span className="text-slate-500">Stake Amount</span>
-                                <span className="text-white">${parseFloat(amount).toFixed(2)}</span>
+                                <span className="text-white">{formatValue(parseFloat(amount))}</span>
                             </div>
                             <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                                 <span className="text-rose-400">Platform Fee (5%)</span>
-                                <span className="text-rose-400">-${(parseFloat(amount) * 0.05).toFixed(2)}</span>
+                                <span className="text-rose-400">-{formatValue(parseFloat(amount) * 0.05)}</span>
                             </div>
                             <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                                 <span className="text-slate-400">Net at Risk</span>
-                                <span className="text-emerald-400">${(parseFloat(amount) * 0.95).toFixed(2)}</span>
+                                <span className="text-emerald-400">{formatValue(parseFloat(amount) * 0.95)}</span>
                             </div>
                             <div className="flex items-center gap-1.5 pt-2">
                                 <Info size={10} className="text-amber-500/60 shrink-0" />

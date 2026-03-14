@@ -19,7 +19,7 @@ import { cn } from '../../lib/utils';
 
 export function AdminDashboard() {
     const [killSwitchActive, setKillSwitchActive] = useState(false);
-    const { categories, items } = useStore();
+    const { categories, items, formatValue } = useStore();
 
     // Mock Ops Data
     const sysHealth = {
@@ -110,7 +110,7 @@ export function AdminDashboard() {
                                             <div className="font-bold text-slate-200">{cat.title}</div>
                                             <div className="text-[10px] text-slate-500">/{cat.slug}</div>
                                         </td>
-                                        <td className="p-4 font-mono text-slate-400 text-sm">$45,200</td>
+                                        <td className="p-4 font-mono text-slate-400 text-sm">{formatValue(45200)}</td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-1.5">
                                                 <div className="w-2 h-2 rounded-full bg-emerald-500" />

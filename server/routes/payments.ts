@@ -191,12 +191,20 @@ router.post("/webhook", async (req, res) => {
         const secret = process.env.PAYSTACK_WEBHOOK_SECRET || PAYSTACK_SECRET;
         if (!secret) return res.sendStatus(200);
 
+        const paystackSignature = req.headers["x-paystack-signature"] as string;
         const hash = crypto
             .createHmac("sha512", secret)
-            .update(JSON.stringify(req.body))
+            .update((req as any).rawBody || JSON.stringify(req.body))
             .digest("hex");
 
-        if (hash !== (req.headers["x-paystack-signature"] as string)) {
+        if (hash !== paystackSignature) {
+            console.error("[Paystack Webhook] Invalid signature mismatch");
+            // Audit log for debugging (not exposing the signature/body)
+            await db.insert(marketActivity).values({
+                type: "deposit",
+                description: `Webhook signature mismatch detected. Check PAYSTACK_WEBHOOK_SECRET.`,
+                metadata: { receivedHash: hash.substring(0, 10) + "...", source: "webhook_failure" }
+            });
             return res.status(401).json({ error: "Invalid signature" });
         }
 
