@@ -45,14 +45,14 @@ export function MainLayout() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserMenuOpen, setUserMenuOpen] = useState(false);
     const [isNotifOpen, setNotifOpen] = useState(false);
-    const [isDepositOpen, setDepositOpen] = useState(false);
     const [isVotePackModalOpen, setVotePackModalOpen] = useState(false);
     const [isWithdrawalOpen, setWithdrawalOpen] = useState(false);
 
     const {
         user, login, logout, balance, reputation, tier,
         notifications, markNotificationAsRead,
-        searchQuery, setSearchQuery, formatValue
+        searchQuery, setSearchQuery, formatValue,
+        isDepositOpen, setDepositOpen
     } = useStore();
 
     const navigate = useNavigate();

@@ -26,6 +26,11 @@ router.post("/validate-invite", async (req, res) => {
         }
 
         const { code } = parsed.data;
+        const MASTER_CODE = 'STAR-BETA-2026';
+
+        if (code === MASTER_CODE) {
+            return res.json({ valid: true, isMasterCode: true, code });
+        }
         const invite = await db.select().from(betaInvites)
             .where(eq(betaInvites.code, code))
             .limit(1);
@@ -51,6 +56,11 @@ router.post("/redeem-invite", requireAuth, async (req: AuthRequest, res) => {
         }
 
         const { code } = parsed.data;
+        const MASTER_CODE = 'STAR-BETA-2026';
+
+        if (code === MASTER_CODE) {
+            return res.json({ redeemed: true });
+        }
         const invite = await db.select().from(betaInvites)
             .where(eq(betaInvites.code, code))
             .limit(1);

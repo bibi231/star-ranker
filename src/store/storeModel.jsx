@@ -80,6 +80,8 @@ export const useStore = create((set, get) => ({
         marketAlerts: true,
         settlementAlerts: true,
     },
+    isDepositOpen: false,
+    setDepositOpen: (val) => set({ isDepositOpen: val }),
     isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
 
     fetchCategories: async () => {

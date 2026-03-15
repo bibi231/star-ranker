@@ -25,7 +25,7 @@ import { cn } from '../lib/utils';
 import { ReferralPanel } from '../components/ReferralPanel';
 
 export function UserDashboard() {
-    const { user, balance, reputation, stakes, reputationHistory, fetchReputationHistory, tier, emailVerified, sendVerificationEmail, refreshUser, bindWallet, formatValue } = useStore();
+    const { user, balance, reputation, stakes, reputationHistory, fetchReputationHistory, tier, setDepositOpen, formatValue } = useStore();
     const [isResending, setIsResending] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const isMobile = useIsMobile();
@@ -79,6 +79,21 @@ export function UserDashboard() {
                     <StatCard label="Identity Tier" value={tier} icon={<ShieldCheck size={16} />} color="text-brand-accent" />
                 </div>
             </div>
+
+            {user?.balance === 0 && (
+                <div className="bg-[#C9A84C]/10 border border-[#C9A84C]/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+                    <div>
+                        <p className="text-[#C9A84C] font-bold text-lg">Welcome to Star Ranker! 🌟</p>
+                        <p className="text-gray-300 text-sm mt-1">Fund your wallet to start staking on rankings and growing your Oracle reputation.</p>
+                    </div>
+                    <button
+                        onClick={() => setDepositOpen(true)}
+                        className="bg-[#C9A84C] text-[#0D1B2A] font-black px-6 py-3 rounded-xl flex-shrink-0 hover:bg-white transition-all uppercase tracking-widest text-xs"
+                    >
+                        Fund Wallet
+                    </button>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 md:gap-10">
                 {/* Left Col: Active Stakes & Portfolio */}
