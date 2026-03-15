@@ -59,7 +59,7 @@ export function MainLayout() {
     const location = useLocation();
     const isMobile = useIsMobile();
 
-    const unreadCount = notifications.filter(n => !n.read).length;
+    const unreadCount = (notifications || []).filter(n => !n.read).length;
 
     const NavItem = ({ to, icon: Icon, label, compact, onClick }) => (
         <NavLink

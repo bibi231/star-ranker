@@ -12,7 +12,7 @@ export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, u
         <header
             className='h-14 flex items-center justify-between px-4
                  bg-[#0D1B2A]/95 backdrop-blur-sm
-                 border-b border-white/10 sticky top-0 z-30 md:hidden'
+                 border-b border-white/10 sticky top-0 z-[100] md:hidden'
             style={{ paddingTop: 'var(--safe-top)' }}
         >
             {/* LEFT: Menu Toggle */}

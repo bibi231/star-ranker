@@ -11,7 +11,7 @@ export function AlertsPage() {
         fetchNotifications();
     }, [fetchNotifications]);
 
-    const unreadCount = notifications.filter(n => !n.read).length;
+    const unreadCount = (notifications || []).filter(n => !n.read).length;
 
     return (
         <div className="p-8 space-y-8 bg-[#020617] min-h-screen">
