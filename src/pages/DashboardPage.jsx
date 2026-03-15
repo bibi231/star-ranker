@@ -25,7 +25,7 @@ import { cn } from '../lib/utils';
 import { ReferralPanel } from '../components/ReferralPanel';
 
 export function UserDashboard() {
-    const { user, balance, reputation, stakes, reputationHistory, tier, emailVerified, sendVerificationEmail, refreshUser, bindWallet, formatValue } = useStore();
+    const { user, balance, reputation, stakes, reputationHistory, fetchReputationHistory, tier, emailVerified, sendVerificationEmail, refreshUser, bindWallet, formatValue } = useStore();
     const [isResending, setIsResending] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const isMobile = useIsMobile();
@@ -37,6 +37,12 @@ export function UserDashboard() {
             bindWallet(address);
         }
     }, [isConnected, address, user, bindWallet]);
+
+    useEffect(() => {
+        if (user) {
+            fetchReputationHistory();
+        }
+    }, [user, fetchReputationHistory]);
 
     const shareToX = (stake) => {
         const url = `${window.location.origin}/signup?ref=${user?.referralCode || ''}`;
@@ -92,7 +98,7 @@ export function UserDashboard() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
-                                        {stakes.map(stake => (
+                                        {(stakes || []).map(stake => (
                                             <tr key={stake.id} className="group hover:bg-white/[0.02] transition-colors">
                                                 <td className="py-5 flex items-center gap-4">
                                                     <div className="w-10 h-10 rounded-xl bg-slate-950 border border-white/10 flex items-center justify-center text-slate-600 group-hover:border-brand-accent/30 transition-all">
@@ -127,15 +133,24 @@ export function UserDashboard() {
                     {/* Reputation Velocity Chart */}
                     <SectionBox title="Reputation Velocity" icon={<TrendingUp size={16} />}>
                         <div className="h-56 flex items-end gap-1.5 px-2">
-                            {[40, 60, 45, 70, 85, 90, 80, 75, 95, 100, 85, 110, 120, 105, 90, 115, 130].map((h, i) => (
+                            {reputationHistory && reputationHistory.length > 0 ? (reputationHistory || []).map((item, i) => (
                                 <motion.div
                                     key={i}
                                     initial={{ height: 0 }}
-                                    animate={{ height: `${(h / 140) * 100}%` }}
+                                    animate={{ height: `${(item.value / Math.max(140, ...(reputationHistory || []).map(r => r.value))) * 100}%` }}
                                     transition={{ delay: i * 0.03 }}
-                                    className="flex-1 bg-gradient-to-t from-[#1E3A5F]/10 via-[#38bdf8]/40 to-[#38bdf8] rounded-t-sm"
-                                />
-                            ))}
+                                    className="flex-1 bg-gradient-to-t from-[#1E3A5F]/10 via-[#38bdf8]/40 to-[#38bdf8] rounded-t-sm group relative"
+                                >
+                                    {/* Tooltip on hover */}
+                                    <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-800 px-2 py-1 rounded text-[10px] font-black text-brand-accent transition-opacity pointer-events-none z-10 whitespace-nowrap shadow-xl">
+                                        {item.day}: {item.value}
+                                    </div>
+                                </motion.div>
+                            )) : (
+                                <div className="w-full flex items-center justify-center h-full">
+                                    <Loader2 size={24} className="text-slate-800 animate-spin" />
+                                </div>
+                            )}
                         </div>
                     </SectionBox>
                 </div>
@@ -145,7 +160,7 @@ export function UserDashboard() {
                     <SectionBox title="Influence Archive" icon={<History size={16} />}>
                         <div className="space-y-8">
                             {user?.recentActivity?.length > 0 ? (
-                                user.recentActivity.map((act, i) => (
+                                (user.recentActivity || []).map((act, i) => (
                                     <div key={act.id || i} className="flex gap-4 items-start group">
                                         <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-800 group-hover:bg-brand-accent transition-all shrink-0 shadow-[0_0_8px_rgba(56,189,248,0.3)]" />
                                         <div className="space-y-1.5">

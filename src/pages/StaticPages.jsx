@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { cn, formatTimeAgo } from '../lib/utils';
 import { apiGet } from '../lib/api';
+import { useStore } from '../store/storeModel';
 
 export function ActivityPage() {
     const [activity, setActivity] = useState([]);
@@ -122,6 +123,7 @@ export function ActivityPage() {
 }
 
 export function LeaderboardPage() {
+    const { formatValue } = useStore();
     const [leaders, setLeaders] = useState([]);
     const [stats, setStats] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -176,11 +178,11 @@ export function LeaderboardPage() {
                         <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-1">Total Stakes</div>
                     </div>
                     <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-center">
-                        <div className="text-2xl font-mono font-black text-emerald-400">${stats.totalWagered?.toLocaleString() || 0}</div>
+                        <div className="text-2xl font-mono font-black text-emerald-400">{formatValue(stats.totalWagered || 0)}</div>
                         <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-1">Total Wagered</div>
                     </div>
                     <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-center">
-                        <div className="text-2xl font-mono font-black text-amber-400">${stats.totalWon?.toLocaleString() || 0}</div>
+                        <div className="text-2xl font-mono font-black text-amber-400">{formatValue(stats.totalWon || 0)}</div>
                         <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-1">Total Won</div>
                     </div>
                 </div>
@@ -240,7 +242,7 @@ export function LeaderboardPage() {
                                     {(user.reputation || 0).toLocaleString()}
                                 </td>
                                 <td className="px-8 py-5 text-right font-mono text-sm font-black text-emerald-400">
-                                    ${(user.balance || 0).toLocaleString()}
+                                    {formatValue(user.balance || 0)}
                                 </td>
                             </tr>
                         )) : (

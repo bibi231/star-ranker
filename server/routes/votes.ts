@@ -104,7 +104,17 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
             .where(eq(items.docId, itemDocId))
             .limit(1);
 
-        res.json({ success: true, newScore: updated[0]?.score ?? 0 });
+        // Get updated power vote count if one was used
+        let newPowerVotes: number | undefined;
+        if (powerVoteDeducted) {
+            const updatedUser = await db.select({ powerVotes: users.powerVotes })
+                .from(users)
+                .where(eq(users.firebaseUid, userId))
+                .limit(1);
+            newPowerVotes = updatedUser[0]?.powerVotes ?? 0;
+        }
+
+        res.json({ success: true, newScore: updated[0]?.score ?? 0, powerVoteUsed: powerVoteDeducted, newPowerVotes });
     } catch (error: any) {
         console.error("Vote error:", error);
         res.status(500).json({ error: error.message });

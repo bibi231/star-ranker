@@ -65,9 +65,10 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
     const fetchQuote = useCallback(
         debounce(async (amt, type, tRank, rMin, rMax, dir, k) => {
             if (!amt || parseFloat(amt) <= 0) return;
+            const parsedUsdAmount = useStore.getState().parseLocalToUSD(amt);
             setLoadingQuote(true);
             const target = type === 'exact' ? tRank : type === 'range' ? { min: rMin, max: rMax } : { dir, k };
-            const data = await getLiveOdds(itemId, parseFloat(amt), target, type);
+            const data = await getLiveOdds(itemId, parsedUsdAmount, target, type);
             if (data) setQuote(data);
             setLoadingQuote(false);
         }, 500),
@@ -97,13 +98,19 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
 
     const handleStake = async () => {
         if (!amount || parseFloat(amount) <= 0) return;
-        if (parseFloat(amount) > balance) return;
+
+        const usdAmount = useStore.getState().parseLocalToUSD(amount);
+
+        if (usdAmount > balance) {
+            setError("Insufficient balance for this stake.");
+            return;
+        }
 
         setIsProcessing(true);
         setError(null);
         try {
             const target = betType === 'exact' ? parseInt(targetRank) : betType === 'range' ? { min: parseInt(rangeMin), max: parseInt(rangeMax) } : { dir: direction, k: parseInt(kPositions) };
-            const response = await placeStake(itemId, parseFloat(amount), target, itemName, betType);
+            const response = await placeStake(itemId, usdAmount, target, itemName, betType);
 
             if (response.success) {
                 onClose();

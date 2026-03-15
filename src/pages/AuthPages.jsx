@@ -19,6 +19,7 @@ import {
     KeyRound,
     Phone
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import { API_URL } from '../lib/api';
 
@@ -113,7 +114,7 @@ export function SignInPage() {
 
                     <div className="grid grid-cols-2 gap-3">
                         <SocialAuthButton onClick={login} icon={<Chrome size={18} />} label="Google" />
-                        <SocialAuthButton onClick={() => alert("Phone Login requires Firebase Console configuration. This is a UI preview.")} icon={<Phone size={18} />} label="Phone" />
+                        <SocialAuthButton onClick={() => toast.error("Phone Login requires Firebase Console configuration. This is a UI preview.")} icon={<Phone size={18} />} label="Phone" />
                     </div>
 
                     <p className="text-center text-[10px] text-slate-500 font-bold uppercase pt-6">

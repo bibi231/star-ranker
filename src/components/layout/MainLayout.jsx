@@ -35,6 +35,8 @@ import { Web3Status } from '../Web3Status';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { DepositModal } from '../DepositModal';
 import { VotePackModal } from '../VotePackModal';
+import { WithdrawalModal } from '../WithdrawalModal';
+import { NotificationsPanel } from '../NotificationsPanel';
 import BottomNav from '../BottomNav';
 import MobileHeader from '../MobileHeader';
 
@@ -45,6 +47,7 @@ export function MainLayout() {
     const [isNotifOpen, setNotifOpen] = useState(false);
     const [isDepositOpen, setDepositOpen] = useState(false);
     const [isVotePackModalOpen, setVotePackModalOpen] = useState(false);
+    const [isWithdrawalOpen, setWithdrawalOpen] = useState(false);
 
     const {
         user, login, logout, balance, reputation, tier,
@@ -155,6 +158,12 @@ export function MainLayout() {
                                 <PlusSquare size={14} strokeWidth={3} /> Fund Wallet
                             </button>
                             <button
+                                onClick={() => setWithdrawalOpen(true)}
+                                className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 font-black text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
+                            >
+                                <Wallet size={14} /> Withdraw
+                            </button>
+                            <button
                                 onClick={() => setVotePackModalOpen(true)}
                                 className="w-full py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 font-black text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-2 hover:bg-amber-500/20 transition-all"
                             >
@@ -245,6 +254,12 @@ export function MainLayout() {
                                             <PlusSquare size={18} strokeWidth={3} /> Fund Wallet
                                         </button>
                                         <button
+                                            onClick={() => { setWithdrawalOpen(true); setIsMobileMenuOpen(false); }}
+                                            className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-slate-300 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3"
+                                        >
+                                            <Wallet size={18} /> Withdraw
+                                        </button>
+                                        <button
                                             onClick={() => { setVotePackModalOpen(true); setIsMobileMenuOpen(false); }}
                                             className="w-full py-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3"
                                         >
@@ -271,6 +286,8 @@ export function MainLayout() {
                 <MobileHeader
                     onMenuClick={() => setIsMobileMenuOpen(true)}
                     onFundClick={() => setDepositOpen(true)}
+                    onNotifClick={() => setNotifOpen(!isNotifOpen)}
+                    unreadCount={unreadCount}
                 />
 
                 {/* Desktop Header */}
@@ -296,7 +313,7 @@ export function MainLayout() {
 
                     <div className="flex items-center gap-4">
                         <div className="flex bg-slate-950 border border-[#1E3A5F]/30 rounded p-0.5">
-                            {['USD', 'NGN', 'EUR'].map(code => (
+                            {['USD', 'NGN', 'EUR', 'GBP'].map(code => (
                                 <button
                                     key={code}
                                     onClick={() => useStore.getState().setCurrency(code)}
@@ -324,6 +341,7 @@ export function MainLayout() {
                                     <span className="absolute top-0 right-0 w-2 h-2 bg-brand-accent rounded-full animate-pulse" />
                                 )}
                             </button>
+                            <NotificationsPanel isOpen={isNotifOpen} onClose={() => setNotifOpen(false)} />
                         </div>
 
                         {user && (
@@ -349,6 +367,7 @@ export function MainLayout() {
 
             <DepositModal isOpen={isDepositOpen} onClose={() => setDepositOpen(false)} />
             <VotePackModal isOpen={isVotePackModalOpen} onClose={() => setVotePackModalOpen(false)} />
+            <WithdrawalModal isOpen={isWithdrawalOpen} onClose={() => setWithdrawalOpen(false)} />
         </div>
     );
 }

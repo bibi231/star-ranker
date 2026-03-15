@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db/index";
-import { categories, items, epochs, marketMeta, users, stakes, betaInvites, marketActivity, transactions } from "../db/schema";
+import { categories, items, epochs, marketMeta, users, stakes, betaInvites, marketActivity, transactions, adminConfig } from "../db/schema";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { eq, sql, count, desc } from "drizzle-orm";
 import { settleBets } from "../engine/settlement";
@@ -12,6 +12,40 @@ const router = Router();
 
 // Helper to check for Super Admin bypass
 const isSuperAdmin = (email: string | undefined) => email === 'peterjohn2343@gmail.com';
+
+// POST /api/admin/killswitch — Toggle global trading killswitch
+router.post("/killswitch", requireAuth, async (req: AuthRequest, res) => {
+    try {
+        if (!isSuperAdmin(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+
+        const currentState = await db.select().from(adminConfig).where(eq(adminConfig.key, 'global_state')).limit(1);
+        const currentToggle = currentState[0]?.killswitch ?? false;
+
+        await db.update(adminConfig)
+            .set({ killswitch: !currentToggle, updatedAt: new Date() })
+            .where(eq(adminConfig.key, 'global_state'));
+
+        res.json({ success: true, killswitch: !currentToggle });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/admin/toggle-epochs — Toggle automatic epoch progression
+router.post("/toggle-epochs", requireAuth, async (req: AuthRequest, res) => {
+    try {
+        if (!isSuperAdmin(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+        const { isPaused } = req.body;
+
+        await db.update(adminConfig)
+            .set({ epochsPaused: isPaused, updatedAt: new Date() })
+            .where(eq(adminConfig.key, 'global_state'));
+
+        res.json({ success: true, epochsPaused: isPaused });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 // POST /api/admin/seed — Seed database with initial data
 router.post("/seed", requireAuth, async (req: AuthRequest, res) => {
@@ -195,6 +229,15 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
                     .where(eq(users.firebaseUid, req.uid!))
                     .returning();
                 user = updated;
+            } else {
+                // Update display name if it changed but DO NOT touch role/isAdmin
+                if ((req as any).userName && user[0].displayName !== (req as any).userName) {
+                    const updated = await db.update(users)
+                        .set({ displayName: (req as any).userName })
+                        .where(eq(users.firebaseUid, req.uid!))
+                        .returning();
+                    user = updated;
+                }
             }
         }
 

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db/index";
-import { stakes, items, epochs, marketMeta, users, transactions, notifications, marketActivity } from "../db/schema";
+import { stakes, items, epochs, marketMeta, users, transactions, notifications, marketActivity, adminConfig } from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { requireStakeAccess } from "../middleware/geo";
@@ -152,6 +152,12 @@ router.get("/odds", [requireAuth, requireStakeAccess], async (req: AuthRequest, 
 // POST /api/stakes — Place a stake
 router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: any) => {
     try {
+        // ===== CHECK KILLSWITCH =====
+        const adminState = await db.select().from(adminConfig).where(eq(adminConfig.key, 'global_state')).limit(1);
+        if (adminState[0]?.killswitch) {
+            return res.status(403).json({ error: "Trading is currently halted globally." });
+        }
+
         console.log("[STAKE_POST] Request Body:", req.body);
         // ===== ZOD VALIDATION =====
         const parsed = stakeSchema.safeParse(req.body);

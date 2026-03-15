@@ -28,18 +28,42 @@ export const useStore = create((set, get) => ({
     // Currency System
     currency: 'USD',
     currencySymbol: '$',
-    rates: { USD: 1, NGN: 1500, EUR: 0.92 },
+    rates: { USD: 1, NGN: 1500, EUR: 0.92, GBP: 0.79 },
+
+    fetchRates: async () => {
+        try {
+            const apiRates = await import('../lib/api').then(m => m.apiGet('/api/currency/rates'));
+            if (apiRates && apiRates.NGN_USD) {
+                const usdToNgn = 1 / apiRates.NGN_USD;
+                const usdToEur = usdToNgn * (apiRates.NGN_EUR || 0);
+                const usdToGbp = usdToNgn * (apiRates.NGN_GBP || 0);
+                set({
+                    rates: { USD: 1, NGN: usdToNgn, EUR: usdToEur || 0.92, GBP: usdToGbp || 0.79 }
+                });
+            }
+        } catch (e) {
+            console.error('Failed to fetch live rates:', e);
+        }
+    },
 
     setCurrency: (code) => {
-        const symbols = { USD: '$', NGN: '₦', EUR: '€' };
+        const symbols = { USD: '$', NGN: '₦', EUR: '€', GBP: '£' };
         set({ currency: code, currencySymbol: symbols[code] || '$' });
     },
 
+    parseLocalToUSD: (localVal) => {
+        const { currency, rates } = get();
+        let num = Number(localVal);
+        if (isNaN(num) || !rates[currency]) return 0;
+        return num / rates[currency];
+    },
+
     formatValue: (val) => {
-        const state = get();
-        const { currency, currencySymbol, rates } = state;
-        const converted = val * (rates[currency] || 1);
-        return `${currencySymbol}${converted.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        const { currency, currencySymbol, rates } = get();
+        const num = Number(val) || 0;
+        const converted = Math.max(0, num * (rates[currency] || 1));
+        const decimals = currency === 'NGN' ? 0 : 2;
+        return `${currencySymbol}${converted.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
     },
 
     notifications: [],
@@ -47,6 +71,7 @@ export const useStore = create((set, get) => ({
     stakes: [],
     items: [],
     categories: [],
+    reputationHistory: [],
     isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
 
     fetchCategories: async () => {
@@ -107,16 +132,25 @@ export const useStore = create((set, get) => ({
     togglePowerVote: () => set((state) => ({ usePowerVote: !state.usePowerVote })),
 
     callAdminFunction: async (func, args) => {
-        const { adminState, items, currentEpoch } = get();
-        await new Promise(r => setTimeout(r, 800));
+        const { adminState, currentEpoch } = get();
         try {
             switch (func) {
-                case 'emergencyKillswitch':
-                    set({ adminState: { ...adminState, killswitch: !adminState.killswitch } });
-                    break;
-                case 'toggleEpochProgression':
-                    set({ adminState: { ...adminState, epochsPaused: args.isPaused } });
-                    break;
+                case 'emergencyKillswitch': {
+                    const res = await apiPost('/api/admin/killswitch');
+                    if (res?.success) {
+                        set({ adminState: { ...adminState, killswitch: res.killswitch } });
+                        return { success: true };
+                    }
+                    return res || { success: false, error: 'Unknown error' };
+                }
+                case 'toggleEpochProgression': {
+                    const res = await apiPost('/api/admin/toggle-epochs', { isPaused: args.isPaused });
+                    if (res?.success) {
+                        set({ adminState: { ...adminState, epochsPaused: res.epochsPaused } });
+                        return { success: true };
+                    }
+                    return res || { success: false, error: 'Unknown error' };
+                }
                 case 'forceEpochRollover':
                     if (currentEpoch) {
                         const newEpochId = currentEpoch.epochId + 1;
@@ -128,11 +162,11 @@ export const useStore = create((set, get) => ({
                             }
                         });
                     }
-                    break;
+                    return { success: true };
                 default:
                     console.warn("Unknown admin function:", func);
+                    return { success: false, error: "Unknown function" };
             }
-            return { success: true };
         } catch (err) {
             return { success: false, error: err.message };
         }
@@ -174,6 +208,37 @@ export const useStore = create((set, get) => ({
             }
         } catch (err) {
             console.error("API fetch failed:", err.message);
+            set({ isSyncing: false });
+        }
+    },
+
+    fetchMovers: async (categoryId, type) => {
+        set({ isSyncing: true });
+        try {
+            const data = await apiGet(`/api/items/movers?categoryId=${categoryId}&type=${type}`);
+            if (data && Array.isArray(data)) {
+                // Map the data similar to fetch category items
+                const formattedItems = data.map(item => ({
+                    id: item.docId,
+                    name: item.name,
+                    symbol: item.symbol,
+                    score: item.score || 0,
+                    velocity: item.velocity || 0,
+                    totalVotes: item.totalVotes || 0,
+                    trend: item.trend || Array.from({ length: 15 }, () => Math.random() * 100),
+                    imageUrl: item.imageUrl,
+                    rank: item.rank || 1,
+                    rankChange: item.rankChange || 0, // NEW field from API
+                    isSponsored: false,
+                }));
+                // Fetch user votes if logged in
+                if (get().user) {
+                    get().fetchUserVotes(categoryId);
+                }
+                set({ items: formattedItems, isSyncing: false });
+            }
+        } catch (err) {
+            console.error("Movers fetch failed:", err);
             set({ isSyncing: false });
         }
     },
@@ -361,13 +426,19 @@ export const useStore = create((set, get) => ({
         set({ userVotes: newVotes });
 
         try {
-            await apiPost("/api/votes", {
+            const response = await apiPost("/api/votes", {
                 itemDocId: itemId,
                 direction: finalDirection,
                 categorySlug: currentCategorySlug,
                 usePowerVote: get().usePowerVote
             });
-            // Profile may change if power votes used or reputation gained
+            // Instantly update power vote count if one was used
+            if (response?.newPowerVotes !== undefined) {
+                set(state => ({
+                    user: { ...state.user, powerVotes: response.newPowerVotes }
+                }));
+            }
+            // Also refresh full profile for reputation etc.
             get().fetchUserProfile();
         } catch (error) {
             console.error("Vote error:", error);
@@ -433,9 +504,19 @@ export const useStore = create((set, get) => ({
     fetchNotifications: async () => {
         try {
             const data = await apiGet("/api/notifications");
-            set({ notifications: data });
+            set({ notifications: data || [] });
         } catch (error) {
             console.error("Failed to fetch notifications:", error);
+        }
+    },
+
+    // ===== REPUTATION HISTORY =====
+    fetchReputationHistory: async () => {
+        try {
+            const data = await apiGet("/api/user/reputation-history");
+            set({ reputationHistory: data?.history || [] });
+        } catch (e) {
+            console.error("Failed to fetch reputation history:", e);
         }
     },
 

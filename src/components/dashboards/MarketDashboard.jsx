@@ -49,7 +49,7 @@ export function MarketDashboard() {
                         <BarChart3 size={16} /> Liquidity Distribution
                     </h3>
                     <div className="space-y-4">
-                        {items.map((item, i) => (
+                        {(items || []).map((item, i) => (
                             <div key={item.id} className="space-y-1">
                                 <div className="flex justify-between text-[10px] font-bold uppercase">
                                     <span className="text-slate-200">{item.name}</span>

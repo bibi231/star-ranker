@@ -103,6 +103,9 @@ export const epochSnapshots = pgTable("epoch_snapshots", {
     rank: integer("rank").notNull(),
     score: real("score").notNull(),
     velocity: real("velocity").default(0),
+    openingRank: integer('opening_rank'),
+    closingRank: integer('closing_rank'),
+    rankChange: integer('rank_change'),
     createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
     index("epoch_snapshots_epoch_idx").on(table.epochId),
@@ -132,6 +135,8 @@ export const users = pgTable("users", {
     powerVotes: integer("power_votes").default(0),
     referralCode: text("referral_code").unique(),
     referredBy: text("referred_by"),
+    oracleHandle: varchar('oracle_handle', { length: 30 }).unique(),
+    proUntil: timestamp('pro_until'),
     referralEarnings: real("referral_earnings").default(0),
     isAdmin: boolean("is_admin").default(false),
     isModerator: boolean("is_moderator").default(false),
@@ -179,6 +184,7 @@ export const notifications = pgTable("notifications", {
     message: text("message").notNull(),
     type: text("type").default("general"), // general, security, win, loss, epoch
     read: boolean("read").default(false),
+    metadata: jsonb("metadata"),
     createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
     index("notifications_user_idx").on(table.userId),
@@ -232,3 +238,26 @@ export const marketActivity = pgTable("market_activity", {
     index("market_activity_type_idx").on(table.type),
     index("market_activity_created_idx").on(table.createdAt),
 ]);
+
+// ===== WITHDRAWALS =====
+export const withdrawals = pgTable('withdrawals', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    amount: integer('amount').notNull(),
+    bankCode: varchar('bank_code', { length: 10 }).notNull(),
+    accountNumber: varchar('account_number', { length: 10 }).notNull(),
+    accountName: varchar('account_name', { length: 100 }).notNull(),
+    paystackRef: varchar('paystack_ref', { length: 100 }),
+    status: varchar('status', { length: 20 }).default('pending'),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// ===== ADMIN STATE / CONFIG =====
+export const adminConfig = pgTable("admin_config", {
+    id: serial("id").primaryKey(),
+    key: text("key").notNull().unique(), // e.g., 'global_state'
+    killswitch: boolean("killswitch").default(false),
+    epochsPaused: boolean("epochs_paused").default(false),
+    updatedAt: timestamp("updated_at").defaultNow(),
+});

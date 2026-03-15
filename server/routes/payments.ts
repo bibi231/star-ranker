@@ -8,18 +8,17 @@
 
 import { Router } from "express";
 import { db } from "../db/index";
-import { users, transactions, marketActivity } from "../db/schema";
+import { users, transactions, marketActivity, withdrawals, notifications } from "../db/schema";
 import { eq, sql } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { z } from "zod";
 import crypto from "crypto";
+import { getRates } from "../services/currencyRate";
 
 const router = Router();
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || "";
 const PAYSTACK_BASE = "https://api.paystack.co";
-
-const NGN_USD_RATE = 1500; // As per master prompt v3.0
 
 const initSchema = z.object({
     amount: z.number().int().min(100000).max(100000000), // in kobo, min ₦1,000 max ₦1,000,000
@@ -69,11 +68,14 @@ router.post("/initialize", requireAuth, async (req: AuthRequest, res) => {
         }
 
         // Record pending transaction
+        const liveRates = getRates();
+        const liveNgnUsdRate = liveRates.NGN_USD > 0 ? (1 / liveRates.NGN_USD) : 1500;
+
         await db.insert(transactions).values({
             userId: req.uid!,
             type: "deposit",
             amountNgn: amount / 100,
-            amountUsd: (amount / 100) / NGN_USD_RATE,
+            amountUsd: (amount / 100) / liveNgnUsdRate,
             reference,
             status: "pending",
             metadata: { initResponse: data.data }
@@ -119,7 +121,11 @@ router.get("/verify/:reference", requireAuth, async (req: AuthRequest, res) => {
 
         const amountKobo = data.data.amount;
         const amountNGN = amountKobo / 100;
-        const platformCredits = Math.floor(amountNGN / NGN_USD_RATE * 100) / 100;
+
+        const liveRates = getRates();
+        const liveNgnUsdRate = liveRates.NGN_USD > 0 ? (1 / liveRates.NGN_USD) : 1500;
+
+        const platformCredits = Math.floor(amountNGN / liveNgnUsdRate * 100) / 100;
 
         // Atomic Transaction: Credit User + Update Ledger
         await db.transaction(async (tx) => {
@@ -216,7 +222,9 @@ router.post("/webhook", async (req, res) => {
 
             if (metadata?.userId) {
                 const amountNGN = amount / 100;
-                const platformCredits = Math.floor(amountNGN / NGN_USD_RATE * 100) / 100;
+                const liveRates = getRates();
+                const liveNgnUsdRate = liveRates.NGN_USD > 0 ? (1 / liveRates.NGN_USD) : 1500;
+                const platformCredits = Math.floor(amountNGN / liveNgnUsdRate * 100) / 100;
 
                 await db.transaction(async (tx) => {
                     const existing = await tx.select()
@@ -268,6 +276,47 @@ router.post("/webhook", async (req, res) => {
                     });
                 });
                 console.log(`[Paystack Webhook] Credited ${platformCredits} to ${metadata.userId} (Ref: ${refStr})`);
+            }
+        }
+
+        // ===== TRANSFER WEBHOOKS (Withdrawals) =====
+        if (event.event === 'transfer.success') {
+            const transferCode = event.data?.transfer_code;
+            if (transferCode) {
+                await db.update(withdrawals)
+                    .set({ status: 'success', updatedAt: new Date() })
+                    .where(eq(withdrawals.paystackRef, transferCode));
+                console.log(`[Paystack Webhook] Transfer ${transferCode} succeeded`);
+            }
+        }
+
+        if (event.event === 'transfer.failed' || event.event === 'transfer.reversed') {
+            const transferCode = event.data?.transfer_code;
+            if (transferCode) {
+                // Find the withdrawal and refund the user
+                const wdRows = await db.select()
+                    .from(withdrawals)
+                    .where(eq(withdrawals.paystackRef, transferCode))
+                    .limit(1);
+
+                if (wdRows.length > 0) {
+                    const wd = wdRows[0];
+                    await db.transaction(async (tx) => {
+                        await tx.update(users)
+                            .set({ balance: sql`${users.balance} + ${wd.amount}` })
+                            .where(eq(users.firebaseUid, wd.userId));
+                        await tx.update(withdrawals)
+                            .set({ status: 'failed', updatedAt: new Date() })
+                            .where(eq(withdrawals.id, wd.id));
+                        await tx.insert(notifications).values({
+                            userId: wd.userId,
+                            title: "Withdrawal Failed",
+                            message: `Your ₦${wd.amount.toLocaleString()} withdrawal could not be processed. The amount has been refunded to your wallet.`,
+                            type: "system"
+                        });
+                    });
+                    console.log(`[Paystack Webhook] Transfer ${transferCode} FAILED — refunded ₦${wd.amount} to ${wd.userId}`);
+                }
             }
         }
 

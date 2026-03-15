@@ -56,93 +56,103 @@ export function VotePackModal({ isOpen, onClose }) {
         }
     };
 
-    if (!isOpen) return null;
-
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6">
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
-                    onClick={onClose}
-                />
+            {isOpen && (
+                <>
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[150] bg-slate-950/80 backdrop-blur-sm"
+                        onClick={onClose}
+                    />
 
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-lg bg-slate-900 border border-brand-accent/30 rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
-                >
-                    {/* Header */}
-                    <div className="p-6 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/50 backdrop-blur-md relative z-10">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                                <Zap size={20} className="text-amber-500" />
-                            </div>
-                            <div>
-                                <h2 className="text-lg font-black text-white uppercase tracking-tighter">Power Votes</h2>
-                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">3x Momentum Multiplier</p>
-                            </div>
+                    {/* Modal */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 40 }}
+                        className={cn(
+                            "fixed z-[151] bg-slate-900 border-t border-x md:border-b md:border-brand-accent/30 border-brand-accent/30 shadow-2xl overflow-hidden flex flex-col",
+                            "md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg md:rounded-[2rem] md:max-h-[85vh]",
+                            "bottom-0 left-0 right-0 rounded-t-[2.5rem] max-h-[90vh]"
+                        )}
+                    >
+                        {/* Drag handle (mobile) */}
+                        <div className="flex justify-center pt-3 pb-1 md:hidden w-full absolute top-0 z-20">
+                            <div className="w-12 h-1.5 rounded-full bg-white/20" />
                         </div>
-                        <button
-                            onClick={onClose}
-                            className="w-10 h-10 rounded-xl bg-slate-800/50 text-slate-400 flex items-center justify-center hover:bg-slate-700 hover:text-white transition-colors"
-                        >
-                            <X size={20} />
-                        </button>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-6 overflow-y-auto custom-scrollbar flex-1 relative z-10">
-                        <p className="text-sm text-slate-400 mb-6 font-medium leading-relaxed">
-                            Supercharge your influence. Power Votes apply an immediate <strong className="text-amber-500">3x multiplier</strong> to your vote's momentum, helping your favourite items climb faster.
-                        </p>
-
-                        {error && (
-                            <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-3 text-rose-500">
-                                <AlertCircle size={18} className="shrink-0" />
-                                <p className="text-xs font-black uppercase tracking-wide">{error}</p>
+                        {/* Header */}
+                        <div className="p-6 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/50 backdrop-blur-md relative z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                                    <Zap size={20} className="text-amber-500" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-black text-white uppercase tracking-tighter">Power Votes</h2>
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">3x Momentum Multiplier</p>
+                                </div>
                             </div>
-                        )}
+                            <button
+                                onClick={onClose}
+                                className="w-10 h-10 rounded-xl bg-slate-800/50 text-slate-400 flex items-center justify-center hover:bg-slate-700 hover:text-white transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
 
-                        {successMessage && (
-                            <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3 text-emerald-500">
-                                <CheckCircle size={18} className="shrink-0" />
-                                <p className="text-xs font-black uppercase tracking-wide">{successMessage}</p>
-                            </div>
-                        )}
+                        {/* Content */}
+                        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 relative z-10" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}>
+                            <p className="text-sm text-slate-400 mb-6 font-medium leading-relaxed">
+                                Supercharge your influence. Power Votes apply an immediate <strong className="text-amber-500">3x multiplier</strong> to your vote's momentum, helping your favourite items climb faster.
+                            </p>
 
-                        {isLoading ? (
-                            <div className="flex justify-center py-12">
-                                <Loader2 className="animate-spin text-amber-500" size={32} />
-                            </div>
-                        ) : (
-                            <div className="grid gap-4">
-                                {packs.map((pack) => (
-                                    <div key={pack.id} className="p-4 rounded-2xl border border-slate-700 bg-slate-800/30 flex items-center justify-between group hover:border-amber-500/50 hover:bg-slate-800/80 transition-all">
-                                        <div>
-                                            <h3 className="text-base font-black text-white uppercase tracking-wide group-hover:text-amber-500 transition-colors">{pack.name} Pack</h3>
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
-                                                <Zap size={12} className="inline mr-1 text-amber-500" />
-                                                {pack.votes} Power Votes
-                                            </p>
+                            {error && (
+                                <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-3 text-rose-500">
+                                    <AlertCircle size={18} className="shrink-0" />
+                                    <p className="text-xs font-black uppercase tracking-wide">{error}</p>
+                                </div>
+                            )}
+
+                            {successMessage && (
+                                <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3 text-emerald-500">
+                                    <CheckCircle size={18} className="shrink-0" />
+                                    <p className="text-xs font-black uppercase tracking-wide">{successMessage}</p>
+                                </div>
+                            )}
+
+                            {isLoading ? (
+                                <div className="flex justify-center py-12">
+                                    <Loader2 className="animate-spin text-amber-500" size={32} />
+                                </div>
+                            ) : (
+                                <div className="grid gap-4">
+                                    {packs.map((pack) => (
+                                        <div key={pack.id} className="p-4 rounded-2xl border border-slate-700 bg-slate-800/30 flex items-center justify-between group hover:border-amber-500/50 hover:bg-slate-800/80 transition-all">
+                                            <div>
+                                                <h3 className="text-base font-black text-white uppercase tracking-wide group-hover:text-amber-500 transition-colors">{pack.name} Pack</h3>
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                                                    <Zap size={12} className="inline mr-1 text-amber-500" />
+                                                    {pack.votes} Power Votes
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => handlePurchase(pack)}
+                                                disabled={isPurchasing}
+                                                className="px-6 py-3 rounded-xl bg-amber-500 text-slate-950 font-black text-xs uppercase tracking-widest hover:bg-amber-400 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {formatValue(pack.priceNgn / 1500)}
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={() => handlePurchase(pack)}
-                                            disabled={isPurchasing}
-                                            className="px-6 py-3 rounded-xl bg-amber-500 text-slate-950 font-black text-xs uppercase tracking-widest hover:bg-amber-400 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {formatValue(pack.priceNgn / 1500)}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </motion.div>
-            </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                </>
+            )}
         </AnimatePresence>
     );
 }

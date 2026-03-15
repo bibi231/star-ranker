@@ -13,15 +13,22 @@ import {
     ShieldAlert,
     Github,
     Mail,
-    Smartphone
+    Smartphone,
+    Loader2
 } from 'lucide-react';
 import { useStore } from '../../store/storeModel';
 import { cn } from '../../lib/utils';
+import toast from 'react-hot-toast';
 
 export function SettingsSystem() {
     const [activeTab, setActiveTab] = useState('identity');
     const [saving, setSaving] = useState(false);
     const { user, tier } = useStore();
+
+    // Lifted state for IdentityTab
+    const [oracleHandle, setOracleHandle] = useState(user?.oracleHandle || '');
+    const [displayName, setDisplayName] = useState(user?.displayName || '');
+    const [handleStatus, setHandleStatus] = useState(null); // 'checking', 'available', 'taken'
 
     const tabs = [
         { id: 'identity', label: 'Identity', icon: <User size={16} /> },
@@ -31,9 +38,35 @@ export function SettingsSystem() {
         { id: 'api', label: 'Developer', icon: <Key size={16} /> },
     ];
 
-    const handleSave = () => {
+    const handleSave = async () => {
         setSaving(true);
-        setTimeout(() => setSaving(false), 1000);
+        try {
+            if (activeTab === 'identity') {
+                if (handleStatus === 'taken') {
+                    toast.error("Oracle Handle is taken!");
+                    setSaving(false);
+                    return;
+                }
+                const { apiPatch } = await import('../../lib/api.js');
+                const updated = await apiPatch('/api/user/profile', {
+                    oracleHandle: oracleHandle.trim() || undefined,
+                    displayName: displayName.trim() || undefined
+                });
+
+                if (updated) {
+                    useStore.setState((state) => ({ user: { ...state.user, ...updated } }));
+                    toast.success("Profile updated successfully!");
+                }
+            } else {
+                // Dummy save for other tabs
+                await new Promise(r => setTimeout(r, 500));
+            }
+        } catch (error) {
+            console.error("Save failed:", error);
+            toast.error("Save failed, please try again.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -65,7 +98,7 @@ export function SettingsSystem() {
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 p-8 rounded-3xl bg-slate-950 border border-slate-900 shadow-2xl relative overflow-hidden">
+            <div className="flex-1 p-4 md:p-8 rounded-3xl bg-slate-950 border border-slate-900 shadow-2xl relative overflow-y-auto overflow-x-hidden">
                 <div className="absolute top-0 right-0 p-8 opacity-5">
                     {tabs.find(t => t.id === activeTab)?.icon && React.cloneElement(tabs.find(t => t.id === activeTab).icon, { size: 120 })}
                 </div>
@@ -79,7 +112,17 @@ export function SettingsSystem() {
                         transition={{ duration: 0.2 }}
                         className="relative z-10"
                     >
-                        {activeTab === 'identity' && <IdentityTab user={user} />}
+                        {activeTab === 'identity' && (
+                            <IdentityTab
+                                user={user}
+                                oracleHandle={oracleHandle}
+                                setOracleHandle={setOracleHandle}
+                                displayName={displayName}
+                                setDisplayName={setDisplayName}
+                                handleStatus={handleStatus}
+                                setHandleStatus={setHandleStatus}
+                            />
+                        )}
                         {activeTab === 'security' && <SecurityTab />}
                         {activeTab === 'privacy' && <PrivacyTab />}
                         {activeTab === 'notifications' && <NotificationTab />}
@@ -101,7 +144,34 @@ export function SettingsSystem() {
     );
 }
 
-function IdentityTab({ user }) {
+function IdentityTab({ user, oracleHandle, setOracleHandle, displayName, setDisplayName, handleStatus, setHandleStatus }) {
+
+    // Check handle availability when it changes
+    React.useEffect(() => {
+        if (!oracleHandle || oracleHandle === user?.oracleHandle) {
+            setHandleStatus(null);
+            return;
+        }
+
+        const checkHandle = async () => {
+            setHandleStatus('checking');
+            try {
+                const { apiGet } = await import('../../lib/api.js');
+                const res = await apiGet(`/api/user/check-handle?handle=${oracleHandle}`);
+                if (res?.available !== undefined) {
+                    setHandleStatus(res.available ? 'available' : 'taken');
+                } else {
+                    setHandleStatus(null);
+                }
+            } catch (e) {
+                setHandleStatus(null);
+            }
+        };
+
+        const timeoutId = setTimeout(checkHandle, 500);
+        return () => clearTimeout(timeoutId);
+    }, [oracleHandle, user?.oracleHandle, setHandleStatus]);
+
     return (
         <div className="space-y-6">
             <header>
@@ -111,18 +181,34 @@ function IdentityTab({ user }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Username / Oracle ID</label>
-                    <input
-                        type="text"
-                        defaultValue={user?.username}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-accent"
-                    />
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center justify-between">
+                        <span>Oracle Handle <span className="text-brand-accent">*</span></span>
+                        {handleStatus === 'checking' && <span className="text-amber-500 flex items-center gap-1"><Loader2 size={10} className="animate-spin" /> Checking</span>}
+                        {handleStatus === 'available' && <span className="text-emerald-500">✓ Available</span>}
+                        {handleStatus === 'taken' && <span className="text-rose-500">✗ Taken</span>}
+                    </label>
+                    <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">@</span>
+                        <input
+                            type="text"
+                            value={oracleHandle}
+                            onChange={(e) => setOracleHandle(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
+                            maxLength={20}
+                            placeholder="starranker_01"
+                            className={cn(
+                                "w-full bg-slate-900 border rounded-xl pl-8 pr-4 py-3 text-sm text-slate-200 focus:outline-none transition-colors",
+                                handleStatus === 'taken' ? "border-rose-500/50 focus:ring-1 focus:ring-rose-500" : "border-slate-800 focus:ring-1 focus:ring-brand-accent"
+                            )}
+                        />
+                    </div>
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Oracle Bio</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Display Name</label>
                     <input
                         type="text"
-                        placeholder="Expert in web3 market trends..."
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder="Captain Ranker"
                         className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-accent"
                     />
                 </div>

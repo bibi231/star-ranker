@@ -71,7 +71,9 @@ const adminLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5000, message: {
 
 app.use(globalLimiter);
 
-// Routes
+import usersRouter from "./routes/users";
+import currencyRouter from "./routes/currency";
+
 app.use("/api/categories", categoriesRouter);
 app.use("/api/items", itemsRouter);
 app.use("/api/votes", votesRouter);
@@ -86,9 +88,11 @@ app.use("/api/notifications", notificationRouter);
 app.use("/api/vote-packs", votePacksRouter);
 app.use("/api/sponsorships", sponsorshipsRouter);
 app.use("/api/activity", activityRouter);
+app.use("/api/user", usersRouter);
+app.use("/api/currency", currencyRouter);
 
-if (process.env.SENTRY_DSN && Sentry.Handlers) {
-    app.use(Sentry.Handlers.errorHandler());
+if (process.env.SENTRY_DSN && (Sentry as any).Handlers) {
+    app.use((Sentry as any).Handlers.errorHandler());
 } else if (process.env.SENTRY_DSN && Sentry.setupExpressErrorHandler) {
     Sentry.setupExpressErrorHandler(app);
 }

@@ -5,7 +5,7 @@ import { useStore } from '../../store/storeModel';
 import { cn } from '../../lib/utils';
 
 export function UserDashboard() {
-    const { user, balance, reputation, tier, stakes, notifications, reputationHistory } = useStore();
+    const { user, balance, reputation, tier, stakes, notifications, reputationHistory, formatValue } = useStore();
 
     if (!user) return <div className="p-10 text-center text-slate-500">Please connect your wallet to view your dashboard.</div>;
 
@@ -15,7 +15,7 @@ export function UserDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StatCard
                     title="Account Balance"
-                    value={`$${balance.toLocaleString()}`}
+                    value={formatValue(balance)}
                     icon={<Wallet className="text-brand-accent" />}
                     trend="+12% this week"
                 />
@@ -29,7 +29,7 @@ export function UserDashboard() {
                     title="Active Stakes"
                     value={stakes.length}
                     icon={<TrendingUp className="text-emerald-500" />}
-                    subtext={`Total Value: $${stakes.reduce((acc, s) => acc + s.amount, 0).toLocaleString()}`}
+                    subtext={`Total Value: ${formatValue(stakes.reduce((acc, s) => acc + s.amount, 0))}`}
                 />
             </div>
 
@@ -45,7 +45,7 @@ export function UserDashboard() {
                         </div>
                     </div>
                     <div className="h-48 flex items-end gap-1 px-2">
-                        {reputationHistory.map((point, i) => (
+                        {(reputationHistory || []).map((point, i) => (
                             <motion.div
                                 key={i}
                                 initial={{ height: 0 }}
@@ -63,7 +63,7 @@ export function UserDashboard() {
                         <Bell size={16} /> Latest Alerts
                     </h3>
                     <div className="space-y-4 max-h-[192px] overflow-y-auto pr-2 custom-scrollbar">
-                        {notifications.length > 0 ? notifications.map(n => (
+                        {notifications.length > 0 ? (notifications || []).map(n => (
                             <div key={n.id} className={cn("p-3 rounded-lg border flex items-start gap-3", n.read ? "bg-slate-900/50 border-slate-800" : "bg-slate-800 border-slate-700")}>
                                 <div className={cn("p-1.5 rounded-md", n.type === 'win' ? "bg-emerald-500/10 text-emerald-500" : "bg-brand-accent/10 text-brand-accent")}>
                                     {n.type === 'win' ? <ArrowUpRight size={14} /> : <TrendingUp size={14} />}
@@ -95,15 +95,15 @@ export function UserDashboard() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800">
-                            {stakes.map(s => (
+                            {(stakes || []).map(s => (
                                 <tr key={s.id} className="group">
                                     <td className="py-4 font-bold text-slate-200">{s.itemName}</td>
-                                    <td className="py-4 font-mono text-emerald-400">${s.amount.toLocaleString()}</td>
+                                    <td className="py-4 font-mono text-emerald-400">{formatValue(s.amount)}</td>
                                     <td className="py-4 text-slate-400 text-sm">#{s.targetRank}</td>
                                     <td className="py-4 text-slate-400 text-sm">x{s.odds}</td>
                                     <td className="py-4 text-right">
                                         <span className="font-mono font-black text-brand-accent text-sm">
-                                            ${(s.amount * s.odds).toLocaleString()}
+                                            {formatValue(s.amount * s.odds)}
                                         </span>
                                     </td>
                                 </tr>

@@ -24,9 +24,10 @@ import { useStore } from '../store/storeModel';
 import { cn } from '../lib/utils';
 import { apiGet } from '../lib/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import toast from 'react-hot-toast';
 
 export default function AdminOpsPage() {
-    const { user, callAdminFunction, adminState } = useStore();
+    const { user, callAdminFunction, adminState, formatValue } = useStore();
     const [auditLogs, setAuditLogs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -277,7 +278,7 @@ export default function AdminOpsPage() {
                                     <DollarSign size={20} />
                                 </div>
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Lifetime Platform Tax</p>
-                                <h3 className="text-4xl font-black text-white font-mono">${(revenueData.platformRevenue).toLocaleString()}</h3>
+                                <h3 className="text-4xl font-black text-white font-mono">{formatValue(revenueData.platformRevenue)}</h3>
                                 <p className="text-[9px] text-emerald-400 uppercase font-bold tracking-widest">5% Rake — All Markets</p>
                             </div>
 
@@ -286,7 +287,7 @@ export default function AdminOpsPage() {
                                     <Users size={20} />
                                 </div>
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Referral Disbursements</p>
-                                <h3 className="text-4xl font-black text-white font-mono">${(revenueData.referralEarnings).toLocaleString()}</h3>
+                                <h3 className="text-4xl font-black text-white font-mono">{formatValue(revenueData.referralEarnings)}</h3>
                                 <p className="text-[9px] text-brand-accent uppercase font-bold tracking-widest">1% Network Growth Incentive</p>
                             </div>
 
@@ -295,7 +296,7 @@ export default function AdminOpsPage() {
                                     <ChartIcon size={20} />
                                 </div>
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Total Value Locked (TVL)</p>
-                                <h3 className="text-4xl font-black text-white font-mono">${(revenueData.totalBalances).toLocaleString()}</h3>
+                                <h3 className="text-4xl font-black text-white font-mono">{formatValue(revenueData.totalBalances)}</h3>
                                 <p className="text-[9px] text-blue-400 uppercase font-bold tracking-widest">Global Escrow Cache</p>
                             </div>
                         </div>
@@ -309,7 +310,7 @@ export default function AdminOpsPage() {
                             </div>
                             <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-2">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Total Staking Volume</p>
-                                <h3 className="text-3xl font-black text-white font-mono">${(revenueData.stakingStats?.totalVolume || 0).toLocaleString()}</h3>
+                                <h3 className="text-3xl font-black text-white font-mono">{formatValue(revenueData.stakingStats?.totalVolume || 0)}</h3>
                                 <p className="text-[9px] text-slate-400 uppercase font-bold tracking-widest">{revenueData.stakingStats?.totalStakes || 0} Total Stakes</p>
                             </div>
                             <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-2">

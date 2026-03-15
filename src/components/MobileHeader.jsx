@@ -1,9 +1,9 @@
 import React from 'react';
-import { Menu, Zap } from 'lucide-react';
+import { Menu, Zap, Bell } from 'lucide-react';
 import { useStore } from '../store/storeModel';
 import { EpochIndicator } from './epochs/EpochIndicator';
 
-export default function MobileHeader({ onMenuClick, onFundClick }) {
+export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, unreadCount }) {
     const { balance = 0, formatValue } = useStore();
 
     const displayBalance = typeof formatValue === 'function' ? formatValue(balance) : `$${balance.toLocaleString()}`;
@@ -22,6 +22,15 @@ export default function MobileHeader({ onMenuClick, onFundClick }) {
                     className="p-2 -ml-2 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-slate-400"
                 >
                     <Menu size={20} />
+                </button>
+                <button
+                    onClick={onNotifClick}
+                    className="relative p-2 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-slate-400"
+                >
+                    <Bell size={18} />
+                    {unreadCount > 0 && (
+                        <span className="absolute top-1 right-2 w-2 h-2 bg-brand-accent rounded-full animate-pulse" />
+                    )}
                 </button>
             </div>
 

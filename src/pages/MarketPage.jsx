@@ -31,13 +31,25 @@ export function MarketPage() {
         closeModal,
         selectedItem,
         searchQuery,
-        setSearchQuery
+        setSearchQuery,
+        fetchMovers
     } = useStore();
 
     useEffect(() => {
         const targetSlug = slug || 'crypto';
         setCategoryItems(targetSlug);
-    }, [slug, setCategoryItems]);
+        setActiveFilter('all');
+    }, [slug, setCategoryItems, setActiveFilter]);
+
+    const handleMoverTab = async (type) => {
+        setActiveFilter(type);
+        if (type !== 'all') {
+            await fetchMovers(currentCategorySlug, type);
+        } else {
+            // refresh default items
+            setCategoryItems(currentCategorySlug);
+        }
+    };
 
     const activeCategory = categories.find(c => c.slug === currentCategorySlug) || categories[0];
 
@@ -46,7 +58,7 @@ export function MarketPage() {
             {/* Context Navigation */}
             <div className="px-8 mb-8">
                 <div className="flex flex-wrap items-center gap-2 mb-6 p-1 bg-slate-950 border border-slate-800 rounded-2xl w-fit">
-                    {categories.map(cat => (
+                    {(categories || []).map(cat => (
                         <button
                             key={cat.id}
                             onClick={() => navigate(`/category/${cat.slug}`)}
@@ -85,30 +97,24 @@ export function MarketPage() {
                         <div className="flex bg-slate-950 border border-slate-800 rounded-2xl p-1 w-full md:w-auto overflow-x-auto custom-scrollbar">
                             <FilterButton
                                 active={activeFilter === 'all'}
-                                onClick={() => setActiveFilter('all')}
+                                onClick={() => handleMoverTab('all')}
                                 label="All"
                             />
                             <FilterButton
                                 active={activeFilter === 'gainers'}
-                                onClick={() => setActiveFilter('gainers')}
+                                onClick={() => handleMoverTab('gainers')}
                                 icon={<ArrowUpRight size={14} className="text-emerald-500" />}
                                 label="Gainers"
                             />
                             <FilterButton
                                 active={activeFilter === 'losers'}
-                                onClick={() => setActiveFilter('losers')}
+                                onClick={() => handleMoverTab('losers')}
                                 icon={<ArrowDownRight size={14} className="text-rose-500" />}
                                 label="Losers"
                             />
                             <FilterButton
-                                active={activeFilter === 'movers'}
-                                onClick={() => setActiveFilter('movers')}
-                                icon={<TrendingUp size={14} className="text-brand-accent" />}
-                                label="Movers"
-                            />
-                            <FilterButton
                                 active={activeFilter === 'sleepers'}
-                                onClick={() => setActiveFilter('sleepers')}
+                                onClick={() => handleMoverTab('sleepers')}
                                 icon={<ZapOff size={14} className="text-slate-500" />}
                                 label="Sleepers"
                             />

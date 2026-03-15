@@ -16,7 +16,8 @@ export function RankingTable() {
         isSyncing,
         user,
         usePowerVote,
-        togglePowerVote
+        togglePowerVote,
+        activeFilter
     } = useStore();
 
     const isMobile = useIsMobile();
@@ -36,9 +37,13 @@ export function RankingTable() {
     if (items.length === 0) {
         return (
             <div className="w-full border border-slate-800 rounded-3xl bg-slate-900 shadow-2xl overflow-hidden">
-                <div className="flex items-center justify-center flex-col gap-4 py-32">
+                <div className="flex items-center justify-center flex-col gap-4 py-32 text-center px-4">
                     <Star size={32} className="text-slate-700" />
-                    <span className="text-[10px] font-black text-slate-500 tracking-[0.2em]">No items found in this category</span>
+                    <span className="text-[10px] font-black text-slate-500 tracking-[0.2em] uppercase">
+                        {activeFilter !== 'all' && activeFilter !== 'movers'
+                            ? `No significant ${activeFilter} in this epoch yet`
+                            : "No items found in this category"}
+                    </span>
                 </div>
             </div>
         );
@@ -66,7 +71,7 @@ export function RankingTable() {
                         </button>
                     </div>
                 )}
-                {items.map((item, index) => (
+                {(items || []).map((item, index) => (
                     <MobileItemCard key={item.id} item={item} index={index} />
                 ))}
             </div>
@@ -116,7 +121,7 @@ export function RankingTable() {
 
             {/* Scrollable Item List */}
             <div className="max-h-[70vh] overflow-y-auto custom-scrollbar divide-y divide-slate-800/50">
-                {items.map((item, index) => {
+                {(items || []).map((item, index) => {
                     const currentVote = userVotes[item.id];
                     return (
                         <motion.div
@@ -130,13 +135,22 @@ export function RankingTable() {
                             {/* Desktop Row */}
                             <div className="hidden md:flex items-center px-6 py-3">
                                 {/* Rank */}
-                                <div className="w-16 shrink-0 text-center">
+                                <div className="w-16 shrink-0 text-center flex flex-col items-center justify-center">
                                     <span className={cn(
                                         "font-mono text-base font-black italic",
-                                        index === 0 ? "text-amber-400" : index === 1 ? "text-slate-300" : index === 2 ? "text-amber-700" : "text-slate-600"
+                                        index === 0 ? "text-amber-400" : index === 1 ? "text-slate-300" : index === 2 ? "text-amber-700" : "text-slate-600",
+                                        activeFilter !== 'all' && "text-sm"
                                     )}>
                                         #{index + 1}
                                     </span>
+                                    {activeFilter !== 'all' && item.rankChange !== undefined && (
+                                        <span className={cn(
+                                            "text-[9px] font-black mt-0.5",
+                                            item.rankChange < 0 ? "text-emerald-500" : item.rankChange > 0 ? "text-rose-500" : "text-slate-500"
+                                        )}>
+                                            {item.rankChange < 0 ? '▲ +' : item.rankChange > 0 ? '▼ -' : '— '}{Math.abs(item.rankChange)}
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* Oracle Context */}
@@ -231,13 +245,22 @@ export function RankingTable() {
                             {/* Mobile Row */}
                             <div className="flex md:hidden items-center px-4 py-3 gap-3">
                                 {/* Rank */}
-                                <div className="shrink-0">
+                                <div className="shrink-0 w-10 flex flex-col items-center justify-center">
                                     <span className={cn(
-                                        "font-mono text-sm font-black italic",
-                                        index === 0 ? "text-amber-400" : index === 1 ? "text-slate-300" : index === 2 ? "text-amber-700" : "text-slate-600"
+                                        "font-mono font-black italic",
+                                        index === 0 ? "text-amber-400" : index === 1 ? "text-slate-300" : index === 2 ? "text-amber-700" : "text-slate-600",
+                                        activeFilter !== 'all' ? "text-xs" : "text-sm"
                                     )}>
                                         #{index + 1}
                                     </span>
+                                    {activeFilter !== 'all' && item.rankChange !== undefined && (
+                                        <span className={cn(
+                                            "text-[8px] font-black mt-0.5",
+                                            item.rankChange < 0 ? "text-emerald-500" : item.rankChange > 0 ? "text-rose-500" : "text-slate-500"
+                                        )}>
+                                            {item.rankChange < 0 ? '▲ +' : item.rankChange > 0 ? '▼ -' : '— '}{Math.abs(item.rankChange)}
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* Info */}
