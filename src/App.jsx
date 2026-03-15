@@ -45,6 +45,7 @@ function App() {
     // Only call syncUser once on mount
     syncUser();
     useStore.getState().fetchCategories();
+    useStore.getState().fetchCurrentEpoch();
   }, [syncUser]);
 
   useEffect(() => {

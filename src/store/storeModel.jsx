@@ -75,11 +75,7 @@ export const useStore = create((set, get) => ({
     isSyncing: false,
     lastRefresh: Date.now(),
     userVotes: {},
-    currentEpoch: {
-        epochId: 1,
-        startTime: Date.now(),
-        endTime: Date.now() + 1800000
-    },
+    currentEpoch: null,
     serverTimeOffset: 0,
 
     setUser: (user) => set({ user }),
@@ -232,6 +228,42 @@ export const useStore = create((set, get) => ({
                 set({ user: null, isAuthLoading: false, balance: 0, reputation: 0, tier: "Newbie", userVotes: {}, syncInterval: null });
             }
         });
+    },
+
+    fetchCurrentEpoch: async () => {
+        try {
+            const data = await apiGet("/api/epochs/current");
+            if (data) {
+                const now = Date.now();
+                const serverTime = data.serverTime || now;
+                const skew = serverTime - now;
+
+                set({
+                    currentEpoch: {
+                        epochId: data.epochNumber || data.id,
+                        startTime: data.startTime,
+                        endTime: data.endTime,
+                    },
+                    serverTimeOffset: skew
+                });
+            }
+        } catch (err) {
+            console.error("Failed to fetch current epoch:", err);
+            // Fallback for UI if API fails completely
+            const now = new Date();
+            const utcMins = now.getUTCMinutes();
+            const start = new Date(now);
+            start.setUTCHours(now.getUTCHours(), utcMins < 30 ? 0 : 30, 0, 0);
+            const end = new Date(start.getTime() + 30 * 60 * 1000);
+
+            set({
+                currentEpoch: {
+                    epochId: 0,
+                    startTime: start.getTime(),
+                    endTime: end.getTime(),
+                }
+            });
+        }
     },
 
     syncEpoch: (epochData) => {

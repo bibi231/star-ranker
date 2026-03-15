@@ -76,11 +76,11 @@ export async function checkAndRollEpoch() {
 
 async function createNewEpoch(epochNumber: number) {
     const now = new Date();
-    const mins = now.getMinutes();
+    const utcMins = now.getUTCMinutes();
 
     // Align to GMT boundaries (:00 or :30)
     const startTime = new Date(now);
-    startTime.setMinutes(mins < 30 ? 0 : 30, 0, 0);
+    startTime.setUTCHours(now.getUTCHours(), utcMins < 30 ? 0 : 30, 0, 0);
 
     const endTime = new Date(startTime.getTime() + EPOCH_DURATION);
 

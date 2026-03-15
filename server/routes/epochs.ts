@@ -33,16 +33,32 @@ router.get("/current", async (_req, res) => {
             .where(eq(epochs.isActive, true))
             .limit(1);
 
-        if (result.length === 0) {
-            return res.status(404).json({ error: "No active epoch" });
+        const now = new Date();
+        const serverTime = now.getTime();
+
+        if (result.length > 0) {
+            const epoch = result[0];
+            return res.json({
+                ...epoch,
+                startTime: epoch.startTime.getTime(),
+                endTime: epoch.endTime.getTime(),
+                serverTime,
+            });
         }
 
-        const epoch = result[0];
+        // Virtual Epoch Fallback (GMT aligned)
+        const utcMins = now.getUTCMinutes();
+        const startTime = new Date(now);
+        startTime.setUTCHours(now.getUTCHours(), utcMins < 30 ? 0 : 30, 0, 0);
+        const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
+
         res.json({
-            ...epoch,
-            startTime: epoch.startTime.getTime(),
-            endTime: epoch.endTime.getTime(),
-            serverTime: Date.now(),
+            epochNumber: 0, // Placeholder for virtual
+            isActive: true,
+            startTime: startTime.getTime(),
+            endTime: endTime.getTime(),
+            serverTime,
+            isVirtual: true
         });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
