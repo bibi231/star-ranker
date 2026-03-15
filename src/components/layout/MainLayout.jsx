@@ -267,7 +267,7 @@ export function MainLayout() {
                 )}
             </AnimatePresence>
 
-            <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative pb-[56px] md:pb-0">
+            <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative" style={{ paddingBottom: 'calc(56px + var(--safe-bottom, 0px))' }}>
                 <MobileHeader
                     onMenuClick={() => setIsMobileMenuOpen(true)}
                     onFundClick={() => setDepositOpen(true)}

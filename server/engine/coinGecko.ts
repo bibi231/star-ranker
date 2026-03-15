@@ -44,6 +44,10 @@ export async function updateCryptoPrices() {
         const url = `${COINGECKO_API}/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`;
 
         const response = await fetch(url);
+        if (response.status === 429) {
+            console.warn("[CoinGecko] Rate limited (429). Backing off for 60s.");
+            return; // Will naturally retry on next interval
+        }
         if (!response.ok) {
             console.warn(`[CoinGecko] API returned ${response.status}`);
             return;

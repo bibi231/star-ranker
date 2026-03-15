@@ -301,6 +301,9 @@ export const useStore = create((set, get) => ({
                     ...profile
                 }
             });
+
+            // Also load user's active stakes
+            get().fetchStakes();
         } catch (err) {
             console.warn("Could not fetch profile:", err);
             if (isSuperAdminEmail) {
@@ -373,6 +376,23 @@ export const useStore = create((set, get) => ({
         }
     },
 
+    fetchStakes: async () => {
+        try {
+            const data = await apiGet("/api/stakes/my");
+            if (Array.isArray(data)) {
+                set({
+                    stakes: data.map(s => ({
+                        ...s,
+                        targetRank: typeof s.target === 'number' ? s.target : s.target?.min || '—',
+                        odds: s.effectiveMultiplier || 2,
+                    }))
+                });
+            }
+        } catch (err) {
+            console.error("Failed to fetch stakes:", err);
+        }
+    },
+
     placeStake: async (itemId, amount, targetRank, itemName, betType) => {
         try {
             const result = await apiPost("/api/stakes", {
@@ -385,6 +405,7 @@ export const useStore = create((set, get) => ({
             });
             if (result.success) {
                 await get().fetchUserProfile();
+                await get().fetchStakes();
             }
             return result;
         } catch (error) {
