@@ -49,8 +49,12 @@ export async function reifyRankings() {
             };
         });
 
-        // Sort by score descending and assign ranks
-        updated.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+        // Sort by score descending, then momentum descending, then id for consistency
+        updated.sort((a, b) => {
+            if ((b.score ?? 0) !== (a.score ?? 0)) return (b.score ?? 0) - (a.score ?? 0);
+            if ((b.momentum ?? 0) !== (a.momentum ?? 0)) return (b.momentum ?? 0) - (a.momentum ?? 0);
+            return a.id - b.id;
+        });
 
         // Prepare updates for batching
         const updates = updated.map((item, i) => ({
