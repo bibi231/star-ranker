@@ -72,6 +72,14 @@ export const useStore = create((set, get) => ({
     items: [],
     categories: [],
     reputationHistory: [],
+    bio: '',
+    settings: {
+        twoFactorEnabled: false,
+        emailNotifications: true,
+        pushNotifications: true,
+        marketAlerts: true,
+        settlementAlerts: true,
+    },
     isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
 
     fetchCategories: async () => {
@@ -617,5 +625,35 @@ export const useStore = create((set, get) => ({
             console.error("Seed error:", error);
             throw error;
         }
-    }
+    },
+
+    updateProfile: async (updates) => {
+        try {
+            const { apiPost } = await import('../lib/api');
+            const result = await apiPost('/api/user/profile', updates);
+            if (result && !result.error) {
+                set(state => ({
+                    bio: updates.bio ?? state.bio,
+                    user: { ...state.user, ...result }
+                }));
+                return true;
+            }
+            return false;
+        } catch (err) {
+            console.error('Failed to update profile:', err);
+            return false;
+        }
+    },
+
+    updateSettings: async (newSettings) => {
+        try {
+            set(state => ({
+                settings: { ...state.settings, ...newSettings }
+            }));
+            return true;
+        } catch (err) {
+            console.error('Failed to update settings:', err);
+            return false;
+        }
+    },
 }));
