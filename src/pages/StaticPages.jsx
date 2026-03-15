@@ -24,38 +24,98 @@ import {
     Loader2,
     Trophy
 } from 'lucide-react';
-import { useStore } from '../store/storeModel';
-import { cn } from '../lib/utils';
+import { cn, formatTimeAgo } from '../lib/utils';
 import { apiGet } from '../lib/api';
 
 export function ActivityPage() {
+    const [activity, setActivity] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        loadActivity();
+    }, []);
+
+    const loadActivity = async () => {
+        setIsLoading(true);
+        try {
+            const data = await apiGet("/api/activity");
+            setActivity(data);
+        } catch (err) {
+            console.error("Activity load error:", err);
+        }
+        setIsLoading(false);
+    };
+
     return (
         <div className="p-8 space-y-8 bg-[#020617] min-h-screen">
-            <header className="space-y-2">
-                <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Market Pulse</h1>
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Real-time influence log from the global ranker network.</p>
+            <header className="space-y-2 flex justify-between items-end">
+                <div>
+                    <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Market Pulse</h1>
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Real-time influence log from the global ranker network.</p>
+                </div>
+                <button
+                    onClick={loadActivity}
+                    className="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-all active:scale-95"
+                >
+                    <Activity size={18} className={isLoading ? "animate-spin text-brand-accent" : ""} />
+                </button>
             </header>
 
             <div className="space-y-4">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                    <div key={i} className="p-6 rounded-3xl bg-slate-900 border border-slate-800 flex justify-between items-center group hover:border-brand-accent/30 transition-all">
+                {isLoading && activity.length === 0 ? (
+                    <div className="py-20 text-center">
+                        <Loader2 size={32} className="animate-spin text-brand-accent mx-auto mb-4" />
+                        <p className="text-[10px] text-slate-500 uppercase font-black">Syncing Pulse...</p>
+                    </div>
+                ) : activity.length > 0 ? activity.map(item => (
+                    <div key={item.id} className="p-6 rounded-3xl bg-slate-900 border border-slate-800 flex justify-between items-center group hover:border-brand-accent/30 transition-all">
                         <div className="flex items-center gap-6">
-                            <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-600">
-                                <Activity size={20} />
+                            <div className={cn(
+                                "w-10 h-10 rounded-2xl border flex items-center justify-center",
+                                item.type === 'vote' ? "bg-blue-500/10 border-blue-500/20 text-blue-400" :
+                                    item.type === 'stake' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" :
+                                        "bg-slate-950 border-slate-800 text-slate-600"
+                            )}>
+                                {item.type === 'vote' ? <Zap size={18} /> :
+                                    item.type === 'stake' ? <Target size={18} /> :
+                                        <Activity size={18} />}
                             </div>
                             <div>
-                                <p className="text-sm font-black text-white uppercase tracking-tight">
-                                    Oracle_{800 + i} <span className="text-slate-500 font-bold">deployed influence on</span> Bitcoin
+                                <p className="text-xs md:text-sm font-black text-white uppercase tracking-tight">
+                                    <span className="text-brand-accent">{item.userDisplayName || 'Anonymous Oracle'}</span>
+                                    <span className="text-slate-500 font-bold mx-2">
+                                        {item.type === 'vote' ? 'deployed influence on' :
+                                            item.type === 'stake' ? 'placed prediction for' :
+                                                'executed protocol'}
+                                    </span>
+                                    <span className="text-slate-200">{item.itemName || item.itemDocId || 'The Market'}</span>
                                 </p>
                                 <div className="flex items-center gap-3 mt-1">
-                                    <span className="text-[9px] font-mono text-emerald-500 font-black uppercase">VOTE_UP</span>
-                                    <span className="text-[9px] font-mono text-slate-600">TXID: 0x{Math.random().toString(16).slice(2, 10)}</span>
+                                    <span className={cn(
+                                        "text-[9px] font-mono font-black uppercase flex items-center gap-2",
+                                        item.metadata?.direction === 1 ? "text-emerald-500" :
+                                            item.metadata?.direction === -1 ? "text-rose-500" :
+                                                "text-brand-accent"
+                                    )}>
+                                        {item.type === 'vote' ? `VOTE_${item.metadata?.direction === 1 ? 'UP' : item.metadata?.direction === -1 ? 'DOWN' : 'CLEAR'}` :
+                                            item.type === 'stake' ? `STAKE_DEPLOYED` :
+                                                item.type.toUpperCase()}
+                                        {item.metadata?.usePowerVote && (
+                                            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 text-amber-500 text-[8px]">AMPLIFIED</span>
+                                        )}
+                                    </span>
+                                    <span className="text-[9px] font-mono text-slate-700">HASH: {item.id.toString(16).padStart(4, '0')}...</span>
                                 </div>
                             </div>
                         </div>
-                        <span className="text-[10px] font-mono text-slate-500">{i * 2} minutes ago</span>
+                        <span className="text-[10px] font-mono text-slate-500 shrink-0">{formatTimeAgo(item.createdAt)}</span>
                     </div>
-                ))}
+                )) : (
+                    <div className="py-20 text-center bg-slate-900/50 rounded-3xl border border-dashed border-slate-800">
+                        <Activity size={32} className="text-slate-700 mx-auto mb-4" />
+                        <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">No activity detected yet</p>
+                    </div>
+                )}
             </div>
         </div>
     );

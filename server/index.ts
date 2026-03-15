@@ -27,6 +27,7 @@ import authRouter from "./routes/auth";
 import notificationRouter from "./routes/notifications";
 import votePacksRouter from "./routes/votePacks";
 import sponsorshipsRouter from "./routes/sponsorships";
+import activityRouter from "./routes/activity";
 
 import { startRankingEngine } from "./engine/rankingEngine";
 import { startEpochScheduler } from "./engine/epochScheduler";
@@ -84,6 +85,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/notifications", notificationRouter);
 app.use("/api/vote-packs", votePacksRouter);
 app.use("/api/sponsorships", sponsorshipsRouter);
+app.use("/api/activity", activityRouter);
 
 if (process.env.SENTRY_DSN && Sentry.Handlers) {
     app.use(Sentry.Handlers.errorHandler());

@@ -36,8 +36,9 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
                 where: eq(users.firebaseUid, userId)
             });
             if (userRec && (userRec.powerVotes || 0) > 0) {
-                scoreDelta *= 3;
-                powerVoteDeducted = (previousDirection === 0); // Only deduct for new votes
+                // Resulting contribution should be direction * 3
+                scoreDelta = (direction * 3) - previousDirection;
+                powerVoteDeducted = true;
             }
         }
 
