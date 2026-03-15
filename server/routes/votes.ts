@@ -31,16 +31,14 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
         let scoreDelta = direction - previousDirection;
         let powerVoteDeducted = false;
 
-        if (usePowerVote && direction !== 0 && previousDirection === 0) {
+        if (usePowerVote && direction !== 0) {
             const userRec = await db.query.users.findFirst({
                 where: eq(users.firebaseUid, userId)
             });
             if (userRec && (userRec.powerVotes || 0) > 0) {
                 scoreDelta *= 3;
-                powerVoteDeducted = true;
+                powerVoteDeducted = (previousDirection === 0); // Only deduct for new votes
             }
-        } else if (usePowerVote) {
-            scoreDelta * 3;
         }
 
         await db.transaction(async (tx) => {
@@ -83,15 +81,19 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
                 });
             }
 
-            // Log to market activity
-            await tx.insert(marketActivity).values({
-                type: "vote",
-                userId,
-                itemDocId,
-                categorySlug,
-                description: `${powerVoteDeducted ? 'POWER VOTE' : 'Vote'} cast (${direction === 1 ? 'up' : direction === -1 ? 'down' : 'cleared'}) on ${itemDocId}`,
-                metadata: { direction, usePowerVote: powerVoteDeducted }
-            });
+            // Log to market activity (safe fetch)
+            try {
+                await tx.insert(marketActivity).values({
+                    type: "vote",
+                    userId,
+                    itemDocId,
+                    categorySlug,
+                    description: `${powerVoteDeducted ? 'POWER VOTE' : 'Vote'} cast (${direction === 1 ? 'up' : direction === -1 ? 'down' : 'cleared'}) on ${itemDocId}`,
+                    metadata: { direction, usePowerVote: powerVoteDeducted }
+                });
+            } catch (e) {
+                console.warn("[Voting] Market activity log failed (possibly missing table):", e);
+            }
         });
 
         // Get updated score

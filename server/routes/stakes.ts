@@ -295,17 +295,21 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
                 platformFee,
             }).returning({ id: stakes.id });
 
-            // 7. Log to Market Activity
-            await tx.insert(marketActivity).values({
-                type: "stake",
-                userId,
-                itemDocId,
-                itemName,
-                categorySlug,
-                amount,
-                description: `Stake of ${amount.toFixed(2)} placed on ${itemName} (Epoch #${epoch.epochNumber})`,
-                metadata: { betType, target, multiplier: quote.effectiveMultiplier }
-            });
+            // 7. Log to Market Activity (safe fetch)
+            try {
+                await tx.insert(marketActivity).values({
+                    type: "stake",
+                    userId,
+                    itemDocId,
+                    itemName,
+                    categorySlug,
+                    amount,
+                    description: `Stake of ${amount.toFixed(2)} placed on ${itemName} (Epoch #${epoch.epochNumber})`,
+                    metadata: { betType, target, multiplier: quote.effectiveMultiplier }
+                });
+            } catch (e) {
+                console.warn("[Staking] Market activity log failed (possibly missing table):", e);
+            }
 
             return stakeResult[0].id;
         });
