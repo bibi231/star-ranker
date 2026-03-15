@@ -16,6 +16,7 @@ router.get("/", async (_req, res) => {
 
         res.json(history.map(e => ({
             ...e,
+            epochId: e.epochNumber,
             startTime: e.startTime.getTime(),
             endTime: e.endTime.getTime(),
         })));
@@ -40,6 +41,7 @@ router.get("/current", async (_req, res) => {
             const epoch = result[0];
             return res.json({
                 ...epoch,
+                epochId: epoch.epochNumber,
                 startTime: epoch.startTime.getTime(),
                 endTime: epoch.endTime.getTime(),
                 serverTime,
@@ -54,6 +56,7 @@ router.get("/current", async (_req, res) => {
 
         res.json({
             epochNumber: 0, // Placeholder for virtual
+            epochId: 0,
             isActive: true,
             startTime: startTime.getTime(),
             endTime: endTime.getTime(),

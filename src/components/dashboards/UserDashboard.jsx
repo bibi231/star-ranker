@@ -27,9 +27,9 @@ export function UserDashboard() {
                 />
                 <StatCard
                     title="Active Stakes"
-                    value={stakes.length}
+                    value={stakes?.length || 0}
                     icon={<TrendingUp className="text-emerald-500" />}
-                    subtext={`Total Value: ${formatValue(stakes.reduce((acc, s) => acc + s.amount, 0))}`}
+                    subtext={`Total Value: ${formatValue((stakes || []).reduce((acc, s) => acc + s.amount, 0))}`}
                 />
             </div>
 
@@ -63,7 +63,7 @@ export function UserDashboard() {
                         <Bell size={16} /> Latest Alerts
                     </h3>
                     <div className="space-y-4 max-h-[192px] overflow-y-auto pr-2 custom-scrollbar">
-                        {notifications.length > 0 ? (notifications || []).map(n => (
+                        {(notifications?.length || 0) > 0 ? (notifications || []).map(n => (
                             <div key={n.id} className={cn("p-3 rounded-lg border flex items-start gap-3", n.read ? "bg-slate-900/50 border-slate-800" : "bg-slate-800 border-slate-700")}>
                                 <div className={cn("p-1.5 rounded-md", n.type === 'win' ? "bg-emerald-500/10 text-emerald-500" : "bg-brand-accent/10 text-brand-accent")}>
                                     {n.type === 'win' ? <ArrowUpRight size={14} /> : <TrendingUp size={14} />}
@@ -108,7 +108,7 @@ export function UserDashboard() {
                                     </td>
                                 </tr>
                             ))}
-                            {stakes.length === 0 && (
+                            {(stakes?.length || 0) === 0 && (
                                 <tr>
                                     <td colSpan="5" className="py-10 text-center text-slate-600 text-xs">No active stakes. Markets are waiting for your influence.</td>
                                 </tr>

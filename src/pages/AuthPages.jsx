@@ -34,7 +34,7 @@ export function SignInPage() {
     const [showReset, setShowReset] = useState(false);
 
     React.useEffect(() => {
-        if (user) navigate('/dashboard');
+        if (user) navigate('/markets');
     }, [user, navigate]);
 
     const handleEmailLogin = async (e) => {
@@ -43,7 +43,7 @@ export function SignInPage() {
         setIsLoading(true);
         try {
             await loginWithEmail(email, password);
-            navigate('/dashboard');
+            navigate('/markets');
         } catch (err) {
             // Provide user-friendly error messages
             const errorMap = {
