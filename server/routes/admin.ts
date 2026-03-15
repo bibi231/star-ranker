@@ -198,13 +198,17 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
             }
         }
 
-        // Fetch last 10 user activities
-        const recentActivity = await db.select()
-            .from(marketActivity)
-            .where(eq(marketActivity.userId, req.uid!))
-            .orderBy(desc(marketActivity.createdAt))
-            .limit(10);
-
+        // Fetch last 10 user activities (safe fetch)
+        let recentActivity: any[] = [];
+        try {
+            recentActivity = await db.select()
+                .from(marketActivity)
+                .where(eq(marketActivity.userId, req.uid!))
+                .orderBy(desc(marketActivity.createdAt))
+                .limit(10);
+        } catch (e) {
+            console.warn("Market activity fetch failed (possibly missing table):", e);
+        }
         res.json({
             ...user[0],
             recentActivity
@@ -308,6 +312,60 @@ router.get("/ledger-audit", requireAuth, async (req: AuthRequest, res) => {
             transactions: recentTransactions,
             activity: recentActivity
         });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/admin/rescue-deposit — Manually credit a missed Paystack transaction
+router.post("/rescue-deposit", requireAuth, async (req: AuthRequest, res) => {
+    try {
+        if (!isSuperAdmin(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+
+        const { reference, userId, amountNgn } = req.body;
+        if (!reference || !userId || !amountNgn) {
+            return res.status(400).json({ error: "Missing reference, userId, or amountNgn" });
+        }
+
+        const NGN_USD_RATE = 1500;
+        const platformCredits = Math.floor(amountNgn / NGN_USD_RATE * 100) / 100;
+
+        await db.transaction(async (tx) => {
+            // Check if already credited
+            const existing = await tx.select().from(transactions).where(eq(transactions.reference, reference)).limit(1);
+            if (existing.length > 0 && existing[0].status === "completed") {
+                throw new Error("Transaction already credited");
+            }
+
+            // Update user balance
+            await tx.update(users)
+                .set({ balance: sql`${users.balance} + ${platformCredits}` })
+                .where(eq(users.firebaseUid, userId));
+
+            // Upsert transaction record
+            if (existing.length > 0) {
+                await tx.update(transactions)
+                    .set({ status: "completed", amountNgn, amountUsd: platformCredits, netAmountUsd: platformCredits, settledAt: new Date() })
+                    .where(eq(transactions.id, existing[0].id));
+            } else {
+                await tx.insert(transactions).values({
+                    userId, type: "deposit", amountNgn, amountUsd: platformCredits, netAmountUsd: platformCredits,
+                    reference, status: "completed", settledAt: new Date()
+                });
+            }
+
+            // Log activity (safe insert)
+            try {
+                await tx.insert(marketActivity).values({
+                    type: "deposit", userId, amount: platformCredits,
+                    description: `Manual Rescue Credit: ${amountNgn} NGN (Ref: ${reference})`,
+                });
+            } catch (e) {
+                console.warn("Could not log rescue activity:", e);
+            }
+        });
+
+        res.json({ success: true, credited: platformCredits });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }

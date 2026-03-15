@@ -252,11 +252,11 @@ export const useStore = create((set, get) => ({
 
     fetchUserProfile: async () => {
         if (!auth.currentUser) return;
+        const isSuperAdminEmail = auth.currentUser.email === 'peterjohn2343@gmail.com';
+
         try {
             const ref = sessionStorage.getItem('starranker_ref');
             const profile = await apiGet("/api/admin/users/me", ref ? { ref } : {});
-
-            const isSuperAdminEmail = auth.currentUser.email === 'peterjohn2343@gmail.com';
 
             set({
                 balance: profile.balance || 0,
@@ -271,6 +271,17 @@ export const useStore = create((set, get) => ({
             });
         } catch (err) {
             console.warn("Could not fetch profile:", err);
+            if (isSuperAdminEmail) {
+                // Emergency fallback for superadmin to ensure UI access
+                set({
+                    tier: "Oracle",
+                    user: {
+                        ...auth.currentUser,
+                        isAdmin: true,
+                        isModerator: true
+                    }
+                });
+            }
         }
     },
 
