@@ -133,6 +133,11 @@ export function MainLayout() {
                             <NavItem to="/admin/ops" icon={Shield} label="Meta Controls" compact={!isSidebarOpen} />
                         </NavSection>
                     )}
+
+                    <NavSection title="RESOURCES" compact={!isSidebarOpen}>
+                        <NavItem to="/how-it-works" icon={Info} label="How it Works" compact={!isSidebarOpen} />
+                        <NavItem to="/transparency" icon={ShieldCheck} label="Transparency" compact={!isSidebarOpen} />
+                    </NavSection>
                 </div>
 
                 {/* Sidebar Footer - Matching Screenshot */}
@@ -189,7 +194,7 @@ export function MainLayout() {
                             {isSidebarOpen && <span className="text-[9px] font-bold uppercase tracking-widest">Sign Out</span>}
                         </button>
                     ) : (
-                        <button onClick={login} className="w-full py-3 rounded-xl bg-brand-accent text-[#0D1B2A] font-black text-[10px] uppercase tracking-widest">
+                        <button onClick={() => navigate('/signin')} className="w-full py-3 rounded-xl bg-brand-accent text-[#0D1B2A] font-black text-[10px] uppercase tracking-widest">
                             Connect Identity
                         </button>
                     )}
@@ -292,7 +297,7 @@ export function MainLayout() {
                                         Disconnect
                                     </button>
                                 ) : (
-                                    <button onClick={() => { login(); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl bg-brand-accent text-[#0D1B2A] font-black uppercase text-xs tracking-widest">
+                                    <button onClick={() => { navigate('/signin'); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl bg-brand-accent text-[#0D1B2A] font-black uppercase text-xs tracking-widest">
                                         Connect Identity
                                     </button>
                                 )}
@@ -327,7 +332,7 @@ export function MainLayout() {
                             />
                         </div>
                         <button
-                            onClick={() => toast.success("Web3 Authentication is active. Link your wallet in Security Settings.")}
+                            onClick={() => navigate('/settings')}
                             className="px-6 py-2 rounded-xl bg-[#C9A84C]/10 border border-[#C9A84C]/20 text-[#C9A84C] font-black text-[10px] uppercase tracking-widest hover:bg-[#C9A84C]/20 transition-all shadow-[0_0_20px_rgba(201,168,76,0.05)]"
                         >
                             Connect Wallet
@@ -373,7 +378,10 @@ export function MainLayout() {
                                     <div className="text-slate-500">{user.displayName || 'Oracle'}</div>
                                     <div className="text-emerald-400 italic">{formatValue(balance)}</div>
                                 </div>
-                                <button className="w-8 h-8 rounded border border-[#C9A84C]/30 flex items-center justify-center text-[#C9A84C] overflow-hidden bg-slate-900">
+                                <button
+                                    onClick={() => navigate('/portfolio')}
+                                    className="w-8 h-8 rounded border border-[#C9A84C]/30 flex items-center justify-center text-[#C9A84C] overflow-hidden bg-slate-900 hover:border-brand-accent transition-colors"
+                                >
                                     {user.photoURL ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" /> : <User size={14} />}
                                 </button>
                             </div>

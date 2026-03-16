@@ -82,18 +82,25 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
                 });
             }
 
-            // Log to market activity (safe fetch)
+            // Log to market activity
             try {
+                const itemRec = await tx.query.items.findFirst({
+                    where: eq(items.docId, itemDocId),
+                    columns: { name: true }
+                });
+                const displayName = itemRec?.name || itemDocId;
+
                 await tx.insert(marketActivity).values({
                     type: "vote",
                     userId,
                     itemDocId,
+                    itemName: displayName,
                     categorySlug,
-                    description: `${powerVoteDeducted ? 'POWER VOTE' : 'Vote'} cast (${direction === 1 ? 'up' : direction === -1 ? 'down' : 'cleared'}) on ${itemDocId}`,
+                    description: `Oracle deployed influence on ${displayName}`,
                     metadata: { direction, usePowerVote: powerVoteDeducted }
                 });
             } catch (e) {
-                console.warn("[Voting] Market activity log failed (possibly missing table):", e);
+                console.warn("[Voting] Market activity log failed:", e);
             }
         });
 

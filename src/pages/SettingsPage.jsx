@@ -235,17 +235,55 @@ function NotificationSettings({ settings, onUpdate }) {
 }
 
 function WalletSettings() {
+    const { user, bindWallet } = useStore();
+    const [isBinding, setIsBinding] = useState(false);
+
+    const handleLink = async () => {
+        const address = prompt("Enter Wallet Node Address (e.g. 0x...):");
+        if (!address || !address.startsWith('0x') || address.length < 40) {
+            return toast.error("Invalid node address");
+        }
+        setIsBinding(true);
+        try {
+            await bindWallet(address);
+            toast.success("Identity Cryptographically Linked");
+        } catch (err) {
+            toast.error(err.message);
+        } finally {
+            setIsBinding(false);
+        }
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <SectionHeader title="Capital Control" icon={<Wallet size={18} />} desc="Manage connected nodes and payment gateways." />
-            <div className="p-8 rounded-3xl bg-slate-950 border-2 border-dashed border-slate-900 text-center">
-                <Globe size={40} className="mx-auto text-slate-800 mb-4" />
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-loose">
-                    No Web3 Provider Detected.<br />
-                    Connect a custodial node to enable external transfers.
-                </p>
-                <button className="mt-6 px-6 py-3 rounded-2xl bg-brand-accent text-slate-950 font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-brand-accent/10 italic">Link Wallet Node</button>
-            </div>
+
+            {user?.walletAddress ? (
+                <div className="p-8 rounded-3xl bg-slate-900 border border-brand-accent/20 space-y-4">
+                    <div className="flex items-center gap-4 text-brand-accent">
+                        <Shield size={32} />
+                        <div>
+                            <p className="text-xs font-black uppercase">Identity Linked</p>
+                            <p className="text-lg font-mono tracking-tight">{user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}</p>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="p-8 rounded-3xl bg-slate-950 border-2 border-dashed border-slate-900 text-center">
+                    <Globe size={40} className="mx-auto text-slate-800 mb-4" />
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-loose">
+                        No Web3 Provider Detected.<br />
+                        Connect a custodial node to enable external transfers.
+                    </p>
+                    <button
+                        onClick={handleLink}
+                        className="mt-6 px-6 py-3 rounded-2xl bg-brand-accent text-slate-950 font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-brand-accent/10 italic"
+                    >
+                        {isBinding ? <Loader2 className="animate-spin inline mr-2" size={14} /> : null}
+                        Link Wallet Node
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

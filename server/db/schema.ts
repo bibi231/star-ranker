@@ -261,3 +261,13 @@ export const adminConfig = pgTable("admin_config", {
     epochsPaused: boolean("epochs_paused").default(false),
     updatedAt: timestamp("updated_at").defaultNow(),
 });
+// ===== COMMENTS (Market Discussion) =====
+export const comments = pgTable("comments", {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    itemDocId: text("item_doc_id").notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+    index("comments_item_idx").on(table.itemDocId),
+]);

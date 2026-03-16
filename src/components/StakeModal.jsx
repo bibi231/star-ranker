@@ -98,7 +98,6 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
 
     const handleStake = async () => {
         if (!amount || parseFloat(amount) <= 0) return;
-
         const usdAmount = useStore.getState().parseLocalToUSD(amount);
 
         if (usdAmount > balance) {
@@ -313,7 +312,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                             <div>
                                 <div className="text-[9px] font-black text-emerald-500/50 uppercase mb-1">Potential Payout</div>
                                 <div className="text-2xl md:text-3xl font-mono font-black text-emerald-400 drop-shadow-lg">
-                                    {formatValue(quote ? (parseFloat(amount || 0) * quote.effectiveMultiplier) : 0)}
+                                    {formatValue(quote ? (useStore.getState().parseLocalToUSD(amount || 0) * quote.effectiveMultiplier) : 0)}
                                 </div>
                             </div>
                             <div>
@@ -338,27 +337,26 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                     </div>
 
                     {/* Fee Breakdown */}
-                    {amount && parseFloat(amount) > 0 && (
-                        <div className="mt-4 pt-4 border-t border-slate-800/50 space-y-2">
-                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                                <span className="text-slate-500">Stake Amount</span>
-                                <span className="text-white">{formatValue(parseFloat(amount))}</span>
-                            </div>
-                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                                <span className="text-rose-400">Platform Fee (5%)</span>
-                                <span className="text-rose-400">-{formatValue(parseFloat(amount) * 0.05)}</span>
-                            </div>
-                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                                <span className="text-slate-400">Net at Risk</span>
-                                <span className="text-emerald-400">{formatValue(parseFloat(amount) * 0.95)}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 pt-2">
-                                <Info size={10} className="text-amber-500/60 shrink-0" />
-                                <span className="text-[8px] text-amber-500/60 font-bold uppercase leading-tight">
-                                    Est. payout is variable — final amount depends on pool size at epoch end
-                                </span>
-                            </div>
+                    <div className="mt-4 pt-4 border-t border-slate-800/50 space-y-2">
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                            <span className="text-slate-500">Stake Amount</span>
+                            <span className="text-white">{formatValue(useStore.getState().parseLocalToUSD(amount))}</span>
                         </div>
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                            <span className="text-rose-400">Platform Fee (5%)</span>
+                            <span className="text-rose-400">-{formatValue(useStore.getState().parseLocalToUSD(amount) * 0.05)}</span>
+                        </div>
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                            <span className="text-slate-400">Net at Risk</span>
+                            <span className="text-emerald-400">{formatValue(useStore.getState().parseLocalToUSD(amount) * 0.95)}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 pt-2">
+                            <Info size={10} className="text-amber-500/60 shrink-0" />
+                            <span className="text-[8px] text-amber-500/60 font-bold uppercase leading-tight">
+                                Est. payout is variable — final amount depends on pool size at epoch end
+                            </span>
+                        </div>
+                    </div>
                     )}
                 </div>
 
@@ -422,12 +420,12 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                 </button>
                 <button
                     onClick={handleStake}
-                    disabled={isProcessing || isLocked || !amount || parseFloat(amount) > balance || loadingQuote}
+                    disabled={isProcessing || isLocked || !amount || useStore.getState().parseLocalToUSD(amount) > balance || loadingQuote}
                     className={cn(
                         "flex-[2.5] min-h-[56px] py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none",
                         isLocked
                             ? "bg-slate-800 text-slate-600 cursor-not-allowed"
-                            : parseFloat(amount) > balance
+                            : useStore.getState().parseLocalToUSD(amount) > balance
                                 ? "bg-rose-500/10 text-rose-500 border border-rose-500/20 cursor-not-allowed"
                                 : "bg-[#C9A84C] text-[#0D1B2A] hover:shadow-[0_0_30px_rgba(201,168,76,0.4)] active:scale-[0.98]"
                     )}

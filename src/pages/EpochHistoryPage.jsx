@@ -144,7 +144,11 @@ export default function EpochHistoryPage() {
                                 </thead>
                                 <tbody className="divide-y divide-slate-800/30">
                                     {snapshots.length > 0 ? snapshots.map((item, idx) => (
-                                        <tr key={item.itemId} className="hover:bg-white/5 transition-colors group">
+                                        <tr
+                                            key={item.itemId}
+                                            onClick={() => navigate(`/market/${item.itemId}`)}
+                                            className="hover:bg-white/5 transition-colors group cursor-pointer"
+                                        >
                                             <td className="px-6 py-5">
                                                 <div className="flex items-center gap-3">
                                                     <span className={clsx(

@@ -88,6 +88,36 @@ export const useStore = create((set, get) => ({
     setVotePackModalOpen: (val) => set({ isVotePackModalOpen: val }),
     isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
 
+    devOverrideLogin: async (email) => {
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') return;
+        set({ isAuthLoading: true });
+
+        const SUPER_ADMINS = ['peterjohn2343@gmail.com', 'admin@starranker.io'];
+        const isSuperAdmin = SUPER_ADMINS.includes(email);
+        const isModerator = isSuperAdmin || email.includes('moderator');
+
+        // Mock a user object
+        const mockUser = {
+            uid: `dev_${email.split('@')[0]}`,
+            email,
+            displayName: `Dev ${email.split('@')[0]}`,
+            emailVerified: true,
+            isAdmin: isSuperAdmin,
+            isModerator: isModerator,
+            tier: isSuperAdmin ? "Oracle" : (isModerator ? "Sage" : "Newbie"),
+            getIdToken: async () => "mock-token-for-dev"
+        };
+
+        set({
+            user: mockUser,
+            emailVerified: true,
+            tier: mockUser.tier,
+            isAdmin: mockUser.isAdmin,
+            isModerator: mockUser.isModerator
+        });
+        set({ isAuthLoading: false });
+    },
+
     fetchCategories: async () => {
         try {
             const data = await apiGet("/api/categories");
@@ -363,7 +393,8 @@ export const useStore = create((set, get) => ({
 
     fetchUserProfile: async () => {
         if (!auth.currentUser) return;
-        const isSuperAdminEmail = auth.currentUser.email === 'peterjohn2343@gmail.com';
+        const SUPER_ADMINS = ['peterjohn2343@gmail.com', 'admin@starranker.io'];
+        const isSuperAdminEmail = SUPER_ADMINS.includes(auth.currentUser.email);
 
         try {
             const ref = sessionStorage.getItem('starranker_ref');
@@ -668,3 +699,7 @@ export const useStore = create((set, get) => ({
         }
     },
 }));
+
+if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    window.useStore = useStore;
+}

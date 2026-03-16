@@ -69,20 +69,25 @@ function generateOddsQuote(
     pBase: number,
     market: { totalEscrow: number; itemOpenInterest: number; liquidityFactor: number },
     config: { safetyRatio: number; platformMargin: number; maxMultiplier: number },
-    stakeAmount: number
+    stakeAmountUsd: number
 ) {
     const rawMultiplier = 1 / pBase;
-    const slippage = stakeAmount / Math.max(1, market.totalEscrow + stakeAmount) * market.liquidityFactor;
+    const BASE_LIQUIDITY = 5000; // $5k USD base dampening floor
+    const totalLiquidity = Math.max(BASE_LIQUIDITY, market.totalEscrow + stakeAmountUsd);
+
+    // Slippage scales based on your size relative to the pool or the base floor
+    const slippage = (stakeAmountUsd / totalLiquidity) * market.liquidityFactor;
+
     const adjustedMultiplier = rawMultiplier * (1 - slippage) * (1 - config.platformMargin);
-    const effectiveMultiplier = Math.min(config.maxMultiplier, Math.max(1.01, adjustedMultiplier));
+    const effectiveMultiplier = Math.min(config.maxMultiplier, Math.max(1.05, adjustedMultiplier));
 
     return {
         probability: pBase,
         multiplier: rawMultiplier,
         effectiveMultiplier,
         slippage,
-        potentialPayout: stakeAmount * effectiveMultiplier,
-        maxPayout: stakeAmount * config.maxMultiplier,
+        potentialPayout: stakeAmountUsd * effectiveMultiplier,
+        maxPayout: stakeAmountUsd * config.maxMultiplier,
     };
 }
 
@@ -314,7 +319,7 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
                     itemName,
                     categorySlug,
                     amount,
-                    description: `Stake of ${amount.toFixed(2)} placed on ${itemName} (Epoch #${epoch.epochNumber})`,
+                    description: `Oracle deployed influence on ${itemName} (Stake prediction)`,
                     metadata: { betType, target, multiplier: quote.effectiveMultiplier }
                 });
             } catch (e) {

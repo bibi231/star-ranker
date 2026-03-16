@@ -28,6 +28,7 @@ import notificationRouter from "./routes/notifications";
 import votePacksRouter from "./routes/votePacks";
 import sponsorshipsRouter from "./routes/sponsorships";
 import activityRouter from "./routes/activity";
+import marketIntelligenceRouter from "./routes/marketIntelligence";
 
 import { startRankingEngine } from "./engine/rankingEngine";
 import { startEpochScheduler } from "./engine/epochScheduler";
@@ -88,6 +89,7 @@ app.use("/api/notifications", notificationRouter);
 app.use("/api/vote-packs", votePacksRouter);
 app.use("/api/sponsorships", sponsorshipsRouter);
 app.use("/api/activity", activityRouter);
+app.use("/api/markets", marketIntelligenceRouter);
 app.use("/api/user", usersRouter);
 app.use("/api/currency", currencyRouter);
 

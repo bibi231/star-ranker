@@ -25,7 +25,7 @@ import { cn } from '../lib/utils';
 import { ReferralPanel } from '../components/ReferralPanel';
 
 export function UserDashboard() {
-    const { user, balance, reputation, stakes, reputationHistory, fetchReputationHistory, tier, setDepositOpen, formatValue } = useStore();
+    const { user, balance, reputation, stakes, reputationHistory, fetchReputationHistory, tier, setDepositOpen, formatValue, bindWallet } = useStore();
     const [isResending, setIsResending] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const isMobile = useIsMobile();
@@ -80,7 +80,7 @@ export function UserDashboard() {
                 </div>
             </div>
 
-            {user?.balance === 0 && (
+            {(!user || user?.balance === 0) && (
                 <div className="bg-[#C9A84C]/10 border border-[#C9A84C]/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
                     <div>
                         <p className="text-[#C9A84C] font-bold text-lg">Welcome to Star Ranker! 🌟</p>

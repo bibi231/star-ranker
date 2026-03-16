@@ -12,13 +12,14 @@ import { useState } from 'react';
  */
 export function EmailVerificationGuard({ children }) {
     const { user, emailVerified, sendVerificationEmail, refreshUser } = useStore();
+    const [isChecking, setIsChecking] = useState(false);
     const [isResending, setIsResending] = useState(false);
     const [resent, setResent] = useState(false);
-    const [isChecking, setIsChecking] = useState(false);
+    const [bypassed, setBypassed] = useState(false);
 
     // If no user, the parent router should handle redirect to sign-in.
-    // If user is verified, proceed to content.
-    if (!user || emailVerified) {
+    // If user is verified or bypassed, proceed to content.
+    if (!user || emailVerified || bypassed) {
         return children;
     }
 
@@ -39,6 +40,16 @@ export function EmailVerificationGuard({ children }) {
         setIsChecking(true);
         try {
             await refreshUser();
+            // Re-check state after sync
+            const state = useStore.getState();
+            if (state.emailVerified) {
+                toast.success("Identity verified! Welcome back.");
+            } else {
+                toast.error("Verification not detected. Please check your inbox.");
+            }
+        } catch (err) {
+            console.error('Failed to check verification:', err);
+            toast.error("Network synchronization failed. Retry in 5s.");
         } finally {
             setIsChecking(false);
         }
@@ -48,7 +59,7 @@ export function EmailVerificationGuard({ children }) {
         <div className="min-h-[80vh] flex items-center justify-center p-6 bg-[#020617]">
             <div className="w-full max-w-lg p-12 rounded-[3rem] bg-slate-900 border border-slate-800 shadow-3xl relative overflow-hidden text-center">
                 {/* Visual Flair */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-[80px]" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-accent/5 rounded-full blur-[80px]" />
 
                 <div className="relative z-10 space-y-8">
                     <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/20 rounded-[2rem] flex items-center justify-center text-amber-500 mx-auto shadow-2xl shadow-amber-500/10">
@@ -83,18 +94,29 @@ export function EmailVerificationGuard({ children }) {
                             {isChecking ? <Loader2 size={18} className="animate-spin" /> : <><RefreshCw size={16} /> I have verified my link</>}
                         </button>
 
-                        <button
-                            onClick={handleResend}
-                            disabled={isResending || resent}
-                            className={cn(
-                                "w-full py-4 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
-                                resent
-                                    ? "border-emerald-500/30 text-emerald-500 bg-emerald-500/5"
-                                    : "border-slate-800 text-slate-500 hover:text-white hover:border-slate-700 hover:bg-slate-800/50"
-                            )}
-                        >
-                            {isResending ? <Loader2 size={16} className="animate-spin" /> : resent ? "Link Resent to Registry" : "Transmit New Verification Link"}
-                        </button>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                onClick={handleResend}
+                                disabled={isResending || resent}
+                                className={cn(
+                                    "w-full py-3 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
+                                    resent
+                                        ? "border-emerald-500/30 text-emerald-500 bg-emerald-500/5"
+                                        : "border-slate-800 text-slate-500 hover:text-white hover:border-slate-700 hover:bg-slate-800/50"
+                                )}
+                            >
+                                {isResending ? <Loader2 size={14} className="animate-spin" /> : resent ? "Link Resent" : "Resend Link"}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setBypassed(true);
+                                    toast.success("Beta mode: Accessing without verification.");
+                                }}
+                                className="w-full py-3 rounded-xl border border-slate-800 text-slate-500 text-[9px] font-black uppercase tracking-widest hover:text-white hover:bg-white/5 transition-all"
+                            >
+                                Proceed without Verif
+                            </button>
+                        </div>
                     </div>
 
                     <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest pt-4 italic">

@@ -116,11 +116,12 @@ export default function AdminOpsPage() {
                     onClick={() => handleAction('emergencyKillswitch', {}, adminState.killswitch ? 'Resume Platform' : 'Pause Platform')}
                     className={cn(
                         "w-full md:w-auto px-8 py-4 font-black uppercase text-sm rounded-xl transform transition-transform md:group-hover:scale-105 active:scale-95 shadow-lg flex-shrink-0 text-center",
-                        adminState.killswitch ? "bg-white text-rose-600 shadow-white/20" : "bg-rose-600 text-white shadow-rose-600/40"
+                        adminState.killswitch ? "bg-white text-rose-600 shadow-white/20" : "bg-rose-600 text-white shadow-rose-600/40",
+                        !user?.isAdmin && "opacity-50 cursor-not-allowed grayscale pointer-events-none"
                     )}
-                    disabled={loading}
+                    disabled={loading || !user?.isAdmin}
                 >
-                    {adminState.killswitch ? "DEACTIVATE LOCKDOWN" : "ACTIVATE KILLSWITCH"}
+                    {!user?.isAdmin ? "SUPERADMIN ONLY" : (adminState.killswitch ? "DEACTIVATE LOCKDOWN" : "ACTIVATE KILLSWITCH")}
                 </button>
             </div>
 
@@ -204,7 +205,7 @@ export default function AdminOpsPage() {
                                         desc="Halt global epoch progression and snapshots."
                                         onAction={() => handleAction('toggleEpochProgression', { isPaused: true }, 'Pause Epochs')}
                                         color="rose"
-                                        disabled={adminState.epochsPaused}
+                                        disabled={adminState.epochsPaused || !user?.isAdmin}
                                     />
                                     <ControlCard
                                         icon={<Play />}
@@ -212,14 +213,15 @@ export default function AdminOpsPage() {
                                         desc="Resume standard 30-minute epoch cycles."
                                         onAction={() => handleAction('toggleEpochProgression', { isPaused: false }, 'Resume Epochs')}
                                         color="blue"
-                                        disabled={!adminState.epochsPaused}
+                                        disabled={!adminState.epochsPaused || !user?.isAdmin}
                                     />
                                     <ControlCard
                                         icon={<RefreshCw />}
                                         title="Force Rollover"
-                                        desc="Trigger an immediate epoch close and snapshot."
+                                        desc={user?.isAdmin ? "Trigger an immediate epoch close and snapshot." : "SUPERADMIN ONLY"}
                                         onAction={() => handleAction('forceEpochRollover', {}, 'Force Rollover')}
                                         color="orange"
+                                        disabled={!user?.isAdmin}
                                     />
                                 </div>
                             </div>
@@ -239,8 +241,15 @@ export default function AdminOpsPage() {
                                     <button className="px-6 py-3 bg-slate-800 text-slate-400 font-bold uppercase text-xs rounded-xl hover:bg-rose-600 hover:text-white transition-all">
                                         Shadow Ban
                                     </button>
-                                    <button className="px-6 py-3 bg-rose-900/30 text-rose-500 font-bold uppercase text-xs rounded-xl hover:bg-rose-600 hover:text-white transition-all">
-                                        Wipe Account
+                                    <button
+                                        disabled={!user?.isAdmin}
+                                        onClick={() => user?.isAdmin && handleAction('wipeAccount', {}, 'Wipe Account')}
+                                        className={cn(
+                                            "px-6 py-3 font-bold uppercase text-xs rounded-xl transition-all",
+                                            user?.isAdmin ? "bg-rose-900/30 text-rose-500 hover:bg-rose-600 hover:text-white" : "bg-slate-800 text-slate-600 cursor-not-allowed grayscale"
+                                        )}
+                                    >
+                                        {user?.isAdmin ? "Wipe Account" : "ADMIN ONLY"}
                                     </button>
                                 </div>
                             </div>

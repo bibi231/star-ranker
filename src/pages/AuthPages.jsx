@@ -281,10 +281,11 @@ export function SignUpPage() {
             const { apiPost } = await import('../lib/api.js');
             await apiPost('/api/auth/redeem-invite', { code: inviteCode });
 
-            setRegistrationComplete(true);
+            toast.success("Identity established! Welcome to the network.");
+            navigate('/markets');
         } catch (err) {
             const errorMap = {
-                'auth/email-already-in-use': 'This email is already registered.',
+                'auth/email-already-in-use': 'This email is already registered. Try signing in.',
                 'auth/invalid-email': 'Please enter a valid email address.',
                 'auth/weak-password': 'Passphrase is too weak. Use at least 6 characters.'
             };
@@ -294,22 +295,10 @@ export function SignUpPage() {
         }
     };
 
-    if (registrationComplete) {
-        return (
-            <AuthShell
-                title="Verify Your Identity"
-                subtitle="Complete Archive Initialization"
-                icon={<Mail size={24} />}
-            >
-                <EmailVerificationPrompt onContinue={() => navigate('/dashboard')} />
-            </AuthShell>
-        );
-    }
-
     return (
         <AuthShell
             title="Establish Identity"
-            subtitle="Join the Global Ranking Network"
+            subtitle="Universal Email Access — No Gmail required"
             icon={<UserPlus size={24} />}
         >
             <form onSubmit={handleRegister} className="space-y-4">
