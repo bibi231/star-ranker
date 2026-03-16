@@ -175,7 +175,7 @@ export function UserDashboard() {
                     <SectionBox title="Influence Archive" icon={<History size={16} />}>
                         <div className="space-y-8">
                             {user?.recentActivity?.length > 0 ? (
-                                (user.recentActivity || []).map((act, i) => (
+                                (user?.recentActivity || []).map((act, i) => (
                                     <div key={act.id || i} className="flex gap-4 items-start group">
                                         <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-800 group-hover:bg-brand-accent transition-all shrink-0 shadow-[0_0_8px_rgba(56,189,248,0.3)]" />
                                         <div className="space-y-1.5">

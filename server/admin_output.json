@@ -1,0 +1,13 @@
+{
+  "rate": 1385.0415512465374,
+  "balanceUsd": 72.2,
+  "admins": [
+    {
+      "email": "peterjohn2343@gmail.com",
+      "name": null,
+      "balance": 72.2,
+      "tier": "Oracle",
+      "is_admin": true
+    }
+  ]
+}

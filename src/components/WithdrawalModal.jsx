@@ -96,7 +96,8 @@ export function WithdrawalModal({ isOpen, onClose }) {
     };
 
     const numAmount = parseFloat(amount) || 0;
-    const isAmountValid = numAmount >= 100 && numAmount <= balance;
+    const balanceLocal = balance * (useStore.getState().rates[useStore.getState().currency] || 1);
+    const isAmountValid = numAmount >= 100 && numAmount <= balanceLocal;
 
     if (!isOpen) return null;
 
@@ -181,7 +182,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                 {numAmount > 0 && numAmount < 100 && (
                                     <p className="text-rose-400 text-[10px] mt-1">Minimum withdrawal is ₦100</p>
                                 )}
-                                {numAmount > balance && (
+                                {numAmount > balanceLocal && (
                                     <p className="text-rose-400 text-[10px] mt-1">Exceeds available balance</p>
                                 )}
                             </div>
@@ -190,7 +191,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                 {[1000, 5000, 10000, 50000].map(v => (
                                     <button
                                         key={v}
-                                        onClick={() => setAmount(String(Math.min(v, balance)))}
+                                        onClick={() => setAmount(String(Math.min(v, balanceLocal)))}
                                         className="flex-1 py-2 rounded-lg bg-white/5 text-[9px] font-black text-slate-400 hover:bg-[#C9A84C]/10 hover:text-[#C9A84C] transition-all"
                                     >
                                         ₦{v >= 1000 ? `${v / 1000}K` : v}

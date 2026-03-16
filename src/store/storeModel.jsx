@@ -82,6 +82,8 @@ export const useStore = create((set, get) => ({
     },
     isDepositOpen: false,
     setDepositOpen: (val) => set({ isDepositOpen: val }),
+    isVotePackModalOpen: false,
+    setVotePackModalOpen: (val) => set({ isVotePackModalOpen: val }),
     isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
 
     fetchCategories: async () => {

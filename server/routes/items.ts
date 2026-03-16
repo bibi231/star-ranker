@@ -77,23 +77,24 @@ router.get("/movers", async (req, res) => {
                     .where(and(eq(items.categorySlug, categoryId), sql`${epochSnapshots.rankChange} < 0`))
                     .orderBy(sql`${epochSnapshots.rankChange} ASC`)
                     .limit(10);
+                return res.json(result);
             } else if (type === 'losers') {
                 // Losers: rankChange > 0 (rank num rose = moved down)
                 result = await query
                     .where(and(eq(items.categorySlug, categoryId), sql`${epochSnapshots.rankChange} > 0`))
                     .orderBy(sql`${epochSnapshots.rankChange} DESC`)
                     .limit(10);
+                return res.json(result);
             } else if (type === 'sleepers') {
                 // Sleepers: ABS(rankChange) <= 1
                 result = await query
                     .where(and(eq(items.categorySlug, categoryId), sql`ABS(${epochSnapshots.rankChange}) <= 1`))
                     .orderBy(sql`${items.momentum} ASC`)
                     .limit(10);
+                return res.json(result);
             } else {
                 return res.status(400).json({ error: "Invalid type" });
             }
-
-            return res.json(result);
         }
 
         // Fallback if no snapshots exist yet

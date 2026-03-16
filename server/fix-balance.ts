@@ -1,3 +1,6 @@
+import { config } from "dotenv";
+config({ path: ".env.vercel.prod" });
+
 import { db } from "./db/index";
 import { users } from "./db/schema";
 import { eq } from "drizzle-orm";
