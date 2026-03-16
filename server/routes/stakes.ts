@@ -211,6 +211,10 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
             return res.status(400).json({ error: "Insufficient funds" });
         }
 
+        if ((Number(user.balance) - amount) < 1.0) {
+            return res.status(400).json({ error: "Must maintain a minimum balance of $1.00 USD" });
+        }
+
         // Fetch item
         const itemResult = await db.select().from(items).where(eq(items.docId, itemDocId)).limit(1);
         if (itemResult.length === 0) return res.status(404).json({ error: "Item not found" });

@@ -75,11 +75,11 @@ export function MarketPage() {
                 <div className="flex flex-col md:flex-row justify-between items-start gap-6 mt-4">
                     <div className="space-y-2 flex-grow">
                         <div className="flex flex-wrap items-center gap-3">
-                            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter">{activeCategory?.title}</h1>
+                            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter">{activeCategory?.title || 'Loading...'}</h1>
                             <div className="px-3 py-1 rounded bg-slate-900 border border-brand-accent/20 text-[10px] font-black text-brand-accent tracking-widest shrink-0">Live Oracle Feed</div>
                         </div>
                         <p className="text-xs text-slate-500 font-bold max-w-xl leading-relaxed">
-                            {activeCategory?.description} Rankings are reified every 30 minutes via the Star Oracle protocol.
+                            {activeCategory?.description || 'Synchronizing with Oracle...'} Rankings are reified every 30 minutes via the Star Oracle protocol.
                         </p>
                     </div>
 

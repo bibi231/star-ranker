@@ -23,6 +23,7 @@ export function MarketDetailPage() {
 
     // In a real app, fetch market metadata by ID. Here we find it in current items or default.
     const market = items.find(i => i.id === id) || { name: "Analyzing Market...", score: 0, totalVotes: 0 };
+    const safeTotalVotes = market?.totalVotes || 0;
 
     const tabs = [
         { id: 'ranking', label: 'Ranking Table', icon: <BarChart2 size={14} /> },
@@ -45,7 +46,7 @@ export function MarketDetailPage() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                     <div className="space-y-2">
                         <div className="flex items-center gap-3">
-                            <h1 className="text-4xl font-black text-white tracking-tighter uppercase">{market.name}</h1>
+                            <h1 className="text-4xl font-black text-white tracking-tighter uppercase">{market?.name || 'Loading...'}</h1>
                             <div className="px-2 py-0.5 rounded bg-brand-accent/10 border border-brand-accent/20 text-[10px] font-black text-brand-accent uppercase">Verified Market</div>
                         </div>
                         <p className="text-xs text-slate-500 font-bold max-w-2xl leading-relaxed">
@@ -55,7 +56,7 @@ export function MarketDetailPage() {
                     </div>
 
                     <div className="flex gap-4">
-                        <StatBox label="Total Volume" value={`${market.totalVotes.toLocaleString()} STARS`} />
+                        <StatBox label="Total Volume" value={`${safeTotalVotes.toLocaleString()} STARS`} />
                         <StatBox label="Open Interest" value={formatValue(12400)} color="text-brand-accent" />
                         <StatBox label="Settlement" value="T-42m" />
                     </div>

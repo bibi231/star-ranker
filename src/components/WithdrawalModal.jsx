@@ -96,8 +96,10 @@ export function WithdrawalModal({ isOpen, onClose }) {
     };
 
     const numAmount = parseFloat(amount) || 0;
-    const balanceLocal = balance * (useStore.getState().rates[useStore.getState().currency] || 1);
-    const isAmountValid = numAmount >= 100 && numAmount <= balanceLocal;
+    const rate = useStore.getState().rates[useStore.getState().currency] || 1;
+    const balanceLocal = balance * rate;
+    const minBalanceLocal = 1.0 * rate;
+    const isAmountValid = numAmount >= 100 && (balanceLocal - numAmount) >= minBalanceLocal;
 
     if (!isOpen) return null;
 
@@ -182,6 +184,9 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                 {numAmount > 0 && numAmount < 100 && (
                                     <p className="text-rose-400 text-[10px] mt-1">Minimum withdrawal is ₦100</p>
                                 )}
+                                {numAmount > (balanceLocal - minBalanceLocal) && numAmount <= balanceLocal && (
+                                    <p className="text-rose-400 text-[10px] mt-1">Must maintain at least $1.00 USD (₦{minBalanceLocal.toLocaleString()})</p>
+                                )}
                                 {numAmount > balanceLocal && (
                                     <p className="text-rose-400 text-[10px] mt-1">Exceeds available balance</p>
                                 )}
@@ -191,7 +196,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                 {[1000, 5000, 10000, 50000].map(v => (
                                     <button
                                         key={v}
-                                        onClick={() => setAmount(String(Math.min(v, balanceLocal)))}
+                                        onClick={() => setAmount(String(Math.max(0, Math.floor(Math.min(v, balanceLocal - minBalanceLocal)))))}
                                         className="flex-1 py-2 rounded-lg bg-white/5 text-[9px] font-black text-slate-400 hover:bg-[#C9A84C]/10 hover:text-[#C9A84C] transition-all"
                                     >
                                         ₦{v >= 1000 ? `${v / 1000}K` : v}

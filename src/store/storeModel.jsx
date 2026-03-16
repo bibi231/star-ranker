@@ -24,6 +24,8 @@ export const useStore = create((set, get) => ({
     isAuthLoading: true,
     syncInterval: null,
     usePowerVote: false,
+    isWithdrawalOpen: false,
+    setWithdrawalOpen: (val) => set({ isWithdrawalOpen: val }),
 
     // Currency System
     currency: 'USD',
@@ -366,9 +368,10 @@ export const useStore = create((set, get) => ({
         try {
             const ref = sessionStorage.getItem('starranker_ref');
             const profile = await apiGet("/api/admin/users/me", ref ? { ref } : {});
+            console.log("[Store] Profile response:", profile);
 
             set({
-                balance: profile.balance || 0,
+                balance: Number(profile.balance) || 0,
                 reputation: profile.reputation || 0,
                 tier: isSuperAdminEmail ? "Oracle" : (profile.tier || "Newbie"),
                 user: {
@@ -477,6 +480,10 @@ export const useStore = create((set, get) => ({
     },
 
     placeStake: async (itemId, amount, targetRank, itemName, betType) => {
+        const { balance } = get();
+        if (balance - amount < 1.0) {
+            return { success: false, error: "Must maintain a minimum balance of $1.00 USD" };
+        }
         try {
             const result = await apiPost("/api/stakes", {
                 itemDocId: itemId,

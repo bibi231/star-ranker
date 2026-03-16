@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useStore } from '../store/storeModel';
 import { apiGet, apiPost } from '../lib/api';
+import { cn } from '../lib/utils';
 
 export function VotePackModal({ isOpen, onClose }) {
     const { balance, formatValue, refreshUser } = useStore();
@@ -43,7 +44,7 @@ export function VotePackModal({ isOpen, onClose }) {
         setIsPurchasing(true);
         try {
             const res = await apiPost('/api/vote-packs/purchase', { packId: pack.id });
-            await refreshUser(); // Update balance and powerVotes
+            await fetchUserProfile(); // Update balance and powerVotes
             setSuccessMessage(`Successfully purchased ${pack.name} Pack!`);
             setTimeout(() => {
                 setSuccessMessage('');

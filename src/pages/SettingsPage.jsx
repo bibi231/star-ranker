@@ -142,6 +142,12 @@ function AccountSettings({ user, tier, bio: initialBio, onUpdate }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InputGroup label="Oracle Handle" value={user?.username} disabled />
                 <InputGroup label="Registry Email" value={user?.email} disabled />
+                {(user?.isAdmin || user?.tier === 'Oracle') && (
+                    <div className="md:col-span-2">
+                        <InputGroup label="Active Session UID (Debug)" value={user?.firebaseUid || user?.uid} disabled />
+                        <p className="text-[8px] text-slate-600 font-bold mt-1 uppercase">Technical identifier for balance synchronization verification.</p>
+                    </div>
+                )}
                 <div className="md:col-span-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Registry Bio</label>
                     <textarea
