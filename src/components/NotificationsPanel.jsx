@@ -23,7 +23,9 @@ export function NotificationsPanel({ isOpen, onClose }) {
         }
         onClose();
         if (notif.type === 'win' || notif.type === 'loss') {
-            navigate('/dashboard');
+            navigate('/portfolio');
+        } else if (notif.type === 'referral') {
+            navigate('/portfolio');
         } else if (notif.type === 'epoch') {
             navigate('/history');
         }

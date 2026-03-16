@@ -5,7 +5,7 @@ const tabs = [
     { label: 'Markets', icon: BarChart2, path: '/markets' },
     { label: 'Activity', icon: Activity, path: '/activity' },
     { label: 'Rankings', icon: Award, path: '/leaderboards' },
-    { label: 'Profile', icon: User, path: '/dashboard' },
+    { label: 'Portfolio', icon: User, path: '/portfolio' },
 ];
 
 export default function BottomNav() {
