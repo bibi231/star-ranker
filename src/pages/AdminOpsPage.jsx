@@ -18,7 +18,8 @@ import {
     RefreshCw,
     BarChart as ChartIcon,
     DollarSign,
-    Users
+    Users,
+    Activity
 } from 'lucide-react';
 import { useStore } from '../store/storeModel';
 import { cn } from '../lib/utils';
@@ -260,16 +261,21 @@ export default function AdminOpsPage() {
                             <SectionHeader icon={<Terminal size={18} />} title="Audit Stream" />
                             <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden flex flex-col h-[600px]">
                                 <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-                                    {[1, 2, 3, 4, 5].map(i => (
+                                    {auditLogs.length > 0 ? auditLogs.map((log, i) => (
                                         <div key={i} className="space-y-1 border-l-2 border-rose-500/30 pl-3 py-1">
                                             <div className="flex justify-between text-[10px] font-black italic">
-                                                <span className="text-rose-500">ADMIN_ACTION_LOCK_ITEM</span>
-                                                <span className="text-slate-600">14:23:45</span>
+                                                <span className="text-rose-500">{log.action}</span>
+                                                <span className="text-slate-600">{log.time}</span>
                                             </div>
-                                            <p className="text-[11px] text-slate-400 font-bold break-all">target: phone_iphone_16_pro</p>
-                                            <p className="text-[9px] text-slate-600 uppercase">By: admin@star-ranker.com</p>
+                                            <p className="text-[11px] text-slate-400 font-bold break-all">{log.details}</p>
+                                            <p className="text-[9px] text-slate-600 uppercase">By: {log.user}</p>
                                         </div>
-                                    ))}
+                                    )) : (
+                                        <div className="flex flex-col items-center justify-center h-full gap-3 text-center py-12">
+                                            <Activity size={24} className="text-slate-700" />
+                                            <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest">No actions logged this session</p>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="p-4 bg-slate-900/50 border-t border-slate-800">
                                     <button className="w-full py-2 text-[10px] font-black text-slate-500 uppercase hover:text-rose-500 transition-all">

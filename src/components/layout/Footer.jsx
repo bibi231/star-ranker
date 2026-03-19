@@ -13,7 +13,7 @@ export function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                     {/* Brand Section */}
                     <div className="md:col-span-1 space-y-6">
-                        <img src="/assets/logo.png" alt="Star Ranker" className="h-12 w-auto drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
+                        <img src="/assets/logo.png" alt="Star Ranker" className="h-20 w-auto drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
                         <p className="text-slate-500 text-[11px] leading-relaxed font-medium uppercase tracking-wider">
                             The definitive server-authoritative ranking protocol.
                             Built for the next generation of predictive markets.
@@ -42,8 +42,8 @@ export function Footer() {
                         <ul className="space-y-3">
                             <FooterLink label="How it Works" onClick={() => navigate('/how-it-works')} />
                             <FooterLink label="Transparency" onClick={() => navigate('/transparency')} />
-                            <FooterLink label="API Documentation" onClick={() => { }} />
-                            <FooterLink label="Beta FAQ" onClick={() => { }} />
+                            <FooterLink label="API Documentation" onClick={() => navigate('/api-docs')} />
+                            <FooterLink label="Beta FAQ" onClick={() => navigate('/faq')} />
                         </ul>
                     </div>
 
@@ -54,7 +54,7 @@ export function Footer() {
                             <FooterLink label="Terms of Service" onClick={() => navigate('/legal/terms')} />
                             <FooterLink label="Privacy Policy" onClick={() => navigate('/legal/privacy')} />
                             <FooterLink label="Responsible Play" onClick={() => navigate('/legal/responsible-play')} />
-                            <FooterLink label="AVD Compliance" onClick={() => { }} />
+                            <FooterLink label="AVD Compliance" onClick={() => navigate('/legal/avd-compliance')} />
                         </ul>
                     </div>
                 </div>

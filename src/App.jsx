@@ -34,6 +34,11 @@ import { LegalModal } from "./components/LegalModal";
 import { TermsPage } from "./pages/legal/TermsPage";
 import { PrivacyPage } from "./pages/legal/PrivacyPage";
 import { ResponsiblePlayPage } from "./pages/legal/ResponsiblePlayPage";
+import { AVDCompliancePage } from "./pages/legal/AVDCompliancePage";
+
+// Resource Pages
+import { APIDocsPage } from "./pages/APIDocsPage";
+import { BetaFAQPage } from "./pages/BetaFAQPage";
 
 function App() {
   const {
@@ -99,6 +104,9 @@ function App() {
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/transparency" element={<TransparencyPage />} />
             <Route path="/history" element={<EpochHistoryPage />} />
+            <Route path="/api-docs" element={<APIDocsPage />} />
+            <Route path="/faq" element={<BetaFAQPage />} />
+            <Route path="/legal/avd-compliance" element={<AVDCompliancePage />} />
 
             <Route path="/signin" element={<SignInPage />} />
             <Route path="/signup" element={<SignUpPage />} />
