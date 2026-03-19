@@ -466,10 +466,8 @@ function AuthShell({ children, title, subtitle, icon }) {
             >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-accent/5 rounded-full blur-[80px]" />
 
-                <div className="text-center mb-10 relative z-10">
-                    <div className="w-14 h-14 bg-brand-accent/10 border border-brand-accent/20 rounded-2xl flex items-center justify-center text-brand-accent mx-auto mb-6 shadow-xl shadow-brand-accent/5">
-                        {icon}
-                    </div>
+                <div className="text-center mb-12 relative z-10">
+                    <img src="/assets/logo-horizontal.png" alt="Star Ranker" className="h-32 w-auto mx-auto mb-12 drop-shadow-[0_0_50px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform duration-500" />
                     <h2 className="text-3xl font-black text-white uppercase tracking-tighter">{title}</h2>
                     <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mt-2">{subtitle}</p>
                 </div>

@@ -12,10 +12,7 @@ export function LandingPage() {
             {/* Nav Overlay (Landing only) */}
             <nav className="h-20 flex items-center justify-between px-8 md:px-12 max-w-[1440px] mx-auto relative z-50">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-brand-accent rounded-xl flex items-center justify-center text-slate-950">
-                        <Zap size={24} fill="currentColor" />
-                    </div>
-                    <span className="font-black text-2xl tracking-tighter">STAR RANKER</span>
+                    <img src="/logo-stacked.png" alt="Star Ranker" className="h-32 w-auto drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]" />
                 </div>
                 <div className="hidden md:flex items-center gap-8 text-[10px] font-black uppercase tracking-widest text-slate-400">
                     <button onClick={() => navigate('/markets')} className="hover:text-white transition-colors">Markets</button>

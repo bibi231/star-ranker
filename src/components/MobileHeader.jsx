@@ -16,22 +16,14 @@ export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, u
             style={{ paddingTop: 'var(--safe-top)' }}
         >
             {/* LEFT: Menu Toggle */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
                 <button
                     onClick={onMenuClick}
                     className="p-2 -ml-2 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-slate-400"
                 >
-                    <Menu size={20} />
+                    <Menu size={24} />
                 </button>
-                <button
-                    onClick={onNotifClick}
-                    className="relative p-2 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-slate-400"
-                >
-                    <Bell size={18} />
-                    {unreadCount > 0 && (
-                        <span className="absolute top-1 right-2 w-2 h-2 bg-brand-accent rounded-full animate-pulse" />
-                    )}
-                </button>
+                <img src="/assets/logo-horizontal.png" alt="Logo" className="h-14 w-auto drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]" />
             </div>
 
             {/* CENTER: Compact Epoch Indicator */}

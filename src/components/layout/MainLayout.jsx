@@ -40,6 +40,7 @@ import { WithdrawalModal } from '../WithdrawalModal';
 import { NotificationsPanel } from '../NotificationsPanel';
 import BottomNav from '../BottomNav';
 import MobileHeader from '../MobileHeader';
+import { Footer } from './Footer';
 
 export function MainLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -103,13 +104,8 @@ export function MainLayout() {
                 isSidebarOpen ? "w-64" : "w-16"
             )}>
                 {/* Brand */}
-                <div className="h-16 flex items-center px-6 shrink-0 cursor-pointer" onClick={() => navigate('/')}>
-                    <div className="w-7 h-7 rounded bg-brand-accent flex items-center justify-center text-[#0D1B2A] font-black text-lg">
-                        ★
-                    </div>
-                    {isSidebarOpen && (
-                        <span className="ml-3 font-black text-white tracking-[0.2em] text-xs uppercase">Star Ranker</span>
-                    )}
+                <div className="h-24 flex items-center px-8 shrink-0 cursor-pointer" onClick={() => navigate('/')}>
+                    <img src={isSidebarOpen ? "/assets/logo-horizontal.png" : "/assets/logo-horizontal.png"} alt="Star Ranker" className={cn("transition-all duration-300 drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]", isSidebarOpen ? "h-22 w-auto" : "h-14 w-auto")} />
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-4">
@@ -215,12 +211,11 @@ export function MainLayout() {
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                             className="fixed top-0 left-0 bottom-0 w-72 z-[130] bg-[#0D1B2A] border-r border-brand-accent/20 flex flex-col md:hidden"
                         >
-                            <div className="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-slate-950/20">
+                            <div className="h-32 flex items-center justify-between px-8 border-b border-white/5 bg-slate-950/20">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-7 h-7 rounded bg-brand-accent flex items-center justify-center text-[#0D1B2A] font-black italic">★</div>
-                                    <span className="font-black text-white tracking-[0.15em] text-xs uppercase">Star Ranker</span>
+                                    <img src="/assets/logo.png" alt="Star Ranker" className="h-16 w-auto drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
                                 </div>
-                                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-500"><X size={20} /></button>
+                                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-500"><X size={24} /></button>
                             </div>
 
                             <div className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
@@ -391,6 +386,7 @@ export function MainLayout() {
 
                 <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-[#020617] relative">
                     <Outlet />
+                    <Footer />
                 </div>
 
                 <BottomNav />
