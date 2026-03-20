@@ -11,10 +11,15 @@ const isProductionHost = typeof window !== 'undefined' &&
         window.location.hostname.includes('starranker.io') ||
         window.location.hostname.includes('web.app'));
 
+// Override via Vite env (Vercel project env) if the API host changes
+const envApi = typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL;
+
 // Absolute priority to Render if on production host
-export const API_URL = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
-    ? "http://localhost:3001"
-    : (isProductionHost ? "https://star-ranker.onrender.com" : "http://localhost:3001");
+export const API_URL = envApi && String(envApi).trim()
+    ? String(envApi).trim().replace(/\/$/, "")
+    : (typeof window !== 'undefined' && window.location.hostname === 'localhost')
+        ? "http://localhost:3001"
+        : (isProductionHost ? "https://star-ranker.onrender.com" : "http://localhost:3001");
 
 async function getAuthHeaders() {
     const user = auth.currentUser;

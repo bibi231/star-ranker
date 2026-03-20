@@ -40,20 +40,39 @@ import { geoMiddleware } from "./middleware/geo";
 const app = express();
 const PORT = parseInt(process.env.PORT || "3001");
 
-// Middleware
+// Middleware — allow localhost, explicit env list, and common production hosts (Vercel / Firebase Hosting)
+const extraOrigins = (process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+
 const allowedOrigins = [
     "http://localhost:5173",
     "https://star-ranker-beryl.vercel.app",
+    "https://star-ranker.vercel.app",
     "https://star-ranker.web.app",
-    process.env.CORS_ORIGIN
+    "https://starranker.io",
+    "https://www.starranker.io",
+    process.env.CORS_ORIGIN,
+    ...extraOrigins,
 ].filter(Boolean);
+
+function isOriginAllowed(origin: string | undefined): boolean {
+    if (!origin) return true;
+    if (allowedOrigins.includes(origin)) return true;
+    if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return true;
+    if (/^https:\/\/[\w-]+\.vercel\.app$/.test(origin)) return true;
+    if (/^https:\/\/[\w-]+\.firebaseapp\.com$/.test(origin)) return true;
+    if (/^https:\/\/([\w-]+\.)*starranker\.io$/.test(origin)) return true;
+    return false;
+}
 
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin || origin.match(/^https?:\/\/localhost/) || allowedOrigins.includes(origin)) {
+        if (isOriginAllowed(origin)) {
             callback(null, true);
         } else {
-            callback(new Error('Not allowed by CORS'));
+            callback(new Error("Not allowed by CORS"));
         }
     },
     credentials: true,

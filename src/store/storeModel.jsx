@@ -427,6 +427,15 @@ export const useStore = create((set, get) => ({
                         isModerator: true
                     }
                 });
+            } else if (auth.currentUser) {
+                // Keep session visible if API/token verification fails (e.g. server env misconfigured)
+                const prev = get().user;
+                set({
+                    user: {
+                        ...auth.currentUser,
+                        ...(prev && prev.uid === auth.currentUser.uid ? prev : {}),
+                    },
+                });
             }
         }
     },
@@ -619,11 +628,14 @@ export const useStore = create((set, get) => ({
     loginWithEmail: async (email, password) => {
         set({ isAuthLoading: true });
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const cred = await signInWithEmailAndPassword(auth, email, password);
+            await cred.user.getIdToken(true);
+            await get().fetchUserProfile();
         } catch (error) {
             set({ isAuthLoading: false });
             throw error;
         }
+        set({ isAuthLoading: false });
     },
 
     registerWithEmail: async (email, password, username) => {
@@ -631,12 +643,19 @@ export const useStore = create((set, get) => ({
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            await updateProfile(user, { displayName: username });
-            await sendEmailVerification(user);
+            await updateProfile(user, { displayName: username.trim() });
+            try {
+                await sendEmailVerification(user);
+            } catch (verifyErr) {
+                console.warn("[auth] sendEmailVerification failed (signup still succeeds):", verifyErr);
+            }
+            await user.getIdToken(true);
+            await get().fetchUserProfile();
         } catch (error) {
             set({ isAuthLoading: false });
             throw error;
         }
+        set({ isAuthLoading: false });
     },
 
     resetPassword: async (email) => {

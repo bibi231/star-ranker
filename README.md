@@ -24,6 +24,13 @@ npm run dev
 # Then:  http://localhost:3001/api/seed-items/crypto (repeat per category)
 ```
 
+### Production auth (Vercel + Render)
+
+1. **Vercel (frontend)** — set all `VITE_FIREBASE_*` variables from Firebase Console. Add your Vercel domain under **Authentication → Settings → Authorized domains** (e.g. `star-ranker.vercel.app`).
+2. **Render (API)** — set `FIREBASE_SERVICE_ACCOUNT_JSON` to the **full JSON** of a Firebase service account (Project settings → Service accounts). Without this, `verifyIdToken` fails and logged-in users get **401** on `/api/admin/users/me`, voting, etc.
+3. **CORS** — any `https://*.vercel.app` origin is allowed by default; override with `CORS_ORIGIN` or comma-separated `CORS_ORIGINS` if needed.
+4. Optional: `VITE_API_URL` on Vercel if the API base URL is not `https://star-ranker.onrender.com`.
+
 ---
 
 ## 📚 Architecture
