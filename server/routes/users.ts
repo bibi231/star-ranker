@@ -43,29 +43,69 @@ router.patch("/profile", requireAuth, async (req: AuthRequest, res: Response) =>
     try {
         const { oracleHandle, displayName } = req.body;
         const updates: any = {};
+        const now = new Date();
+
+        const currentUser = await db.select({
+            firebaseUid: users.firebaseUid,
+            oracleHandle: users.oracleHandle,
+            oracleHandleChangeCount: users.oracleHandleChangeCount,
+            oracleHandleChangeWindowStart: users.oracleHandleChangeWindowStart,
+        })
+            .from(users)
+            .where(eq(users.firebaseUid, req.uid!))
+            .limit(1);
+
+        if (!currentUser.length) {
+            return res.status(404).json({ error: "User not found" });
+        }
 
         if (displayName !== undefined) {
             updates.displayName = displayName;
         }
 
         if (oracleHandle !== undefined) {
+            const normalizedHandle = String(oracleHandle).trim();
             // Validation: 3-20 chars, letters/numbers/underscores only
             const handleRegex = /^[a-zA-Z0-9_]{3,20}$/;
-            if (!handleRegex.test(oracleHandle)) {
+            if (!handleRegex.test(normalizedHandle)) {
                 return res.status(400).json({ error: "Invalid Oracle Handle format" });
             }
 
             // Check if handle is taken by someone else
             const existing = await db.select()
                 .from(users)
-                .where(eq(users.oracleHandle, oracleHandle))
+                .where(eq(users.oracleHandle, normalizedHandle))
                 .limit(1);
 
             if (existing.length && existing[0].firebaseUid !== req.uid) {
                 return res.status(409).json({ error: "Oracle Handle already taken" });
             }
 
-            updates.oracleHandle = oracleHandle;
+            const previousHandle = currentUser[0].oracleHandle || null;
+            const isChangingHandle = normalizedHandle !== previousHandle;
+
+            if (isChangingHandle) {
+                let windowStart = currentUser[0].oracleHandleChangeWindowStart
+                    ? new Date(currentUser[0].oracleHandleChangeWindowStart)
+                    : null;
+                let changeCount = currentUser[0].oracleHandleChangeCount || 0;
+                const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+                if (!windowStart || (now.getTime() - windowStart.getTime()) >= THIRTY_DAYS_MS) {
+                    windowStart = now;
+                    changeCount = 0;
+                }
+
+                if (changeCount >= 2) {
+                    return res.status(429).json({
+                        error: "Oracle name change limit reached. You can only change it twice every 30 days."
+                    });
+                }
+
+                updates.oracleHandle = normalizedHandle;
+                updates.oracleHandleChangeCount = changeCount + 1;
+                updates.oracleHandleChangeWindowStart = windowStart;
+            }
         }
 
         if (Object.keys(updates).length === 0) {

@@ -1,5 +1,5 @@
 /**
- * Sync Users table schema by adding missing columns: oracle_handle, pro_until, referral_earnings
+ * Sync Users table schema by adding missing columns for user profile state
  * Run: npx tsx server/scripts/sync-schema.ts
  */
 import "dotenv/config";
@@ -21,6 +21,13 @@ async function main() {
         // Add referral_earnings
         await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_earnings REAL DEFAULT 0`);
         console.log("✅ referral_earnings synced");
+
+        // Add oracle handle change-limit tracking
+        await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS oracle_handle_change_count INTEGER DEFAULT 0`);
+        console.log("✅ oracle_handle_change_count synced");
+
+        await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS oracle_handle_change_window_start TIMESTAMP`);
+        console.log("✅ oracle_handle_change_window_start synced");
 
         console.log("🚀 Schema sync complete!");
     } catch (err) {

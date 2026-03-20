@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
-import { API_URL } from '../lib/api';
 
 export function SignInPage() {
     const { login, loginWithEmail, user } = useStore();
@@ -219,14 +218,11 @@ export function SignUpPage() {
     const { registerWithEmail, user } = useStore();
     const navigate = useNavigate();
 
-    const [inviteCode, setInviteCode] = useState('');
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [registrationComplete, setRegistrationComplete] = useState(false);
 
     React.useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -241,10 +237,6 @@ export function SignUpPage() {
         setError('');
 
         // Client-side validation
-        if (!inviteCode.trim()) {
-            setError('Beta invite code is required.');
-            return;
-        }
         if (password.length < 6) {
             setError('Passphrase must be at least 6 characters.');
             return;
@@ -253,33 +245,10 @@ export function SignUpPage() {
             setError('Oracle handle is required.');
             return;
         }
-        if (!phoneNumber.trim()) {
-            setError('Secure phone link is required.');
-            return;
-        }
 
         setIsLoading(true);
         try {
-            // 1. Validate Invite Code
-            const validateRes = await fetch(`${API_URL}/api/auth/validate-invite`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: inviteCode })
-            });
-            const validateData = await validateRes.json();
-
-            if (!validateRes.ok || !validateData.valid) {
-                setError(validateData.message || 'Invalid or used invite code.');
-                setIsLoading(false);
-                return;
-            }
-
-            // 2. Register with Firebase
-            await registerWithEmail(email, password, username, phoneNumber);
-
-            // 3. Redeem Invite Code
-            const { apiPost } = await import('../lib/api.js');
-            await apiPost('/api/auth/redeem-invite', { code: inviteCode });
+            await registerWithEmail(email, password, username);
 
             toast.success("Identity established! Welcome to the network.");
             navigate('/markets');
@@ -304,13 +273,6 @@ export function SignUpPage() {
             <form onSubmit={handleRegister} className="space-y-4">
                 <InputGroup
                     type="text"
-                    placeholder="BETA_INVITE_CODE"
-                    value={inviteCode}
-                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                    icon={<KeyRound size={16} />}
-                />
-                <InputGroup
-                    type="text"
                     placeholder="ORACLE_HANDLE"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
@@ -322,13 +284,6 @@ export function SignUpPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     icon={<Mail size={16} />}
-                />
-                <InputGroup
-                    type="tel"
-                    placeholder="SECURE_PHONE (+1...)"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    icon={<Phone size={16} />}
                 />
                 <InputGroup
                     type="password"

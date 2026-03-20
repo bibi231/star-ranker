@@ -3,6 +3,7 @@ import { useStore } from '../../store/storeModel';
 import { Mail, ShieldAlert, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 /**
  * EmailVerificationGuard
@@ -110,7 +111,7 @@ export function EmailVerificationGuard({ children }) {
                             <button
                                 onClick={() => {
                                     setBypassed(true);
-                                    toast.success("Beta mode: Accessing without verification.");
+                                    toast.success("Access granted with limited permissions.");
                                 }}
                                 className="w-full py-3 rounded-xl border border-slate-800 text-slate-500 text-[9px] font-black uppercase tracking-widest hover:text-white hover:bg-white/5 transition-all"
                             >

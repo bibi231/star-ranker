@@ -61,10 +61,14 @@ export const users = pgTable("users", {
 	referredBy: text("referred_by"),
 	referralEarnings: real("referral_earnings").default(0),
 	walletAddress: varchar("wallet_address", { length: 42 }),
+	oracleHandle: varchar("oracle_handle", { length: 30 }),
+	oracleHandleChangeCount: integer("oracle_handle_change_count").default(0),
+	oracleHandleChangeWindowStart: timestamp("oracle_handle_change_window_start", { mode: 'string' }),
 }, (table) => [
 	unique("users_firebase_uid_unique").on(table.firebaseUid),
 	unique("users_referral_code_unique").on(table.referralCode),
 	unique("users_wallet_address_unique").on(table.walletAddress),
+	unique("users_oracle_handle_unique").on(table.oracleHandle),
 ]);
 
 export const votes = pgTable("votes", {
@@ -113,18 +117,6 @@ export const stakes = pgTable("stakes", {
 	platformFee: real("platform_fee").default(0),
 }, (table) => [
 	index("stakes_user_idx").using("btree", table.userId.asc().nullsLast().op("text_ops")),
-]);
-
-export const betaInvites = pgTable("beta_invites", {
-	id: serial().primaryKey().notNull(),
-	code: varchar({ length: 20 }).notNull(),
-	used: boolean().default(false),
-	usedBy: varchar("used_by", { length: 128 }),
-	usedAt: timestamp("used_at", { mode: 'string' }),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-	isReusable: boolean("is_reusable").default(false),
-}, (table) => [
-	unique("beta_invites_code_unique").on(table.code),
 ]);
 
 export const votePacks = pgTable("vote_packs", {

@@ -128,11 +128,6 @@ async function suiteAuth() {
     assert(status === 401, `Expected 401, got ${status}`);
   });
 
-  await test("Invite validation endpoint exists and rejects bad codes", async () => {
-    const { status, body } = await post("/api/auth/validate-invite", { code: "BADCODE1" });
-    assert(status === 400 || status === 404, `Expected 400/404, got ${status}`);
-  });
-
   await test("Admin routes reject non-admin tokens with 401 or 403", async () => {
     if (TEST_TOKEN === "REPLACE_WITH_FIREBASE_ID_TOKEN") {
       throw new Error("TEST_TOKEN not configured — skipping auth tests");

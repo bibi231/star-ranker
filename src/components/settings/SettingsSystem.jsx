@@ -47,6 +47,11 @@ export function SettingsSystem() {
                     setSaving(false);
                     return;
                 }
+                if (handleStatus === 'checking') {
+                    toast.error("Checking Oracle Handle availability. Please wait.");
+                    setSaving(false);
+                    return;
+                }
                 const { apiPatch } = await import('../../lib/api.js');
                 const updated = await apiPatch('/api/user/profile', {
                     oracleHandle: oracleHandle.trim() || undefined,
@@ -63,7 +68,7 @@ export function SettingsSystem() {
             }
         } catch (error) {
             console.error("Save failed:", error);
-            toast.error("Save failed, please try again.");
+            toast.error(error?.message || "Save failed, please try again.");
         } finally {
             setSaving(false);
         }

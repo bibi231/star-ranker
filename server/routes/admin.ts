@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db/index";
-import { categories, items, epochs, marketMeta, users, stakes, betaInvites, marketActivity, transactions, adminConfig } from "../db/schema";
+import { categories, items, epochs, marketMeta, users, stakes, marketActivity, transactions, adminConfig } from "../db/schema";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { eq, sql, count, desc } from "drizzle-orm";
 import { settleBets } from "../engine/settlement";
@@ -104,12 +104,6 @@ router.post("/seed", requireAuth, async (req: AuthRequest, res) => {
             startTime: now,
             endTime: new Date(now.getTime() + epochDuration),
             duration: epochDuration,
-        }).onConflictDoNothing();
-
-        // Seed re-usable beta invite code
-        await db.insert(betaInvites).values({
-            code: "BETA2026",
-            isReusable: true
         }).onConflictDoNothing();
 
         // Upsert market meta

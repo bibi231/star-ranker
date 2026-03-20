@@ -626,7 +626,7 @@ export const useStore = create((set, get) => ({
         }
     },
 
-    registerWithEmail: async (email, password, username, phoneNumber) => {
+    registerWithEmail: async (email, password, username) => {
         set({ isAuthLoading: true });
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);

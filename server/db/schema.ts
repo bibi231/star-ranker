@@ -136,22 +136,13 @@ export const users = pgTable("users", {
     referralCode: text("referral_code").unique(),
     referredBy: text("referred_by"),
     oracleHandle: varchar('oracle_handle', { length: 30 }).unique(),
+    oracleHandleChangeCount: integer("oracle_handle_change_count").default(0),
+    oracleHandleChangeWindowStart: timestamp("oracle_handle_change_window_start"),
     proUntil: timestamp('pro_until'),
     referralEarnings: real("referral_earnings").default(0),
     isAdmin: boolean("is_admin").default(false),
     isModerator: boolean("is_moderator").default(false),
     isBanned: boolean("is_banned").default(false),
-    createdAt: timestamp("created_at").defaultNow(),
-});
-
-// ===== BETA INVITES =====
-export const betaInvites = pgTable("beta_invites", {
-    id: serial("id").primaryKey(),
-    code: varchar("code", { length: 20 }).notNull().unique(),
-    used: boolean("used").default(false),
-    isReusable: boolean("is_reusable").default(false),
-    usedBy: varchar("used_by", { length: 128 }),
-    usedAt: timestamp("used_at"),
     createdAt: timestamp("created_at").defaultNow(),
 });
 

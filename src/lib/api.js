@@ -129,3 +129,13 @@ export async function apiPost(path, body = {}) {
         body: JSON.stringify(body),
     }, 1); // Only 1 retry for mutations
 }
+
+export async function apiPatch(path, body = {}) {
+    const headers = await getAuthHeaders();
+
+    return fetchWithRetry(`${API_URL}${path}`, {
+        method: "PATCH",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+    }, 1); // Only 1 retry for mutations
+}
