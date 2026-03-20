@@ -1,0 +1,112 @@
+diff --git a/node_modules/@wagmi/core/dist/esm/tempo/Connectors.js b/node_modules/@wagmi/core/dist/esm/tempo/Connectors.js
+index 6c0d33a..b06bd7a 100644
+--- a/node_modules/@wagmi/core/dist/esm/tempo/Connectors.js
++++ b/node_modules/@wagmi/core/dist/esm/tempo/Connectors.js
+@@ -47,6 +47,7 @@ export function webAuthn(options) {
+                 account = Account.fromWebAuthnP256(credential, {
+                     rpId: options.getOptions?.rpId ?? options.rpId,
+                 });
++                accessKey = undefined;
+                 const address = getAddress(account.address);
+                 const chainId = parameters.chainId ?? config.chains[0]?.id;
+                 if (!chainId)
+@@ -114,7 +115,7 @@ export function webAuthn(options) {
+                             if (!accessKeyOptions)
+                                 return undefined;
+                             const address = Address.fromPublicKey(PublicKey.fromHex(credential.publicKey));
+-                            return await idb.get(`accessKey:${address}`);
++                            return await idb.get(`accessKey:${address.toLowerCase()}`);
+                         })();
+                         // If the access key provisioning is not in strict mode, return the credential and key pair (if exists).
+                         if (!accessKeyOptions?.strict)
+@@ -214,7 +215,7 @@ export function webAuthn(options) {
+                         keyPair.keyAuthorization.expiry &&
+                         keyPair.keyAuthorization.expiry < Date.now() / 1000) {
+                         // remove any pending key authorizations from storage.
+-                        await config?.storage?.removeItem(`pendingKeyAuthorization:${account.address.toLowerCase()}`);
++                        await config?.storage?.removeItem(`pendingKeyAuthorization:${accessKey.address.toLowerCase()}`);
+                         const message = `Access key expired (on ${new Date(keyPair.keyAuthorization.expiry * 1000).toLocaleString()}).`;
+                         accessKey = undefined;
+                         // if in strict mode, disconnect and throw an error.
+@@ -231,7 +232,7 @@ export function webAuthn(options) {
+                 else {
+                     const keyAuth = keyAuthorization ??
+                         (await account.signKeyAuthorization(accessKey, accessKeyOptions));
+-                    await config?.storage?.setItem(`pendingKeyAuthorization:${account.address.toLowerCase()}`, keyAuth);
++                    await config?.storage?.setItem(`pendingKeyAuthorization:${accessKey.address.toLowerCase()}`, keyAuth);
+                     await idb.set(`accessKey:${account.address.toLowerCase()}`, {
+                         ...keyPair,
+                         keyAuthorization: keyAuth,
+@@ -258,6 +259,7 @@ export function webAuthn(options) {
+             await config.storage?.removeItem('webAuthn.activeCredential');
+             config.emitter.emit('disconnect');
+             account = undefined;
++            accessKey = undefined;
+         },
+         async getAccounts() {
+             if (!account)
+@@ -312,7 +314,7 @@ export function webAuthn(options) {
+                 if (item?.keyAuthorization.expiry &&
+                     item.keyAuthorization.expiry < Date.now() / 1000) {
+                     // remove any pending key authorizations from storage.
+-                    await config?.storage?.removeItem(`pendingKeyAuthorization:${account.address.toLowerCase()}`);
++                    await config?.storage?.removeItem(`pendingKeyAuthorization:${accessKey.address.toLowerCase()}`);
+                     const message = `Access key expired (on ${new Date(item.keyAuthorization.expiry * 1000).toLocaleString()}).`;
+                     // if in strict mode, disconnect and throw an error.
+                     if (accessKeyOptions?.strict) {
+diff --git a/node_modules/@wagmi/core/src/tempo/Connectors.ts b/node_modules/@wagmi/core/src/tempo/Connectors.ts
+index 7e8d5a4..3205b40 100644
+--- a/node_modules/@wagmi/core/src/tempo/Connectors.ts
++++ b/node_modules/@wagmi/core/src/tempo/Connectors.ts
+@@ -131,6 +131,7 @@ export function webAuthn(options: webAuthn.Parameters) {
+         account = Account.fromWebAuthnP256(credential, {
+           rpId: options.getOptions?.rpId ?? options.rpId,
+         })
++        accessKey = undefined
+         const address = getAddress(account.address)
+         const chainId = parameters.chainId ?? config.chains[0]?.id
+         if (!chainId) throw new ChainNotConfiguredError()
+@@ -216,7 +217,7 @@ export function webAuthn(options: webAuthn.Parameters) {
+               const address = Address.fromPublicKey(
+                 PublicKey.fromHex(credential.publicKey),
+               )
+-              return await idb.get(`accessKey:${address}`)
++              return await idb.get(`accessKey:${address.toLowerCase()}`)
+             })()
+ 
+             // If the access key provisioning is not in strict mode, return the credential and key pair (if exists).
+@@ -339,7 +340,7 @@ export function webAuthn(options: webAuthn.Parameters) {
+           ) {
+             // remove any pending key authorizations from storage.
+             await config?.storage?.removeItem(
+-              `pendingKeyAuthorization:${account.address.toLowerCase()}`,
++              `pendingKeyAuthorization:${accessKey.address.toLowerCase()}`,
+             )
+ 
+             const message = `Access key expired (on ${new Date(keyPair.keyAuthorization.expiry * 1000).toLocaleString()}).`
+@@ -362,7 +363,7 @@ export function webAuthn(options: webAuthn.Parameters) {
+             (await account.signKeyAuthorization(accessKey, accessKeyOptions))
+ 
+           await config?.storage?.setItem(
+-            `pendingKeyAuthorization:${account.address.toLowerCase()}`,
++            `pendingKeyAuthorization:${accessKey.address.toLowerCase()}`,
+             keyAuth,
+           )
+           await idb.set(`accessKey:${account.address.toLowerCase()}`, {
+@@ -392,6 +393,7 @@ export function webAuthn(options: webAuthn.Parameters) {
+       await config.storage?.removeItem('webAuthn.activeCredential')
+       config.emitter.emit('disconnect')
+       account = undefined
++      accessKey = undefined
+     },
+     async getAccounts() {
+       if (!account) return []
+@@ -449,7 +451,7 @@ export function webAuthn(options: webAuthn.Parameters) {
+         ) {
+           // remove any pending key authorizations from storage.
+           await config?.storage?.removeItem(
+-            `pendingKeyAuthorization:${account.address.toLowerCase()}`,
++            `pendingKeyAuthorization:${accessKey.address.toLowerCase()}`,
+           )
+ 
+           const message = `Access key expired (on ${new Date(item.keyAuthorization.expiry * 1000).toLocaleString()}).`
