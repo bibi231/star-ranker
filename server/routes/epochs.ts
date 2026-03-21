@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db } from "../db/index";
 import { epochs, epochSnapshots, items } from "../db/schema";
 import { eq, desc, and, inArray, count, max } from "drizzle-orm";
+import { createEpochSnapshot } from "../engine/rankingEngine";
 
 const router = Router();
 
@@ -39,6 +40,39 @@ router.get("/diagnostics", async (_req, res) => {
         });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/epochs/force-snapshot?key=API_SEED_KEY
+// Emergency/manual snapshot capture for current active epoch.
+router.post("/force-snapshot", async (req, res) => {
+    try {
+        const secret = process.env.API_SEED_KEY;
+        if (!secret) return res.status(503).json({ error: "Force snapshot is not enabled (API_SEED_KEY missing)." });
+        if (req.query.key !== secret) return res.status(403).json({ error: "Invalid or missing key query parameter" });
+
+        const [active] = await db
+            .select({ epochNumber: epochs.epochNumber })
+            .from(epochs)
+            .where(eq(epochs.isActive, true))
+            .limit(1);
+
+        if (!active) return res.status(404).json({ error: "No active epoch found" });
+
+        await createEpochSnapshot(active.epochNumber);
+
+        const [totals] = await db
+            .select({ snapshotCount: count() })
+            .from(epochSnapshots)
+            .where(eq(epochSnapshots.epochId, active.epochNumber));
+
+        return res.json({
+            success: true,
+            epochNumber: active.epochNumber,
+            snapshotCount: Number(totals?.snapshotCount || 0),
+        });
+    } catch (error: any) {
+        return res.status(500).json({ error: error.message || "Failed to force snapshot" });
     }
 });
 
