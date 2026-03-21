@@ -355,7 +355,7 @@ export const useStore = create((set, get) => ({
 
                 set({
                     currentEpoch: {
-                        epochId: data.epochNumber || data.id,
+                        epochId: data.epochNumber ?? data.epochId ?? data.id ?? 0,
                         startTime: data.startTime,
                         endTime: data.endTime,
                     },
@@ -385,7 +385,7 @@ export const useStore = create((set, get) => ({
         if (!epochData) return;
         set({
             currentEpoch: {
-                epochId: epochData.epochNumber || epochData.epochId,
+                epochId: epochData.epochNumber ?? epochData.epochId ?? 0,
                 startTime: epochData.startTime,
                 endTime: epochData.endTime,
             }

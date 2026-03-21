@@ -1,9 +1,46 @@
 import { Router } from "express";
 import { db } from "../db/index";
 import { epochs, epochSnapshots, items } from "../db/schema";
-import { eq, desc, and, inArray } from "drizzle-orm";
+import { eq, desc, and, inArray, count, max } from "drizzle-orm";
 
 const router = Router();
+
+// GET /api/epochs/diagnostics — lightweight diagnostics for epoch/snapshot health
+router.get("/diagnostics", async (_req, res) => {
+    try {
+        const [active] = await db
+            .select({ id: epochs.id, epochNumber: epochs.epochNumber, startTime: epochs.startTime, endTime: epochs.endTime })
+            .from(epochs)
+            .where(eq(epochs.isActive, true))
+            .limit(1);
+
+        const [epochTotals] = await db
+            .select({
+                totalEpochs: count(),
+                maxEpochNumber: max(epochs.epochNumber),
+            })
+            .from(epochs);
+
+        const [snapshotTotals] = await db
+            .select({
+                totalSnapshots: count(),
+                maxSnapshotEpochId: max(epochSnapshots.epochId),
+            })
+            .from(epochSnapshots);
+
+        res.json({
+            activeEpoch: active || null,
+            totals: {
+                epochs: Number(epochTotals?.totalEpochs || 0),
+                maxEpochNumber: epochTotals?.maxEpochNumber ?? null,
+                snapshots: Number(snapshotTotals?.totalSnapshots || 0),
+                maxSnapshotEpochId: snapshotTotals?.maxSnapshotEpochId ?? null,
+            },
+        });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 // GET /api/epochs — Get recent epoch history
 router.get("/", async (_req, res) => {
