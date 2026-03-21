@@ -8,7 +8,7 @@
 
 import { db } from "../db/index";
 import { items, votes, epochSnapshots } from "../db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, or, isNull } from "drizzle-orm";
 
 const GRAVITY = 0.05;   // Decay constant
 const VISCOSITY = 1.0;  // Resistance to movement
@@ -22,8 +22,11 @@ export async function reifyRankings() {
     const now = Date.now();
     console.log(`[MWR] Reifying rankings at ${new Date(now).toISOString()}`);
 
-    // Fetch all active items grouped by category
-    const allItems = await db.select().from(items).where(eq(items.status, "active"));
+    // Treat NULL status as active for backward compatibility with older seeded rows.
+    const allItems = await db
+        .select()
+        .from(items)
+        .where(or(eq(items.status, "active"), isNull(items.status)));
 
     // Group by category
     const byCategory: Record<string, typeof allItems> = {};
@@ -91,9 +94,16 @@ export async function reifyRankings() {
 export async function createEpochSnapshot(epochId: number) {
     console.log(`[Snapshot] Capturing state for epoch #${epochId}...`);
 
-    const allItems = await db.select().from(items).where(eq(items.status, "active"));
+    // Some legacy rows have NULL status; include them so snapshots are never empty.
+    const allItems = await db
+        .select()
+        .from(items)
+        .where(or(eq(items.status, "active"), isNull(items.status)));
 
-    if (allItems.length === 0) return;
+    if (allItems.length === 0) {
+        console.warn("[Snapshot] No items found to snapshot.");
+        return;
+    }
 
     const snapshots = allItems.map(item => ({
         epochId,
