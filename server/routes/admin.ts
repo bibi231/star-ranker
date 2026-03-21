@@ -53,10 +53,17 @@ router.post("/seed", requireAuth, async (req: AuthRequest, res) => {
         // Log actor
         console.log(`Admin action: SEED by ${req.userEmail}`);
 
-        // Check permission (must be Oracle OR Super Admin)
+        // Super-admin email, DB isAdmin, or Oracle tier may seed (UI allows Ops Overwatch for moderators too)
         const caller = await db.select().from(users).where(eq(users.firebaseUid, req.uid!)).limit(1);
-        if (!isSuperAdmin(req.userEmail) && caller[0]?.tier !== 'Oracle') {
-            return res.status(403).json({ error: "Access Denied: Level 4 Clearance Required" });
+        const row = caller[0];
+        const maySeed =
+            isSuperAdmin(req.userEmail) ||
+            row?.tier === "Oracle" ||
+            row?.isAdmin === true;
+        if (!maySeed) {
+            return res.status(403).json({
+                error: "Access Denied: seed requires an admin account (isAdmin in database) or Oracle tier.",
+            });
         }
 
         let itemCount = 0;
