@@ -33,6 +33,11 @@ async function main() {
         await db.execute(sql`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS metadata JSONB`);
         console.log("✅ notifications.metadata synced");
 
+        await db.execute(sql`ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS opening_rank INTEGER`);
+        await db.execute(sql`ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS closing_rank INTEGER`);
+        await db.execute(sql`ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS rank_change INTEGER`);
+        console.log("✅ epoch_snapshots rank delta columns synced");
+
         console.log("🚀 Schema sync complete!");
     } catch (err) {
         console.error("❌ Schema sync failed:", err);

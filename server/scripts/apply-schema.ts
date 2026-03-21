@@ -30,6 +30,14 @@ async function main() {
         `);
         console.log("✅ notifications.metadata column verified/added.");
 
+        await db.execute(sql`
+            ALTER TABLE epoch_snapshots
+            ADD COLUMN IF NOT EXISTS opening_rank INTEGER,
+            ADD COLUMN IF NOT EXISTS closing_rank INTEGER,
+            ADD COLUMN IF NOT EXISTS rank_change INTEGER;
+        `);
+        console.log("✅ epoch_snapshots rank delta columns verified/added.");
+
         // Try adding the oracle handle unique constraint if it doesn't exist
         try {
             await db.execute(sql`

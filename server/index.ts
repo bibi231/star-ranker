@@ -214,6 +214,10 @@ async function ensureSchemaPatches(): Promise<void> {
     try {
         await db.execute(sql`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS metadata JSONB`);
         console.log("[schema] notifications.metadata OK");
+        await db.execute(sql`ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS opening_rank INTEGER`);
+        await db.execute(sql`ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS closing_rank INTEGER`);
+        await db.execute(sql`ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS rank_change INTEGER`);
+        console.log("[schema] epoch_snapshots rank delta columns OK");
     } catch (e) {
         console.warn("[schema] notifications.metadata patch skipped:", e);
     }
