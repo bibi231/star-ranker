@@ -34,11 +34,16 @@ async function getAuthHeaders() {
 
 /**
  * Fetch with timeout (AbortController) + retry
+ * @param {object} [fetchConfig] - { retries, backoff, timeoutMs }
  */
-async function fetchWithRetry(url, options = {}, retries = 2, backoff = 500) {
+async function fetchWithRetry(url, options = {}, fetchConfig = {}) {
+    const retries = fetchConfig.retries ?? 2;
+    const backoff = fetchConfig.backoff ?? 500;
+    const timeoutMs = fetchConfig.timeoutMs ?? 10000;
+
     for (let attempt = 0; attempt <= retries; attempt++) {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
         try {
             const res = await fetch(url, { ...options, signal: controller.signal });
@@ -56,7 +61,7 @@ async function fetchWithRetry(url, options = {}, retries = 2, backoff = 500) {
             clearTimeout(timeoutId);
 
             if (err.name === 'AbortError') {
-                throw new Error('Request timed out (10s)');
+                throw new Error(`Request timed out (${Math.round(timeoutMs / 1000)}s)`);
             }
 
             // Stop retrying if rate limited
@@ -101,14 +106,21 @@ function setCache(key, data) {
     } catch { /* ignore quota errors */ }
 }
 
+/** Clear cached categories (e.g. after empty response was cached or API URL changed). */
+export function clearCategoriesCache() {
+    try {
+        sessionStorage.removeItem("sr_cache_categories");
+    } catch { /* ignore */ }
+}
+
 export async function apiGet(path, params = {}) {
     const queryString = new URLSearchParams(params).toString();
     const url = `${API_URL}${path}${queryString ? `?${queryString}` : ""}`;
 
-    // Check cache for categories
+    // Check cache for categories (never use cached empty list — it hides real data after fixes)
     if (path === "/api/categories" && !queryString) {
         const cached = getCached("categories");
-        if (cached) return cached;
+        if (cached && Array.isArray(cached) && cached.length > 0) return cached;
     }
 
     const headers = await getAuthHeaders();
@@ -117,22 +129,27 @@ export async function apiGet(path, params = {}) {
         headers: { ...headers, "Content-Type": "application/json" },
     });
 
-    // Cache categories
-    if (path === "/api/categories" && !queryString) {
+    // Cache categories only when non-empty
+    if (path === "/api/categories" && !queryString && Array.isArray(data) && data.length > 0) {
         setCache("categories", data);
     }
 
     return data;
 }
 
-export async function apiPost(path, body = {}) {
+/**
+ * @param {object} [opts] - { timeoutMs, retries } — use long timeout for slow admin jobs (e.g. seed)
+ */
+export async function apiPost(path, body = {}, opts = {}) {
     const headers = await getAuthHeaders();
+    const timeoutMs = opts.timeoutMs ?? 10000;
+    const retries = opts.retries ?? 1;
 
     return fetchWithRetry(`${API_URL}${path}`, {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify(body),
-    }, 1); // Only 1 retry for mutations
+    }, { retries, timeoutMs });
 }
 
 export async function apiPatch(path, body = {}) {
@@ -142,5 +159,5 @@ export async function apiPatch(path, body = {}) {
         method: "PATCH",
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify(body),
-    }, 1); // Only 1 retry for mutations
+    }, { retries: 1, timeoutMs: 10000 });
 }

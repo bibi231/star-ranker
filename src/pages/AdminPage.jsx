@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiGet, apiPost } from '../lib/api';
+import { apiGet, apiPost, clearCategoriesCache } from '../lib/api';
 import {
     ShieldAlert,
     Activity,
@@ -28,7 +28,7 @@ import { cn } from '../lib/utils';
 import { useStore } from '../store/storeModel';
 
 export function AdminPage() {
-    const { user, tier, formatValue } = useStore();
+    const { user, tier, formatValue, fetchCategories, setCategoryItems } = useStore();
     const [isKillswitchArmed, setKillswitchArmed] = useState(false);
     const [stats, setStats] = useState(null);
     const [auditLogs, setAuditLogs] = useState({ transactions: [], activity: [] });
@@ -118,8 +118,11 @@ export function AdminPage() {
         setSeedLoading(true);
         setSeedResult(null);
         try {
-            const result = await apiPost("/api/admin/seed");
-            setSeedResult({ success: true, message: `Seeded ${result.categories} categories, ${result.items} items` });
+            const result = await apiPost("/api/admin/seed", {}, { timeoutMs: 180000, retries: 0 });
+            clearCategoriesCache();
+            await fetchCategories();
+            await setCategoryItems("crypto");
+            setSeedResult({ success: true, message: `Seeded ${result.categories} categories, ${result.items} items. Refresh Markets if needed.` });
         } catch (error) {
             setSeedResult({ success: false, message: error.message });
         } finally {

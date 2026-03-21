@@ -686,7 +686,7 @@ export const useStore = create((set, get) => ({
 
     seedDatabase: async () => {
         try {
-            const result = await apiPost("/api/admin/seed");
+            const result = await apiPost("/api/admin/seed", {}, { timeoutMs: 180000, retries: 0 });
             return result;
         } catch (error) {
             console.error("Seed error:", error);
