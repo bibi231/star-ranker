@@ -13,7 +13,7 @@ import { eq, desc, sql, or, isNull } from "drizzle-orm";
 const GRAVITY = 0.05;   // Decay constant
 const VISCOSITY = 1.0;  // Resistance to movement
 const REIFY_INTERVAL = 60_000; // 60 seconds
-const SNAPSHOT_CHUNK = 100;
+const SNAPSHOT_CHUNK = 20;
 
 /**
  * Apply entropy decay to all items and recalculate ranks.
