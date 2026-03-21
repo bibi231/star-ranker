@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db/index";
 import { epochs, epochSnapshots, items } from "../db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 
 const router = Router();
 
@@ -71,12 +71,29 @@ router.get("/current", async (_req, res) => {
 // GET /api/epochs/:epochNumber/snapshots — Get rankings for a specific epoch
 router.get("/:epochNumber/snapshots", async (req, res) => {
     try {
-        const { epochNumber } = req.params;
+        const requestedEpochNumber = parseInt(req.params.epochNumber, 10);
+        if (!Number.isFinite(requestedEpochNumber)) {
+            return res.status(400).json({ error: "Invalid epoch number" });
+        }
+
+        // Backward compatibility:
+        // Older deployments stored epochSnapshots.epochId as epochs.id,
+        // newer deployments store it as epochs.epochNumber.
+        const epochRow = await db
+            .select({ id: epochs.id, epochNumber: epochs.epochNumber })
+            .from(epochs)
+            .where(eq(epochs.epochNumber, requestedEpochNumber))
+            .limit(1);
+
+        const snapshotEpochCandidates = epochRow.length
+            ? [requestedEpochNumber, epochRow[0].id]
+            : [requestedEpochNumber];
+
         const categorySlug = req.query.categorySlug as string;
 
         const whereClause = categorySlug
-            ? and(eq(epochSnapshots.epochId, parseInt(epochNumber)), eq(epochSnapshots.categorySlug, categorySlug))
-            : eq(epochSnapshots.epochId, parseInt(epochNumber));
+            ? and(inArray(epochSnapshots.epochId, snapshotEpochCandidates), eq(epochSnapshots.categorySlug, categorySlug))
+            : inArray(epochSnapshots.epochId, snapshotEpochCandidates);
 
         // Join with items to get names
         const snapshots = await db
