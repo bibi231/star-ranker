@@ -122,6 +122,7 @@ import { db } from "./db/index";
 
 import { categories, items as itemsTable, epochs, marketMeta } from "./db/schema";
 import { CATEGORIES, SEED_ITEMS } from "./data/seedData";
+import { runFullSeed } from "./lib/runFullSeed";
 
 // Health check
 app.get("/api/health", (_req, res) => {
@@ -142,6 +143,29 @@ app.get("/api/seed-categories", async (_req, res) => {
         const now = new Date();
         await db.insert(epochs).values({ epochNumber: 1, isActive: true, startTime: now, endTime: new Date(now.getTime() + 1800000), duration: 1800000 }).onConflictDoNothing();
         res.json({ success: true, categories: CATEGORIES.length });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * One-shot full seed (categories + all items + epoch + market meta).
+ * Set API_SEED_KEY on Render, then call: GET /api/seed-database?key=YOUR_KEY
+ * Remove or rotate the key after use in production.
+ */
+app.get("/api/seed-database", async (req, res) => {
+    const secret = process.env.API_SEED_KEY;
+    if (!secret) {
+        return res.status(503).json({
+            error: "Full seed is not enabled. Set API_SEED_KEY on the server, or call /api/seed-categories then /api/seed-items/:slug for each category.",
+        });
+    }
+    if (req.query.key !== secret) {
+        return res.status(403).json({ error: "Invalid or missing key query parameter" });
+    }
+    try {
+        const result = await runFullSeed();
+        res.json({ success: true, ...result });
     } catch (err: any) {
         res.status(500).json({ error: err.message });
     }

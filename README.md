@@ -31,6 +31,25 @@ npm run dev
 3. **CORS** — any `https://*.vercel.app` origin is allowed by default; override with `CORS_ORIGIN` or comma-separated `CORS_ORIGINS` if needed.
 4. Optional: `VITE_API_URL` on Vercel if the API base URL is not `https://star-ranker.onrender.com`.
 
+### Categories / items missing (empty markets)
+
+Data lives in **Postgres** (Neon). If the DB was reset, swapped, or never seeded, lists will be empty.
+
+**Option A — one request (after setting a secret on Render)**  
+1. In Render → your API service → **Environment**, add `API_SEED_KEY` to a long random string. Redeploy.  
+2. Open (replace `YOUR_KEY`):  
+   `https://star-ranker.onrender.com/api/seed-database?key=YOUR_KEY`  
+3. You should see JSON like `{ "success": true, "categories": 10, "items": … }`. Refresh the app.
+
+**Option B — public endpoints (no secret)**  
+1. `https://star-ranker.onrender.com/api/seed-categories`  
+2. For each category slug, e.g.  
+   `https://star-ranker.onrender.com/api/seed-items/crypto`  
+   Repeat for: `smartphones`, `music`, `websites`, `tech`, `movies`, `athletes`, `fashion`, `games`, `influencers`.
+
+**Option C — from your machine** (with `DATABASE_URL` in `.env`):  
+`npx tsx server/seedAll.ts`
+
 ---
 
 ## 📚 Architecture

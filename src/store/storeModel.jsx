@@ -119,24 +119,30 @@ export const useStore = create((set, get) => ({
     },
 
     fetchCategories: async () => {
+        const fallbackCategories = [
+            { id: 1, slug: 'crypto', title: 'Crypto Assets', description: 'Top cryptocurrencies.' },
+            { id: 2, slug: 'smartphones', title: 'Smartphones', description: 'Mobile devices.' },
+            { id: 3, slug: 'music', title: 'Music Artists', description: 'Top artists.' },
+            { id: 4, slug: 'websites', title: 'Websites & Apps', description: 'Top platforms.' },
+            { id: 5, slug: 'tech', title: 'Tech Companies', description: 'Leading tech.' },
+        ];
         try {
             const data = await apiGet("/api/categories");
             if (data && Array.isArray(data) && data.length > 0) {
                 set({ categories: data });
+            } else {
+                // API OK but empty DB — show nav labels; items still need seeding on the server
+                console.warn("[Store] /api/categories returned empty — database may need seeding.");
+                const { categories: existing } = get();
+                if (existing.length === 0) {
+                    set({ categories: fallbackCategories });
+                }
             }
         } catch (err) {
             console.error("Failed to fetch categories:", err);
             const { categories } = get();
             if (categories.length === 0) {
-                set({
-                    categories: [
-                        { id: 1, slug: 'crypto', title: 'Crypto Assets', description: 'Top cryptocurrencies.' },
-                        { id: 2, slug: 'smartphones', title: 'Smartphones', description: 'Mobile devices.' },
-                        { id: 3, slug: 'music', title: 'Music Artists', description: 'Top artists.' },
-                        { id: 4, slug: 'websites', title: 'Websites & Apps', description: 'Top platforms.' },
-                        { id: 5, slug: 'tech', title: 'Tech Companies', description: 'Leading tech.' },
-                    ]
-                });
+                set({ categories: fallbackCategories });
             }
         }
     },
