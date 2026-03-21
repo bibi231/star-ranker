@@ -67,15 +67,20 @@ function isOriginAllowed(origin: string | undefined): boolean {
     return false;
 }
 
+// Reflect allowed Origin explicitly (required with credentials). Do not callback(Error) on deny —
+// that can produce a 500/HTML response with no CORS headers and browsers report it as a CORS failure.
 app.use(cors({
-    origin: function (origin, callback) {
-        if (isOriginAllowed(origin)) {
-            callback(null, true);
+    origin(origin, callback) {
+        if (!origin || isOriginAllowed(origin)) {
+            callback(null, origin || true);
         } else {
-            callback(new Error("Not allowed by CORS"));
+            callback(null, false);
         }
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    maxAge: 86400,
 }));
 app.use(express.json({
     verify: (req: any, _res, buf) => {
