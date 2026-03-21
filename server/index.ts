@@ -128,7 +128,7 @@ import { sql } from "drizzle-orm";
 import { db } from "./db/index";
 
 import { categories, items as itemsTable, epochs, marketMeta } from "./db/schema";
-import { CATEGORIES, SEED_ITEMS } from "./data/seedData";
+import { CATEGORIES, getCuratedSeedItems } from "./data/seedData";
 import { runFullSeed } from "./lib/runFullSeed";
 
 // Health check
@@ -181,8 +181,9 @@ app.get("/api/seed-database", async (req, res) => {
 // Seed items for a specific category
 app.get("/api/seed-items/:slug", async (req, res) => {
     const slug = req.params.slug;
-    const itemList = SEED_ITEMS[slug];
-    if (!itemList) return res.status(404).json({ error: `Unknown category: ${slug}` });
+    const categoryExists = CATEGORIES.some((c) => c.slug === slug);
+    const itemList = getCuratedSeedItems(slug);
+    if (!categoryExists) return res.status(404).json({ error: `Unknown category: ${slug}` });
     try {
         let count = 0;
         for (let i = 0; i < itemList.length; i++) {

@@ -2,12 +2,13 @@
  * Full DB seed: categories, items (batched for speed), epochs, market meta.
  * Used by CLI (seedAll.ts), HTTP /api/seed-database, and POST /api/admin/seed.
  */
-import { sql } from "drizzle-orm";
+import { inArray, sql } from "drizzle-orm";
 import { db } from "../db/index";
 import { categories, items, epochs, marketMeta } from "../db/schema";
-import { CATEGORIES, SEED_ITEMS } from "../data/seedData";
+import { CATEGORIES, SEED_ITEMS, getCuratedSeedItems } from "../data/seedData";
 
-const ITEM_CHUNK = 80;
+// Keep chunks small to avoid oversized INSERT statements on serverless Postgres gateways.
+const ITEM_CHUNK = 20;
 
 export async function runFullSeed(): Promise<{ categories: number; items: number }> {
     let itemCount = 0;
@@ -21,8 +22,22 @@ export async function runFullSeed(): Promise<{ categories: number; items: number
     });
 
     for (const [slug, itemList] of Object.entries(SEED_ITEMS)) {
-        for (let start = 0; start < itemList.length; start += ITEM_CHUNK) {
-            const slice = itemList.slice(start, start + ITEM_CHUNK);
+        const curated = getCuratedSeedItems(slug);
+
+        // Remove synthetic/fallback rows from previous seeds (e.g. "Fashion Brand 40").
+        if (curated.length < itemList.length) {
+            const staleDocIds: string[] = [];
+            for (let i = curated.length; i < itemList.length; i++) {
+                staleDocIds.push(`item_${slug}_${i}`);
+            }
+            for (let start = 0; start < staleDocIds.length; start += ITEM_CHUNK) {
+                const chunk = staleDocIds.slice(start, start + ITEM_CHUNK);
+                await db.delete(items).where(inArray(items.docId, chunk));
+            }
+        }
+
+        for (let start = 0; start < curated.length; start += ITEM_CHUNK) {
+            const slice = curated.slice(start, start + ITEM_CHUNK);
             const rows = slice.map((item, j) => {
                 const i = start + j;
                 const baseScore = Math.floor(Math.random() * 8000) + 2000;

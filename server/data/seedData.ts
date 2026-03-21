@@ -198,3 +198,24 @@ export const SEED_ITEMS: Record<string, Array<{ name: string; symbol: string }>>
         ...Array.from({ length: 120 }, (_, i) => ({ name: `Top Creator ${i + 35}`, symbol: `CRE${i + 35}` }))
     ],
 };
+
+const SYNTHETIC_NAME_PREFIXES = [
+    "Flagship Phone ",
+    "Chart Artist ",
+    "Top Domain ",
+    "Tech Giant ",
+    "Trending Movie ",
+    "Global Athlete ",
+    "Fashion Brand ",
+    "Hot Game ",
+    "Top Creator ",
+];
+
+export function isSyntheticSeedItemName(name: string): boolean {
+    return SYNTHETIC_NAME_PREFIXES.some((prefix) => name.startsWith(prefix));
+}
+
+export function getCuratedSeedItems(slug: string): Array<{ name: string; symbol: string }> {
+    const list = SEED_ITEMS[slug] || [];
+    return list.filter((item) => !isSyntheticSeedItemName(item.name));
+}
