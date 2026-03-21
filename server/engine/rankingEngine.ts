@@ -13,6 +13,7 @@ import { eq, desc, sql, or, isNull } from "drizzle-orm";
 const GRAVITY = 0.05;   // Decay constant
 const VISCOSITY = 1.0;  // Resistance to movement
 const REIFY_INTERVAL = 60_000; // 60 seconds
+const SNAPSHOT_CHUNK = 100;
 
 /**
  * Apply entropy decay to all items and recalculate ranks.
@@ -114,7 +115,10 @@ export async function createEpochSnapshot(epochId: number) {
         velocity: item.velocity || 0,
     }));
 
-    await db.insert(epochSnapshots).values(snapshots);
+    for (let start = 0; start < snapshots.length; start += SNAPSHOT_CHUNK) {
+        const chunk = snapshots.slice(start, start + SNAPSHOT_CHUNK);
+        await db.insert(epochSnapshots).values(chunk);
+    }
     console.log(`[Snapshot] Saved ${snapshots.length} item records for epoch #${epochId}`);
 }
 
