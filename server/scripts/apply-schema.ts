@@ -25,6 +25,11 @@ async function main() {
         `);
         console.log("✅ Default admin_config row verified/created.");
 
+        await db.execute(sql`
+            ALTER TABLE notifications ADD COLUMN IF NOT EXISTS metadata JSONB;
+        `);
+        console.log("✅ notifications.metadata column verified/added.");
+
         // Try adding the oracle handle unique constraint if it doesn't exist
         try {
             await db.execute(sql`

@@ -29,6 +29,10 @@ async function main() {
         await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS oracle_handle_change_window_start TIMESTAMP`);
         console.log("✅ oracle_handle_change_window_start synced");
 
+        // notifications.metadata — required by server/db/schema.ts; older DBs only had the 0000 migration table
+        await db.execute(sql`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS metadata JSONB`);
+        console.log("✅ notifications.metadata synced");
+
         console.log("🚀 Schema sync complete!");
     } catch (err) {
         console.error("❌ Schema sync failed:", err);

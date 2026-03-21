@@ -146,6 +146,7 @@ export const notifications = pgTable("notifications", {
 	message: text().notNull(),
 	type: text().default('general'),
 	read: boolean().default(false),
+	metadata: jsonb(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 }, (table) => [
 	index("notifications_user_idx").using("btree", table.userId.asc().nullsLast().op("text_ops")),

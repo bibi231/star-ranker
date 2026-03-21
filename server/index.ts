@@ -123,6 +123,8 @@ if (process.env.SENTRY_DSN && (Sentry as any).Handlers) {
     Sentry.setupExpressErrorHandler(app);
 }
 
+import { sql } from "drizzle-orm";
+
 import { db } from "./db/index";
 
 import { categories, items as itemsTable, epochs, marketMeta } from "./db/schema";
@@ -206,6 +208,17 @@ app.get("/api/seed-items/:slug", async (req, res) => {
     }
 });
 
+/** Idempotent patches so Drizzle-selected columns exist (e.g. older Neon DBs). */
+async function ensureSchemaPatches(): Promise<void> {
+    try {
+        await db.execute(sql`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS metadata JSONB`);
+        console.log("[schema] notifications.metadata OK");
+    } catch (e) {
+        console.warn("[schema] notifications.metadata patch skipped:", e);
+    }
+}
+
+void ensureSchemaPatches().then(() => {
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`\n⚡ Star Ranker API running on port ${PORT} (0.0.0.0)\n`);
 
@@ -234,4 +247,5 @@ app.listen(PORT, "0.0.0.0", () => {
         }, PING_INTERVAL_MS);
         console.log(`[keep-alive] Self-ping active every 14 min → ${RENDER_URL}/api/health`);
     }
+});
 });
