@@ -211,15 +211,105 @@ app.get("/api/seed-items/:slug", async (req, res) => {
 
 /** Idempotent patches so Drizzle-selected columns exist (e.g. older Neon DBs). */
 async function ensureSchemaPatches(): Promise<void> {
+    const run = async (label: string, statement: string) => {
+        try {
+            await db.execute(sql.raw(statement));
+            console.log(`[schema] ${label} OK`);
+        } catch (e: any) {
+            console.warn(`[schema] ${label} skipped:`, e?.message || e);
+        }
+    };
+
     try {
-        await db.execute(sql`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS metadata JSONB`);
-        console.log("[schema] notifications.metadata OK");
-        await db.execute(sql`ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS opening_rank INTEGER`);
-        await db.execute(sql`ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS closing_rank INTEGER`);
-        await db.execute(sql`ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS rank_change INTEGER`);
-        console.log("[schema] epoch_snapshots rank delta columns OK");
+        // Core market tables (production DBs created before full schema)
+        await run(
+            "categories table",
+            `CREATE TABLE IF NOT EXISTS categories (
+                id SERIAL PRIMARY KEY,
+                slug TEXT NOT NULL UNIQUE,
+                title TEXT NOT NULL,
+                description TEXT,
+                is_frozen BOOLEAN DEFAULT false,
+                created_at TIMESTAMP DEFAULT NOW()
+            )`
+        );
+        await run("categories.description", `ALTER TABLE categories ADD COLUMN IF NOT EXISTS description TEXT`);
+        await run("categories.is_frozen", `ALTER TABLE categories ADD COLUMN IF NOT EXISTS is_frozen BOOLEAN DEFAULT false`);
+        await run("categories.created_at", `ALTER TABLE categories ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()`);
+
+        await run(
+            "items table",
+            `CREATE TABLE IF NOT EXISTS items (
+                id SERIAL PRIMARY KEY,
+                doc_id TEXT NOT NULL UNIQUE,
+                name TEXT NOT NULL,
+                symbol TEXT,
+                category_slug TEXT NOT NULL,
+                score INTEGER DEFAULT 0,
+                velocity REAL DEFAULT 0,
+                momentum REAL DEFAULT 0,
+                volatility REAL DEFAULT 5,
+                rank INTEGER DEFAULT 1,
+                total_votes INTEGER DEFAULT 0,
+                trend JSONB DEFAULT '[]'::jsonb,
+                image_url TEXT,
+                is_dampened BOOLEAN DEFAULT false,
+                status TEXT DEFAULT 'active',
+                created_at TIMESTAMP DEFAULT NOW()
+            )`
+        );
+
+        const itemPatches = [
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS doc_id TEXT",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS name TEXT",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS symbol TEXT",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS category_slug TEXT",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS score INTEGER DEFAULT 0",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS velocity REAL DEFAULT 0",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS momentum REAL DEFAULT 0",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS volatility REAL DEFAULT 5",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS rank INTEGER DEFAULT 1",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS total_votes INTEGER DEFAULT 0",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS trend JSONB DEFAULT '[]'::jsonb",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS image_url TEXT",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS is_dampened BOOLEAN DEFAULT false",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active'",
+            "ALTER TABLE items ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()",
+        ];
+        for (let i = 0; i < itemPatches.length; i++) {
+            await run(`items patch ${i + 1}`, itemPatches[i]);
+        }
+
+        await run(
+            "items category index",
+            `CREATE INDEX IF NOT EXISTS items_category_idx ON items (category_slug)`
+        );
+
+        // Old DBs sometimes stored trend as TEXT — Drizzle expects JSONB
+        try {
+            await db.execute(sql.raw(`
+                DO $$ BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_schema = 'public' AND table_name = 'items'
+                        AND column_name = 'trend' AND data_type = 'text'
+                    ) THEN
+                        ALTER TABLE items ALTER COLUMN trend TYPE JSONB
+                        USING COALESCE(NULLIF(trim(trend::text), '')::jsonb, '[]'::jsonb);
+                    END IF;
+                END $$
+            `));
+            console.log("[schema] items.trend → JSONB OK");
+        } catch {
+            /* already jsonb or empty */
+        }
+
+        await run("notifications.metadata", `ALTER TABLE notifications ADD COLUMN IF NOT EXISTS metadata JSONB`);
+        await run("epoch_snapshots.opening_rank", `ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS opening_rank INTEGER`);
+        await run("epoch_snapshots.closing_rank", `ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS closing_rank INTEGER`);
+        await run("epoch_snapshots.rank_change", `ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS rank_change INTEGER`);
     } catch (e) {
-        console.warn("[schema] notifications.metadata patch skipped:", e);
+        console.warn("[schema] ensureSchemaPatches outer error:", e);
     }
 }
 
