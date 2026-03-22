@@ -326,6 +326,8 @@ async function ensureSchemaPatches(): Promise<void> {
         await run("epoch_snapshots.opening_rank", `ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS opening_rank INTEGER`);
         await run("epoch_snapshots.closing_rank", `ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS closing_rank INTEGER`);
         await run("epoch_snapshots.rank_change", `ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS rank_change INTEGER`);
+
+        await run("users.bio", `ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`);
     } catch (e) {
         console.warn("[schema] ensureSchemaPatches outer error:", e);
     }

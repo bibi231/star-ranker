@@ -128,6 +128,7 @@ export const users = pgTable("users", {
     firebaseUid: text("firebase_uid").notNull().unique(),
     email: text("email"),
     displayName: text("display_name"),
+    bio: text("bio"),
     walletAddress: varchar("wallet_address", { length: 42 }).unique(),
     balance: real("balance").default(0), // Starting balance
     reputation: integer("reputation").default(100),

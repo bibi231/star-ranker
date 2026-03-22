@@ -13,6 +13,7 @@ router.get("/profile", requireAuth, async (req: AuthRequest, res: Response) => {
             id: users.id,
             email: users.email,
             displayName: users.displayName,
+            bio: users.bio,
             oracleHandle: users.oracleHandle,
             balance: users.balance,
             reputation: users.reputation,
@@ -41,7 +42,7 @@ router.get("/profile", requireAuth, async (req: AuthRequest, res: Response) => {
 // PATCH /api/user/profile
 router.patch("/profile", requireAuth, async (req: AuthRequest, res: Response) => {
     try {
-        const { oracleHandle, displayName } = req.body;
+        const { oracleHandle, displayName, bio } = req.body;
         const updates: any = {};
         const now = new Date();
 
@@ -119,6 +120,7 @@ router.patch("/profile", requireAuth, async (req: AuthRequest, res: Response) =>
                 id: users.id,
                 email: users.email,
                 displayName: users.displayName,
+                bio: users.bio,
                 oracleHandle: users.oracleHandle,
                 balance: users.balance,
                 reputation: users.reputation,
@@ -180,23 +182,21 @@ router.get("/reputation-history", requireAuth, async (req: AuthRequest, res: Res
 
         const currentRep = user[0].reputation || 0;
 
-        // Generate a synthetic timeline ending at current reputation (since we don't have a ledger snapshot table)
-        const history = [];
-        let runningRep = Math.max(0, currentRep - 150); // Start lower
-
+        // Deterministic 7-day trend from live DB reputation (no random walk; full ledger = future enhancement)
+        const history: { day: string; value: number }[] = [];
+        const startRep = Math.max(0, currentRep - Math.min(120, Math.floor(currentRep * 0.4)));
         for (let i = 6; i >= 0; i--) {
+            const t = i / 6;
+            const value = Math.round(startRep + (currentRep - startRep) * (1 - t));
             if (i === 0) {
                 history.push({ day: "Today", value: currentRep });
             } else {
-                const step = Math.floor(Math.random() * 40) - 10;
-                runningRep += step;
-                // Don't let it exceed current rep or drop below zero
-                if (runningRep > currentRep) runningRep = currentRep - 10;
-                if (runningRep < 0) runningRep = 0;
-
                 const d = new Date();
                 d.setDate(d.getDate() - i);
-                history.push({ day: d.toLocaleDateString('en-US', { weekday: 'short' }), value: runningRep });
+                history.push({
+                    day: d.toLocaleDateString("en-US", { weekday: "short" }),
+                    value,
+                });
             }
         }
 

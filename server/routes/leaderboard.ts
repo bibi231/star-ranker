@@ -5,7 +5,7 @@
 import { Router } from "express";
 import { db } from "../db/index";
 import { users, stakes } from "../db/schema";
-import { desc, eq, sql, count } from "drizzle-orm";
+import { desc, eq, sql, count, or, isNull } from "drizzle-orm";
 
 const router = Router();
 
@@ -23,7 +23,7 @@ router.get("/", async (req, res) => {
                 createdAt: users.createdAt,
             })
             .from(users)
-            .where(eq(users.isBanned, false))
+            .where(or(eq(users.isBanned, false), isNull(users.isBanned)))
             .orderBy(desc(users.reputation))
             .limit(limitParam);
 

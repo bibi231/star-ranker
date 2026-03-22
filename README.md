@@ -32,6 +32,29 @@ npm run dev
 3. **CORS** — any `https://*.vercel.app` origin is allowed by default; override with `CORS_ORIGIN` or comma-separated `CORS_ORIGINS` if needed.
 4. Optional: `VITE_API_URL` on Vercel if the API base URL is not `https://star-ranker.onrender.com`.
 
+#### How to set `VITE_SUPER_ADMIN_EMAILS` in Vercel
+
+1. Open **[vercel.com](https://vercel.com)** → your **Star Ranker** project.
+2. **Settings** → **Environment Variables**.
+3. **Add** a variable:
+   - **Name:** `VITE_SUPER_ADMIN_EMAILS` (must match exactly, including the `VITE_` prefix).
+   - **Value:** your super-admin email(s), **comma-separated**, no spaces (or spaces are OK inside quotes—Vercel stores the string as-is). Example: `peterjohn2343@gmail.com` or `alice@x.com,bob@y.com`.
+   - **Environments:** check **Production** (and **Preview** if you want the same behavior on preview URLs).
+4. **Save**, then trigger a **new deployment** (Deployments → ⋮ on latest → **Redeploy**, or push a commit). Vite bakes `VITE_*` in at **build time**, so changing this variable **without** redeploying the frontend has no effect.
+
+Match this list to Render’s **`SUPER_ADMIN_EMAILS`** so the API and the UI agree on who is a super admin.
+
+### App data ↔ database (Neon)
+
+| Surface | API | DB tables (main) |
+|--------|-----|-------------------|
+| Portfolio / dashboard | `/api/admin/users/me`, `/api/stakes/my`, `/api/user/reputation-history` | `users`, `stakes`, … |
+| Alerts | `GET/PATCH /api/notifications/*` | `notifications` |
+| Settings → bio / profile | `PATCH /api/user/profile` | `users` (`bio`, `display_name`, `oracle_handle`, …) |
+| Settings toggles | *(local state only today)* | — |
+| Leaderboards | `/api/leaderboard`, `/api/leaderboard/stats` | `users`, `stakes` |
+| Activity | `/api/activity` | `market_activity` (+ `users` for display names) |
+
 ### Categories / items missing (empty markets)
 
 Data lives in **Postgres** (Neon). If the DB was reset, swapped, or never seeded, lists will be empty.

@@ -238,6 +238,9 @@ const statements: string[] = [
         created_at TIMESTAMP DEFAULT NOW()
     )`,
     `CREATE INDEX IF NOT EXISTS comments_item_idx ON comments (item_doc_id)`,
+
+    // Column added after initial deploys (idempotent)
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`,
 ];
 
 export async function bootstrapFreshSchema(): Promise<void> {

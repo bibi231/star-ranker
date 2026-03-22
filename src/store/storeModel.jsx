@@ -353,7 +353,7 @@ export const useStore = create((set, get) => ({
             } else {
                 const { syncInterval } = get();
                 if (syncInterval) clearInterval(syncInterval);
-                set({ user: null, isAuthLoading: false, balance: 0, reputation: 0, tier: "Newbie", userVotes: {}, syncInterval: null });
+                set({ user: null, isAuthLoading: false, balance: 0, reputation: 0, tier: "Newbie", bio: "", userVotes: {}, syncInterval: null });
             }
         });
     },
@@ -423,6 +423,7 @@ export const useStore = create((set, get) => ({
                 balance: Number(profile.balance) || 0,
                 reputation: profile.reputation || 0,
                 tier: superUser ? "Oracle" : (profile.tier || "Newbie"),
+                bio: profile.bio ?? "",
                 user: {
                     ...auth.currentUser,
                     ...profile,
@@ -604,7 +605,8 @@ export const useStore = create((set, get) => ({
 
     markNotificationAsRead: async (id) => {
         try {
-            await apiPost(`/api/notifications/${id}/read`);
+            const { apiPatch } = await import("../lib/api");
+            await apiPatch(`/api/notifications/${id}/read`, {});
             set((state) => ({
                 notifications: state.notifications.map((n) =>
                     n.id === id ? { ...n, read: true } : n
@@ -617,7 +619,8 @@ export const useStore = create((set, get) => ({
 
     markAllRead: async () => {
         try {
-            await apiPost("/api/notifications/read-all");
+            const { apiPatch } = await import("../lib/api");
+            await apiPatch("/api/notifications/read-all", {});
             set((state) => ({
                 notifications: state.notifications.map((n) => ({ ...n, read: true })),
             }));
@@ -642,7 +645,7 @@ export const useStore = create((set, get) => ({
     logout: async () => {
         try {
             await signOut(auth);
-            set({ user: null, balance: 0, reputation: 0, tier: "Newbie", stakes: [] });
+            set({ user: null, balance: 0, reputation: 0, tier: "Newbie", bio: "", stakes: [] });
         } catch (error) {
             console.error("Logout failed", error);
         }
@@ -713,18 +716,23 @@ export const useStore = create((set, get) => ({
 
     updateProfile: async (updates) => {
         try {
-            const { apiPost } = await import('../lib/api');
-            const result = await apiPost('/api/user/profile', updates);
+            const { apiPatch } = await import("../lib/api");
+            const body = {};
+            if (updates.displayName !== undefined) body.displayName = updates.displayName;
+            if (updates.bio !== undefined) body.bio = updates.bio;
+            if (updates.oracleHandle !== undefined) body.oracleHandle = updates.oracleHandle;
+            if (Object.keys(body).length === 0) return false;
+            const result = await apiPatch("/api/user/profile", body);
             if (result && !result.error) {
-                set(state => ({
-                    bio: updates.bio ?? state.bio,
-                    user: { ...state.user, ...result }
+                set((state) => ({
+                    bio: result.bio ?? updates.bio ?? state.bio,
+                    user: state.user ? { ...state.user, ...result } : state.user,
                 }));
                 return true;
             }
             return false;
         } catch (err) {
-            console.error('Failed to update profile:', err);
+            console.error("Failed to update profile:", err);
             return false;
         }
     },

@@ -101,7 +101,13 @@ function App() {
 
             <Route path="/activity" element={<ActivityPage />} />
             <Route path="/leaderboards" element={<LeaderboardPage />} />
-            <Route path="/notifications" element={<AlertsPage />} />
+            <Route path="/notifications" element={
+              user ? (
+                <EmailVerificationGuard>
+                  <AlertsPage />
+                </EmailVerificationGuard>
+              ) : <Navigate to="/signin" replace />
+            } />
 
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/transparency" element={<TransparencyPage />} />
