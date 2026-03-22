@@ -4,6 +4,7 @@ import { useStore } from "./store/storeModel";
 import { Loader2 } from "lucide-react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { Toaster } from "react-hot-toast";
+import SeoManager from "./components/seo/SeoManager";
 
 // Layouts
 import { MainLayout } from "./components/layout/MainLayout";
@@ -77,6 +78,7 @@ function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
+        <SeoManager />
         <Toaster position="bottom-center" toastOptions={{
           style: { background: '#0f172a', color: '#fff', border: '1px solid #1e293b', fontSize: '12px', fontWeight: 'bold' }
         }} />

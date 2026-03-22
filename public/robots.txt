@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://star-ranker.vercel.app/sitemap.xml

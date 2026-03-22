@@ -357,7 +357,6 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                             </span>
                         </div>
                     </div>
-                    )}
                 </div>
 
                 {/* System Status / Warnings */}

@@ -8,7 +8,7 @@
 
 import { db } from "../db/index";
 import { items, votes, epochSnapshots } from "../db/schema";
-import { eq, desc, sql, or, isNull } from "drizzle-orm";
+import { eq, or, isNull, and } from "drizzle-orm";
 
 const GRAVITY = 0.05;   // Decay constant
 const VISCOSITY = 1.0;  // Resistance to movement
@@ -91,6 +91,7 @@ export async function reifyRankings() {
 
 /**
  * Capture an immutable snapshot of current rankings for an epoch.
+ * Computes rank_change by comparing with the previous epoch's snapshot.
  */
 export async function createEpochSnapshot(epochId: number) {
     console.log(`[Snapshot] Capturing state for epoch #${epochId}...`);
@@ -106,14 +107,33 @@ export async function createEpochSnapshot(epochId: number) {
         return;
     }
 
-    const snapshots = allItems.map(item => ({
-        epochId,
-        itemId: item.docId,
-        categorySlug: item.categorySlug,
-        rank: item.rank || 0,
-        score: item.score || 0,
-        velocity: item.velocity || 0,
-    }));
+    // Fetch previous epoch's snapshots to compute rank_change (prev_rank - current_rank; negative = moved up)
+    const prevSnapshots = await db
+        .select({ itemId: epochSnapshots.itemId, categorySlug: epochSnapshots.categorySlug, rank: epochSnapshots.rank })
+        .from(epochSnapshots)
+        .where(eq(epochSnapshots.epochId, epochId - 1));
+
+    const prevByKey = new Map<string, number>();
+    for (const s of prevSnapshots) {
+        prevByKey.set(`${s.categorySlug}:${s.itemId}`, s.rank ?? 0);
+    }
+
+    const snapshots = allItems.map(item => {
+        const currentRank = item.rank || 0;
+        const prevRank = prevByKey.get(`${item.categorySlug}:${item.docId}`);
+        const rankChange = prevRank != null ? prevRank - currentRank : null; // negative = gained (moved up)
+        return {
+            epochId,
+            itemId: item.docId,
+            categorySlug: item.categorySlug,
+            rank: currentRank,
+            score: item.score || 0,
+            velocity: item.velocity || 0,
+            openingRank: prevRank ?? null,
+            closingRank: currentRank,
+            rankChange,
+        };
+    });
 
     for (let start = 0; start < snapshots.length; start += SNAPSHOT_CHUNK) {
         const chunk = snapshots.slice(start, start + SNAPSHOT_CHUNK);

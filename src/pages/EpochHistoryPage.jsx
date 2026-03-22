@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/storeModel';
 import { apiGet } from '../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,24 +7,23 @@ import { History, Search, ChevronRight, Calendar, Box, Activity, ArrowUp, ArrowD
 import clsx from 'clsx';
 
 export default function EpochHistoryPage() {
+    const navigate = useNavigate();
     const { categories } = useStore();
     const [epochs, setEpochs] = useState([]);
     const [selectedEpoch, setSelectedEpoch] = useState(null);
     const [snapshots, setSnapshots] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedCategory, setSelectedCategory] = useState(categories[0]?.id);
+    const [selectedCategorySlug, setSelectedCategorySlug] = useState('crypto');
 
     useEffect(() => {
         fetchEpochs();
     }, []);
 
     useEffect(() => {
-        if (selectedEpoch) {
-            const categoryMatch = categories.find(c => c.id === selectedCategory);
-            const slug = categoryMatch?.slug || 'crypto';
-            fetchSnapshots(selectedEpoch.epochNumber, slug);
+        if (selectedEpoch && selectedCategorySlug) {
+            fetchSnapshots(selectedEpoch.epochNumber, selectedCategorySlug);
         }
-    }, [selectedEpoch, selectedCategory, categories]);
+    }, [selectedEpoch, selectedCategorySlug]);
 
     const fetchEpochs = async () => {
         setIsLoading(true);
@@ -105,10 +105,10 @@ export default function EpochHistoryPage() {
                         {(categories || []).map(cat => (
                             <button
                                 key={cat.id}
-                                onClick={() => setSelectedCategory(cat.id)}
+                                onClick={() => setSelectedCategorySlug(cat.slug)}
                                 className={clsx(
                                     "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border",
-                                    selectedCategory === cat.id
+                                    selectedCategorySlug === cat.slug
                                         ? "bg-white text-slate-950 border-white shadow-lg"
                                         : "bg-slate-900 border-slate-800 text-slate-500 hover:text-white"
                                 )}
