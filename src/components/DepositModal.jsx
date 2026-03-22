@@ -5,6 +5,7 @@ import { useStore } from '../store/storeModel';
 import { apiPost, apiGet } from '../lib/api';
 import { cn } from '../lib/utils';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { WalletFundingContext } from './WalletFundingContext';
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || '';
 const MIN_AMOUNT_NGN = 1000;
@@ -174,6 +175,7 @@ export function DepositModal({ isOpen, onClose }) {
                                             <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Current Balance</div>
                                             <div className="text-2xl font-mono font-black text-white">{formatValue(balance)}</div>
                                         </div>
+                                        <WalletFundingContext />
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
                                                 <CreditCard size={12} className="text-emerald-500" /> Deposit Amount (NGN)
@@ -296,6 +298,7 @@ export function DepositModal({ isOpen, onClose }) {
                                             <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Current Balance</div>
                                             <div className="text-2xl font-mono font-black text-white">{formatValue(balance)}</div>
                                         </div>
+                                        <WalletFundingContext />
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
                                                 <CreditCard size={12} className="text-emerald-500" /> Deposit Amount (NGN)

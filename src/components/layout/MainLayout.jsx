@@ -326,12 +326,7 @@ export function MainLayout() {
                                 className="w-full bg-[#020617]/50 border border-[#1E3A5F]/50 rounded-xl pl-11 pr-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-accent/50 focus:bg-[#020617] transition-all font-medium tracking-wide"
                             />
                         </div>
-                        <button
-                            onClick={() => navigate('/settings')}
-                            className="px-6 py-2 rounded-xl bg-[#C9A84C]/10 border border-[#C9A84C]/20 text-[#C9A84C] font-black text-[10px] uppercase tracking-widest hover:bg-[#C9A84C]/20 transition-all shadow-[0_0_20px_rgba(201,168,76,0.05)]"
-                        >
-                            Connect Wallet
-                        </button>
+                        <Web3Status />
                     </div>
 
                     <div className="flex items-center gap-4">

@@ -5,6 +5,7 @@ import { useStore } from '../store/storeModel';
 import { apiGet, apiPost } from '../lib/api';
 import { cn } from '../lib/utils';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { WalletFundingContext } from './WalletFundingContext';
 
 export function WithdrawalModal({ isOpen, onClose }) {
     const { user, balance, formatValue, fetchUserProfile } = useStore();
@@ -188,6 +189,8 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                             <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Available Capital</div>
                                             <div className="text-2xl font-mono font-black text-white">{formatValue(balance)}</div>
                                         </div>
+
+                                        <WalletFundingContext />
 
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
