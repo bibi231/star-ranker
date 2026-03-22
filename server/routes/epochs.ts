@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db/index";
 import { epochs, epochSnapshots, items } from "../db/schema";
-import { eq, desc, and, inArray, count, max } from "drizzle-orm";
+import { eq, desc, and, count, max } from "drizzle-orm";
 import { createEpochSnapshot } from "../engine/rankingEngine";
 
 const router = Router();
@@ -79,13 +79,24 @@ router.post("/force-snapshot", async (req, res) => {
 // GET /api/epochs — Get recent epoch history
 router.get("/", async (_req, res) => {
     try {
+        // Pull enough rows to survive duplicate epoch_number rows (no unique constraint in DB)
         const history = await db
             .select()
             .from(epochs)
             .orderBy(desc(epochs.epochNumber))
-            .limit(20);
+            .limit(80);
 
-        res.json(history.map(e => ({
+        const bestByNumber = new Map<number, typeof history[0]>();
+        for (const e of history) {
+            const prev = bestByNumber.get(e.epochNumber);
+            if (!prev || e.id > prev.id) bestByNumber.set(e.epochNumber, e);
+        }
+
+        const unique = Array.from(bestByNumber.values())
+            .sort((a, b) => b.epochNumber - a.epochNumber)
+            .slice(0, 20);
+
+        res.json(unique.map(e => ({
             ...e,
             epochId: e.epochNumber,
             startTime: e.startTime.getTime(),
@@ -156,15 +167,29 @@ router.get("/:epochNumber/snapshots", async (req, res) => {
             .where(eq(epochs.epochNumber, requestedEpochNumber))
             .limit(1);
 
-        const snapshotEpochCandidates = epochRow.length
-            ? [requestedEpochNumber, epochRow[0].id]
-            : [requestedEpochNumber];
+        // Legacy stored epoch_snapshots.epoch_id as epochs.id; newer code uses epochs.epochNumber.
+        // Using IN (both) returns two full snapshot sets → every row doubled in the UI.
+        const hasSnapshotsForEpochNumber = await db
+            .select({ id: epochSnapshots.id })
+            .from(epochSnapshots)
+            .where(eq(epochSnapshots.epochId, requestedEpochNumber))
+            .limit(1);
+
+        let resolvedSnapshotEpochId = requestedEpochNumber;
+        if (hasSnapshotsForEpochNumber.length === 0 && epochRow.length > 0) {
+            const hasLegacy = await db
+                .select({ id: epochSnapshots.id })
+                .from(epochSnapshots)
+                .where(eq(epochSnapshots.epochId, epochRow[0].id))
+                .limit(1);
+            if (hasLegacy.length > 0) resolvedSnapshotEpochId = epochRow[0].id;
+        }
 
         const categorySlug = req.query.categorySlug as string;
 
         const whereClause = categorySlug
-            ? and(inArray(epochSnapshots.epochId, snapshotEpochCandidates), eq(epochSnapshots.categorySlug, categorySlug))
-            : inArray(epochSnapshots.epochId, snapshotEpochCandidates);
+            ? and(eq(epochSnapshots.epochId, resolvedSnapshotEpochId), eq(epochSnapshots.categorySlug, categorySlug))
+            : eq(epochSnapshots.epochId, resolvedSnapshotEpochId);
 
         // Join with items to get names
         const snapshots = await db
@@ -182,7 +207,13 @@ router.get("/:epochNumber/snapshots", async (req, res) => {
             .where(whereClause)
             .orderBy(epochSnapshots.rank);
 
-        res.json(snapshots);
+        // Safety: if DB ever has duplicate snapshot rows for same item+epoch, keep one
+        const dedup = new Map<string, typeof snapshots[0]>();
+        for (const row of snapshots) {
+            const k = `${row.itemId}|${row.categorySlug}`;
+            if (!dedup.has(k)) dedup.set(k, row);
+        }
+        res.json(Array.from(dedup.values()).sort((a, b) => a.rank - b.rank));
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }
