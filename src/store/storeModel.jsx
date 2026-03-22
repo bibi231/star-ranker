@@ -13,7 +13,8 @@ import {
     sendEmailVerification,
     updateProfile
 } from "firebase/auth";
-import { apiGet, apiPost } from "../lib/api";
+import toast from "react-hot-toast";
+import { apiGet, apiPost, clearCategoriesCache } from "../lib/api";
 
 export const useStore = create((set, get) => ({
     user: null,
@@ -140,6 +141,11 @@ export const useStore = create((set, get) => ({
             }
         } catch (err) {
             console.error("Failed to fetch categories:", err);
+            clearCategoriesCache();
+            toast.error(
+                "Could not load categories from the API. Check that the API is up and VITE_API_URL is correct.",
+                { id: "fetch-categories-fail", duration: 6000 }
+            );
             const { categories } = get();
             if (categories.length === 0) {
                 set({ categories: fallbackCategories });
@@ -255,10 +261,16 @@ export const useStore = create((set, get) => ({
                 }
 
                 set({ items: formattedItems, isSyncing: false });
+            } else {
+                set({ items: [], isSyncing: false });
             }
         } catch (err) {
             console.error("API fetch failed:", err.message);
-            set({ isSyncing: false });
+            toast.error(`Could not load market items: ${err.message}`, {
+                id: "fetch-items-fail",
+                duration: 5000,
+            });
+            set({ items: [], isSyncing: false });
         }
     },
 

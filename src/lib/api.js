@@ -5,21 +5,28 @@
 
 import { auth } from "../firebase";
 
-// Forced production domains
-const isProductionHost = typeof window !== 'undefined' &&
-    (window.location.hostname.includes('vercel.app') ||
-        window.location.hostname.includes('starranker.io') ||
-        window.location.hostname.includes('web.app'));
+/**
+ * Resolve API base URL.
+ * - VITE_API_URL wins when set (Vercel / .env.production).
+ * - Local dev only: localhost / 127.0.0.1 → http://localhost:3001
+ * - Any other deployed host (custom domain, preview URL, etc.) → Render production API
+ *   (Previously we fell back to localhost unless hostname matched a short allowlist — that broke
+ *   some production sites and showed empty markets.)
+ */
+function resolveApiUrl() {
+    const fromEnv = (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL)
+        ? String(import.meta.env.VITE_API_URL).trim().replace(/\/$/, "")
+        : "";
+    if (fromEnv) return fromEnv;
 
-// Override via Vite env (Vercel project env) if the API host changes
-const envApi = typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL;
+    if (typeof window !== "undefined") {
+        const h = window.location.hostname;
+        if (h === "localhost" || h === "127.0.0.1") return "http://localhost:3001";
+    }
+    return "https://star-ranker.onrender.com";
+}
 
-// Absolute priority to Render if on production host
-export const API_URL = envApi && String(envApi).trim()
-    ? String(envApi).trim().replace(/\/$/, "")
-    : (typeof window !== 'undefined' && window.location.hostname === 'localhost')
-        ? "http://localhost:3001"
-        : (isProductionHost ? "https://star-ranker.onrender.com" : "http://localhost:3001");
+export const API_URL = resolveApiUrl();
 
 async function getAuthHeaders() {
     const user = auth.currentUser;
