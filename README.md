@@ -11,7 +11,8 @@
 npm install
 
 # Set environment variables (copy .env.example to .env)
-# Required: DATABASE_URL (Neon Postgres), Firebase config
+# Required: DATABASE_URL (Neon **Postgres** URI `postgresql://…`, not the REST URL), Firebase config
+# On startup the API creates any missing tables (fresh Neon project = no manual `drizzle-kit push`).
 
 # Start the Express API server
 npm run server
@@ -26,14 +27,24 @@ npm run dev
 
 ### Production auth (Vercel + Render)
 
-1. **Vercel (frontend)** — set all `VITE_FIREBASE_*` variables from Firebase Console. Add your Vercel domain under **Authentication → Settings → Authorized domains** (e.g. `star-ranker.vercel.app`).
-2. **Render (API)** — set `FIREBASE_SERVICE_ACCOUNT_JSON` to the **full JSON** of a Firebase service account (Project settings → Service accounts). Without this, `verifyIdToken` fails and logged-in users get **401** on `/api/admin/users/me`, voting, etc.
+1. **Vercel (frontend)** — set all `VITE_FIREBASE_*` variables from Firebase Console. Set **`VITE_SUPER_ADMIN_EMAILS`** to the same comma-separated list as Render’s **`SUPER_ADMIN_EMAILS`** so Terminal / Meta Controls / Admin ZMG only appear for those accounts. Add your Vercel domain under **Authentication → Settings → Authorized domains** (e.g. `star-ranker.vercel.app`).
+2. **Render (API)** — set `FIREBASE_SERVICE_ACCOUNT_JSON` to the **full JSON** of a Firebase service account (Project settings → Service accounts). Without this, `verifyIdToken` fails and logged-in users get **401** on `/api/admin/users/me`, voting, etc. Set **`SUPER_ADMIN_EMAILS`** (comma-separated) for who may use system-core admin APIs (seed, killswitch, revenue, ledger, …); redeploy after changing it.
 3. **CORS** — any `https://*.vercel.app` origin is allowed by default; override with `CORS_ORIGIN` or comma-separated `CORS_ORIGINS` if needed.
 4. Optional: `VITE_API_URL` on Vercel if the API base URL is not `https://star-ranker.onrender.com`.
 
 ### Categories / items missing (empty markets)
 
 Data lives in **Postgres** (Neon). If the DB was reset, swapped, or never seeded, lists will be empty.
+
+**Only “Cultural Zeitgeist” / `trending`:** The discovery worker creates that category plus a few items. The full **10 markets + ~1.5k items** come from a **full seed** (below). If Render logs show `relation "epochs" does not exist`, the API was an **older build** that only created `categories`/`items` — **push latest `main` to GitHub and redeploy** so startup + seed can create `epochs`, `market_meta`, and the rest.
+
+**Ops Overwatch → Seed Database:** Same as `runFullSeed` (creates missing tables first). **Only super-admin emails** may call `POST /api/admin/seed` (see `SUPER_ADMIN_EMAILS` on the server). Everyone else should use **`GET /api/seed-database?key=…`** with `API_SEED_KEY`, or the public **`/api/seed-categories`** + **`/api/seed-items/:slug`** chain.
+
+**Check DB connectivity:** `GET /api/health` (no DB) and `GET /api/health/db` (runs `SELECT 1` against Neon; on failure returns `detail` and `pgCode`, e.g. `28P01` = wrong password in `DATABASE_URL`).
+
+**“Password authentication failed” / `28P01`:** Render’s `DATABASE_URL` does not match Neon (old password, typo, or new Neon project). In Neon: **Connection details** → copy the full **connection string** → Render → **Environment** → update `DATABASE_URL` → **Save** → **Manual Deploy**. The API retries a few times on boot for Neon resume; in production it **exits** if the DB never connects (so the deploy shows as failed instead of a “live” broken app). Set `ALLOW_START_WITHOUT_DB=1` only for debugging.
+
+**Copying an old Neon database:** Render does not hold your data—only Neon does. To move data from an old project: use Neon **branch/restore** if available, or `pg_dump` from the old database and restore into the new one (Neon docs / SQL editor). After that, point `DATABASE_URL` at the database that has the data.
 
 **Option A — one request (after setting a secret on Render)**  
 1. In Render → your API service → **Environment**, add `API_SEED_KEY` to a long random string. Redeploy.  

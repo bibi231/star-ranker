@@ -3,6 +3,7 @@
  * Used by CLI (seedAll.ts), HTTP /api/seed-database, and POST /api/admin/seed.
  */
 import { inArray, sql } from "drizzle-orm";
+import { bootstrapFreshSchema } from "../db/bootstrapFreshSchema";
 import { db } from "../db/index";
 import { categories, items, epochs, marketMeta } from "../db/schema";
 import { CATEGORIES, SEED_ITEMS, getCuratedSeedItems } from "../data/seedData";
@@ -12,6 +13,9 @@ const ITEM_CHUNK = 20;
 
 export async function runFullSeed(): Promise<{ categories: number; items: number }> {
     let itemCount = 0;
+
+    // Ensures epochs, market_meta, notifications, etc. exist (Neon reset / old partial schema).
+    await bootstrapFreshSchema();
 
     await db.insert(categories).values(CATEGORIES).onConflictDoUpdate({
         target: categories.slug,

@@ -125,20 +125,38 @@ if (process.env.SENTRY_DSN && (Sentry as any).Handlers) {
 
 import { sql } from "drizzle-orm";
 
-import { db } from "./db/index";
+import { formatDbConnectError } from "./lib/formatDbError";
+import { db, probePostgres, probePostgresWithRetry } from "./db/index";
+import { bootstrapFreshSchema } from "./db/bootstrapFreshSchema";
 
 import { categories, items as itemsTable, epochs, marketMeta } from "./db/schema";
 import { CATEGORIES, getCuratedSeedItems } from "./data/seedData";
 import { runFullSeed } from "./lib/runFullSeed";
 
-// Health check
+// Health check (no DB — safe for Render keep-alive)
 app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", timestamp: Date.now() });
+});
+
+/** Verifies DATABASE_URL / Neon connectivity (optional diagnostics). */
+app.get("/api/health/db", async (_req, res) => {
+    const r = await probePostgres();
+    if (r.ok) {
+        return res.json({ status: "ok", db: true, timestamp: Date.now() });
+    }
+    res.status(503).json({
+        status: "error",
+        db: false,
+        detail: r.detail,
+        pgCode: r.pgCode,
+        timestamp: Date.now(),
+    });
 });
 
 // Seed all categories (quick)
 app.get("/api/seed-categories", async (_req, res) => {
     try {
+        await bootstrapFreshSchema();
         for (const cat of CATEGORIES) {
             await db.insert(categories).values(cat)
                 .onConflictDoUpdate({ target: categories.slug, set: { title: cat.title, description: cat.description } });
@@ -215,8 +233,8 @@ async function ensureSchemaPatches(): Promise<void> {
         try {
             await db.execute(sql.raw(statement));
             console.log(`[schema] ${label} OK`);
-        } catch (e: any) {
-            console.warn(`[schema] ${label} skipped:`, e?.message || e);
+        } catch (e: unknown) {
+            console.warn(`[schema] ${label} skipped:`, formatDbConnectError(e));
         }
     };
 
@@ -313,34 +331,83 @@ async function ensureSchemaPatches(): Promise<void> {
     }
 }
 
-void ensureSchemaPatches().then(() => {
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`\n⚡ Star Ranker API running on port ${PORT} (0.0.0.0)\n`);
+function isProductionDeploy(): boolean {
+    return process.env.NODE_ENV === "production" || process.env.RENDER === "true";
+}
 
-    // Start background engines
-    startEpochScheduler();   // Auto-rolls epochs every 30 min
-    startRankingEngine();    // Reifies rankings every 60s
-    startCryptoFeed();       // Real crypto prices every 5 min
-    startZeitgeistWorker();  // Discover trending markets
+async function startApi(): Promise<void> {
+    const allowNoDb = process.env.ALLOW_START_WITHOUT_DB === "1";
 
-    // ── Render.com keep-alive (prevents free-tier cold starts) ──────────────
-    // Render spins down after 15 min of inactivity. This self-ping every
-    // 14 min keeps the server warm. Only runs in production when RENDER_URL is set.
-    // Example: RENDER_URL=https://star-ranker-api.onrender.com
-    const RENDER_URL = process.env.RENDER_URL;
-    if (RENDER_URL) {
-        const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
-        setInterval(async () => {
-            try {
-                const res = await fetch(`${RENDER_URL}/api/health`);
-                if (res.ok) {
-                    console.log(`[keep-alive] pinged ${RENDER_URL}/api/health ✓`);
-                }
-            } catch (err) {
-                console.warn(`[keep-alive] ping failed:`, err);
-            }
-        }, PING_INTERVAL_MS);
-        console.log(`[keep-alive] Self-ping active every 14 min → ${RENDER_URL}/api/health`);
+    if (!process.env.DATABASE_URL?.trim()) {
+        console.error(
+            "[DB] DATABASE_URL is missing. Set it in Render → Environment to your Neon connection string (postgresql://…)."
+        );
+        if (isProductionDeploy() && !allowNoDb) {
+            process.exit(1);
+        }
     }
-});
+
+    const probe = await probePostgresWithRetry(5, 2500);
+    if (!probe.ok) {
+        console.error("[DB] Cannot connect to Postgres after retries:", probe.detail);
+        if (probe.pgCode === "28P01") {
+            console.error(
+                `[DB] Auth failed (28P01): password in DATABASE_URL does not match Neon.\n` +
+                    `  → Neon Dashboard → your project → Connection string → copy the full URI.\n` +
+                    `  → Render → Environment → DATABASE_URL → paste and Save, then Manual Deploy.\n` +
+                    `  (Use the string Neon gives you; special characters in the password are already URL-encoded.)`
+            );
+        }
+        if (isProductionDeploy() && !allowNoDb) {
+            console.error("[DB] Refusing to start background workers without a working database. Exiting.");
+            process.exit(1);
+        }
+        console.warn("[DB] Continuing anyway (dev or ALLOW_START_WITHOUT_DB=1). API routes that need the DB will fail.");
+    }
+
+    const dbReady = probe.ok;
+
+    await bootstrapFreshSchema();
+    await ensureSchemaPatches();
+
+    app.listen(PORT, "0.0.0.0", () => {
+        console.log(`\n⚡ Star Ranker API running on port ${PORT} (0.0.0.0)\n`);
+
+        // Background engines need Postgres (same as before when DATABASE_URL was correct)
+        if (dbReady) {
+            startEpochScheduler();   // Auto-rolls epochs every 30 min
+            startRankingEngine();    // Reifies rankings every 60s
+            startCryptoFeed();       // Real crypto prices every 5 min
+            startZeitgeistWorker();  // Discover trending markets
+        } else {
+            console.warn(
+                "[DB] Skipping epoch scheduler, ranking engine, CoinGecko, and Zeitgeist until DATABASE_URL works."
+            );
+        }
+
+        // ── Render.com keep-alive (prevents free-tier cold starts) ──────────────
+        // Render spins down after 15 min of inactivity. This self-ping every
+        // 14 min keeps the server warm. Only runs in production when RENDER_URL is set.
+        // Example: RENDER_URL=https://star-ranker-api.onrender.com
+        const RENDER_URL = process.env.RENDER_URL;
+        if (RENDER_URL) {
+            const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
+            setInterval(async () => {
+                try {
+                    const res = await fetch(`${RENDER_URL}/api/health`);
+                    if (res.ok) {
+                        console.log(`[keep-alive] pinged ${RENDER_URL}/api/health ✓`);
+                    }
+                } catch (err) {
+                    console.warn(`[keep-alive] ping failed:`, err);
+                }
+            }, PING_INTERVAL_MS);
+            console.log(`[keep-alive] Self-ping active every 14 min → ${RENDER_URL}/api/health`);
+        }
+    });
+}
+
+void startApi().catch((err) => {
+    console.error("[startup] Fatal error:", err);
+    process.exit(1);
 });

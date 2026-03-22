@@ -30,6 +30,7 @@ import AdminOpsPage from "./pages/AdminOpsPage";
 import EpochHistoryPage from "./pages/EpochHistoryPage";
 import { EmailVerificationGuard } from "./components/auth/EmailVerificationGuard";
 import { LegalModal } from "./components/LegalModal";
+import { isSuperAdminEmail } from "./lib/superAdmins.js";
 
 // Legal Policies
 import { TermsPage } from "./pages/legal/TermsPage";
@@ -46,7 +47,6 @@ function App() {
     isAuthLoading,
     syncUser,
     user,
-    tier
   } = useStore();
 
   useEffect(() => {
@@ -144,11 +144,11 @@ function App() {
             } />
             <Route path="/profile/:username" element={<UserProfilePage />} />
 
-            {/* Operational Overwatch (Admin) */}
-            <Route path="/admin" element={user && user.isAdmin ? <AdminPage /> : <Navigate to="/markets" replace />} />
-            <Route path="/admin/zmg" element={user && user.isAdmin ? <AdminZMGPage /> : <Navigate to="/markets" replace />} />
-            <Route path="/admin/ops" element={user && (user.isAdmin || user.isModerator) ? <AdminOpsPage /> : <Navigate to="/markets" replace />} />
-            <Route path="/health" element={user && user.isAdmin ? <HealthPage /> : <Navigate to="/markets" replace />} />
+            {/* System core — super-admin emails only (see SUPER_ADMIN_EMAILS / VITE_SUPER_ADMIN_EMAILS) */}
+            <Route path="/admin" element={user && isSuperAdminEmail(user.email) ? <AdminPage /> : <Navigate to="/markets" replace />} />
+            <Route path="/admin/zmg" element={user && isSuperAdminEmail(user.email) ? <AdminZMGPage /> : <Navigate to="/markets" replace />} />
+            <Route path="/admin/ops" element={user && isSuperAdminEmail(user.email) ? <AdminOpsPage /> : <Navigate to="/markets" replace />} />
+            <Route path="/health" element={user && isSuperAdminEmail(user.email) ? <HealthPage /> : <Navigate to="/markets" replace />} />
           </Route>
 
           {/* Global Fallback */}

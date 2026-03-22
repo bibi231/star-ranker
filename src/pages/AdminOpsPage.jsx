@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../store/storeModel';
 import { cn } from '../lib/utils';
+import { isSuperAdminEmail } from '../lib/superAdmins.js';
 import { apiGet } from '../lib/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import toast from 'react-hot-toast';
@@ -69,7 +70,7 @@ export default function AdminOpsPage() {
         setLoading(false);
     };
 
-    if (!user?.isAdmin && !user?.isModerator) {
+    if (!user?.email || !isSuperAdminEmail(user.email)) {
         return (
             <div className="h-full flex items-center justify-center bg-black">
                 <div className="text-center space-y-4">
@@ -88,7 +89,7 @@ export default function AdminOpsPage() {
                 <div>
                     <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter italic">Operational Overwatch</h1>
                     <p className="text-rose-500 text-[10px] md:text-xs font-bold uppercase tracking-widest mt-1">
-                        [ STATUS: {user.isAdmin ? 'SUPER-ADMIN' : 'MODERATOR'} AUTHENTICATED ]
+                        [ STATUS: SUPER-ADMIN AUTHENTICATED ]
                     </p>
                 </div>
                 <div className="text-left md:text-right text-[10px] text-slate-500 uppercase leading-none mt-2 md:mt-0">
@@ -118,11 +119,11 @@ export default function AdminOpsPage() {
                     className={cn(
                         "w-full md:w-auto px-8 py-4 font-black uppercase text-sm rounded-xl transform transition-transform md:group-hover:scale-105 active:scale-95 shadow-lg flex-shrink-0 text-center",
                         adminState.killswitch ? "bg-white text-rose-600 shadow-white/20" : "bg-rose-600 text-white shadow-rose-600/40",
-                        !user?.isAdmin && "opacity-50 cursor-not-allowed grayscale pointer-events-none"
+                        !isSuperAdminEmail(user?.email) && "opacity-50 cursor-not-allowed grayscale pointer-events-none"
                     )}
-                    disabled={loading || !user?.isAdmin}
+                    disabled={loading || !isSuperAdminEmail(user?.email)}
                 >
-                    {!user?.isAdmin ? "SUPERADMIN ONLY" : (adminState.killswitch ? "DEACTIVATE LOCKDOWN" : "ACTIVATE KILLSWITCH")}
+                    {!isSuperAdminEmail(user?.email) ? "SUPERADMIN ONLY" : (adminState.killswitch ? "DEACTIVATE LOCKDOWN" : "ACTIVATE KILLSWITCH")}
                 </button>
             </div>
 
@@ -206,7 +207,7 @@ export default function AdminOpsPage() {
                                         desc="Halt global epoch progression and snapshots."
                                         onAction={() => handleAction('toggleEpochProgression', { isPaused: true }, 'Pause Epochs')}
                                         color="rose"
-                                        disabled={adminState.epochsPaused || !user?.isAdmin}
+                                        disabled={adminState.epochsPaused || !isSuperAdminEmail(user?.email)}
                                     />
                                     <ControlCard
                                         icon={<Play />}
@@ -214,15 +215,15 @@ export default function AdminOpsPage() {
                                         desc="Resume standard 30-minute epoch cycles."
                                         onAction={() => handleAction('toggleEpochProgression', { isPaused: false }, 'Resume Epochs')}
                                         color="blue"
-                                        disabled={!adminState.epochsPaused || !user?.isAdmin}
+                                        disabled={!adminState.epochsPaused || !isSuperAdminEmail(user?.email)}
                                     />
                                     <ControlCard
                                         icon={<RefreshCw />}
                                         title="Force Rollover"
-                                        desc={user?.isAdmin ? "Trigger an immediate epoch close and snapshot." : "SUPERADMIN ONLY"}
+                                        desc={isSuperAdminEmail(user?.email) ? "Trigger an immediate epoch close and snapshot." : "SUPERADMIN ONLY"}
                                         onAction={() => handleAction('forceEpochRollover', {}, 'Force Rollover')}
                                         color="orange"
-                                        disabled={!user?.isAdmin}
+                                        disabled={!isSuperAdminEmail(user?.email)}
                                     />
                                 </div>
                             </div>
@@ -243,14 +244,14 @@ export default function AdminOpsPage() {
                                         Shadow Ban
                                     </button>
                                     <button
-                                        disabled={!user?.isAdmin}
-                                        onClick={() => user?.isAdmin && handleAction('wipeAccount', {}, 'Wipe Account')}
+                                        disabled={!isSuperAdminEmail(user?.email)}
+                                        onClick={() => isSuperAdminEmail(user?.email) && handleAction('wipeAccount', {}, 'Wipe Account')}
                                         className={cn(
                                             "px-6 py-3 font-bold uppercase text-xs rounded-xl transition-all",
-                                            user?.isAdmin ? "bg-rose-900/30 text-rose-500 hover:bg-rose-600 hover:text-white" : "bg-slate-800 text-slate-600 cursor-not-allowed grayscale"
+                                            isSuperAdminEmail(user?.email) ? "bg-rose-900/30 text-rose-500 hover:bg-rose-600 hover:text-white" : "bg-slate-800 text-slate-600 cursor-not-allowed grayscale"
                                         )}
                                     >
-                                        {user?.isAdmin ? "Wipe Account" : "ADMIN ONLY"}
+                                        {isSuperAdminEmail(user?.email) ? "Wipe Account" : "ADMIN ONLY"}
                                     </button>
                                 </div>
                             </div>

@@ -30,6 +30,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store/storeModel';
 import { cn } from '../../lib/utils';
+import { isSuperAdminEmail } from '../../lib/superAdmins.js';
 import EpochIndicator from '../epochs/EpochIndicator';
 import { LiveTicker } from '../LiveTicker';
 import { Web3Status } from '../Web3Status';
@@ -120,10 +121,12 @@ export function MainLayout() {
                         <NavItem to="/notifications" icon={Bell} label="Alerts" compact={!isSidebarOpen} />
                         <NavItem to="/settings" icon={Settings} label="Settings" compact={!isSidebarOpen} />
                         <NavItem to="/history" icon={History} label="History" compact={!isSidebarOpen} />
-                        {user?.isAdmin && <NavItem to="/admin/zmg" icon={PlusSquare} label="Admin ZMG" compact={!isSidebarOpen} />}
+                        {user?.email && isSuperAdminEmail(user.email) && (
+                            <NavItem to="/admin/zmg" icon={PlusSquare} label="Admin ZMG" compact={!isSidebarOpen} />
+                        )}
                     </NavSection>
 
-                    {(user?.isAdmin || user?.isModerator) && (
+                    {user?.email && isSuperAdminEmail(user.email) && (
                         <NavSection title="SYSTEM CORE" compact={!isSidebarOpen}>
                             <NavItem to="/admin" icon={Terminal} label="Terminal" compact={!isSidebarOpen} />
                             <NavItem to="/admin/ops" icon={Shield} label="Meta Controls" compact={!isSidebarOpen} />
@@ -229,10 +232,12 @@ export function MainLayout() {
                                     <NavItem to="/portfolio" icon={LayoutDashboard} label="Portfolio" onClick={() => setIsMobileMenuOpen(false)} />
                                     <NavItem to="/notifications" icon={Bell} label="Alerts" onClick={() => setIsMobileMenuOpen(false)} />
                                     <NavItem to="/settings" icon={Settings} label="Settings" onClick={() => setIsMobileMenuOpen(false)} />
-                                    {user?.isAdmin && <NavItem to="/admin/zmg" icon={PlusSquare} label="Admin ZMG" onClick={() => setIsMobileMenuOpen(false)} />}
+                                    {user?.email && isSuperAdminEmail(user.email) && (
+                                        <NavItem to="/admin/zmg" icon={PlusSquare} label="Admin ZMG" onClick={() => setIsMobileMenuOpen(false)} />
+                                    )}
                                 </NavSection>
 
-                                {(user?.isAdmin || user?.isModerator) && (
+                                {user?.email && isSuperAdminEmail(user.email) && (
                                     <NavSection title="SYSTEM CORE">
                                         <NavItem to="/admin" icon={Terminal} label="Terminal" onClick={() => setIsMobileMenuOpen(false)} />
                                         <NavItem to="/admin/ops" icon={Shield} label="Meta Controls" onClick={() => setIsMobileMenuOpen(false)} />

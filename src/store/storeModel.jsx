@@ -15,6 +15,7 @@ import {
 } from "firebase/auth";
 import toast from "react-hot-toast";
 import { apiGet, apiPost, clearCategoriesCache } from "../lib/api";
+import { isSuperAdminEmail } from "../lib/superAdmins.js";
 
 export const useStore = create((set, get) => ({
     user: null,
@@ -93,9 +94,8 @@ export const useStore = create((set, get) => ({
         if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') return;
         set({ isAuthLoading: true });
 
-        const SUPER_ADMINS = ['peterjohn2343@gmail.com', 'admin@starranker.io'];
-        const isSuperAdmin = SUPER_ADMINS.includes(email);
-        const isModerator = isSuperAdmin || email.includes('moderator');
+        const superUser = isSuperAdminEmail(email);
+        const isModerator = superUser || email.includes('moderator');
 
         // Mock a user object
         const mockUser = {
@@ -103,9 +103,10 @@ export const useStore = create((set, get) => ({
             email,
             displayName: `Dev ${email.split('@')[0]}`,
             emailVerified: true,
-            isAdmin: isSuperAdmin,
+            isSuperAdmin: superUser,
+            isAdmin: superUser,
             isModerator: isModerator,
-            tier: isSuperAdmin ? "Oracle" : (isModerator ? "Sage" : "Newbie"),
+            tier: superUser ? "Oracle" : (isModerator ? "Sage" : "Newbie"),
             getIdToken: async () => "mock-token-for-dev"
         };
 
@@ -411,8 +412,7 @@ export const useStore = create((set, get) => ({
 
     fetchUserProfile: async () => {
         if (!auth.currentUser) return;
-        const SUPER_ADMINS = ['peterjohn2343@gmail.com', 'admin@starranker.io'];
-        const isSuperAdminEmail = SUPER_ADMINS.includes(auth.currentUser.email);
+        const superUser = isSuperAdminEmail(auth.currentUser.email);
 
         try {
             const ref = sessionStorage.getItem('starranker_ref');
@@ -422,12 +422,16 @@ export const useStore = create((set, get) => ({
             set({
                 balance: Number(profile.balance) || 0,
                 reputation: profile.reputation || 0,
-                tier: isSuperAdminEmail ? "Oracle" : (profile.tier || "Newbie"),
+                tier: superUser ? "Oracle" : (profile.tier || "Newbie"),
                 user: {
                     ...auth.currentUser,
-                    isAdmin: isSuperAdminEmail || (profile.isAdmin ?? (profile.tier === "Oracle")),
-                    isModerator: isSuperAdminEmail || (profile.isModerator ?? ["Sage", "Oracle"].includes(profile.tier)),
-                    ...profile
+                    ...profile,
+                    // System-core UI: only configured super-admin emails (ignore DB is_admin / Oracle for nav)
+                    isSuperAdmin: superUser,
+                    isAdmin: superUser,
+                    isModerator:
+                        superUser ||
+                        (profile.isModerator ?? ["Sage", "Oracle"].includes(profile.tier)),
                 }
             });
 
@@ -435,12 +439,13 @@ export const useStore = create((set, get) => ({
             get().fetchStakes();
         } catch (err) {
             console.warn("Could not fetch profile:", err);
-            if (isSuperAdminEmail) {
+            if (superUser) {
                 // Emergency fallback for superadmin to ensure UI access
                 set({
                     tier: "Oracle",
                     user: {
                         ...auth.currentUser,
+                        isSuperAdmin: true,
                         isAdmin: true,
                         isModerator: true
                     }

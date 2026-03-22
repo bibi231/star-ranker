@@ -6,17 +6,16 @@ import { eq, sql, count, desc } from "drizzle-orm";
 import { settleBets } from "../engine/settlement";
 import { sendEmail, templates } from "../lib/email";
 import { reifyRankings } from "../engine/rankingEngine";
+import { formatDbConnectError } from "../lib/formatDbError";
 import { runFullSeed } from "../lib/runFullSeed";
+import { isSuperAdminEmail } from "../lib/superAdmins";
 
 const router = Router();
-
-// Helper to check for Super Admin bypass
-const isSuperAdmin = (email: string | undefined) => email === 'peterjohn2343@gmail.com';
 
 // POST /api/admin/killswitch — Toggle global trading killswitch
 router.post("/killswitch", requireAuth, async (req: AuthRequest, res) => {
     try {
-        if (!isSuperAdmin(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
 
         const currentState = await db.select().from(adminConfig).where(eq(adminConfig.key, 'global_state')).limit(1);
         const currentToggle = currentState[0]?.killswitch ?? false;
@@ -34,7 +33,7 @@ router.post("/killswitch", requireAuth, async (req: AuthRequest, res) => {
 // POST /api/admin/toggle-epochs — Toggle automatic epoch progression
 router.post("/toggle-epochs", requireAuth, async (req: AuthRequest, res) => {
     try {
-        if (!isSuperAdmin(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
         const { isPaused } = req.body;
 
         await db.update(adminConfig)
@@ -53,16 +52,9 @@ router.post("/seed", requireAuth, async (req: AuthRequest, res) => {
         // Log actor
         console.log(`Admin action: SEED by ${req.userEmail}`);
 
-        // Super-admin email, DB isAdmin, or Oracle tier may seed (UI allows Ops Overwatch for moderators too)
-        const caller = await db.select().from(users).where(eq(users.firebaseUid, req.uid!)).limit(1);
-        const row = caller[0];
-        const maySeed =
-            isSuperAdmin(req.userEmail) ||
-            row?.tier === "Oracle" ||
-            row?.isAdmin === true;
-        if (!maySeed) {
+        if (!isSuperAdminEmail(req.userEmail)) {
             return res.status(403).json({
-                error: "Access Denied: seed requires an admin account (isAdmin in database) or Oracle tier.",
+                error: "Access Denied: full database seed is restricted to super-admin accounts (SUPER_ADMIN_EMAILS).",
             });
         }
 
@@ -78,18 +70,17 @@ router.post("/seed", requireAuth, async (req: AuthRequest, res) => {
         }).onConflictDoNothing();
 
         res.json({ success: true, categories: catCount, items: itemCount });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Seed error:", error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: formatDbConnectError(error) });
     }
 });
 
 // POST /api/admin/settle — Manually trigger stake settlement
 router.post("/settle", requireAuth, async (req: AuthRequest, res) => {
     try {
-        if (!isSuperAdmin(req.userEmail)) {
-            const caller = await db.select().from(users).where(eq(users.firebaseUid, req.uid!)).limit(1);
-            if (caller[0]?.tier !== 'Oracle') return res.status(403).json({ error: "Unauthorized" });
+        if (!isSuperAdminEmail(req.userEmail)) {
+            return res.status(403).json({ error: "Unauthorized" });
         }
 
         const result = await settleBets();
@@ -103,8 +94,9 @@ router.post("/settle", requireAuth, async (req: AuthRequest, res) => {
 });
 
 // POST /api/admin/reify — Manually trigger ranking reification
-router.post("/reify", requireAuth, async (_req, res) => {
+router.post("/reify", requireAuth, async (req: AuthRequest, res) => {
     try {
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
         await reifyRankings();
         res.json({ success: true, message: "Rankings reified across all categories" });
     } catch (error: any) {
@@ -114,8 +106,9 @@ router.post("/reify", requireAuth, async (_req, res) => {
 });
 
 // GET /api/admin/stats — System stats
-router.get("/stats", requireAuth, async (_req, res) => {
+router.get("/stats", requireAuth, async (req: AuthRequest, res) => {
     try {
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
         const [userCount] = await db.select({ count: count() }).from(users);
         const [itemCount] = await db.select({ count: count() }).from(items);
         const [categoryCount] = await db.select({ count: count() }).from(categories);
@@ -143,8 +136,8 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
             const referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
 
             // Super admin gets Oracle tier by default
-            const initialTier = isSuperAdmin(email) ? "Oracle" : "Initiate";
-            const initialRep = isSuperAdmin(email) ? 1000 : 100;
+            const initialTier = isSuperAdminEmail(email) ? "Oracle" : "Initiate";
+            const initialRep = isSuperAdminEmail(email) ? 1000 : 100;
 
             const newUser = await db.insert(users).values({
                 firebaseUid: req.uid!,
@@ -153,7 +146,7 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
                 balance: 0,
                 reputation: initialRep,
                 tier: initialTier,
-                isAdmin: isSuperAdmin(email),
+                isAdmin: isSuperAdminEmail(email),
                 referralCode,
                 referredBy,
             }).returning();
@@ -167,7 +160,7 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
             }
         } else {
             // Update existing user if super admin
-            if (isSuperAdmin(email) && !user[0].isAdmin) {
+            if (isSuperAdminEmail(email) && !user[0].isAdmin) {
                 const updated = await db.update(users)
                     .set({ isAdmin: true, tier: 'Oracle' })
                     .where(eq(users.firebaseUid, req.uid!))
@@ -208,6 +201,7 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
 // POST /api/admin/test-email — Test SMTP configuration
 router.post("/test-email", requireAuth, async (req: AuthRequest, res) => {
     try {
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
         const result = await sendEmail(
             req.body.email || "test@example.com",
             "Star Ranker SMTP Test",
@@ -225,6 +219,7 @@ router.post("/test-email", requireAuth, async (req: AuthRequest, res) => {
 // GET /api/admin/revenue — Dashboard revenue metrics
 router.get("/revenue", requireAuth, async (req: AuthRequest, res) => {
     try {
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
         // Aggregate platformRevenue from marketMeta
         const metaResult = await db.select({
             totalRevenue: sql<number>`SUM(${marketMeta.platformRevenue})`
@@ -283,7 +278,7 @@ router.get("/revenue", requireAuth, async (req: AuthRequest, res) => {
 // GET /api/admin/ledger-audit — Deep audit of recent financial events
 router.get("/ledger-audit", requireAuth, async (req: AuthRequest, res) => {
     try {
-        if (!isSuperAdmin(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
 
         const recentTransactions = await db.select()
             .from(transactions)
@@ -307,7 +302,7 @@ router.get("/ledger-audit", requireAuth, async (req: AuthRequest, res) => {
 // POST /api/admin/rescue-deposit — Manually credit a missed Paystack transaction
 router.post("/rescue-deposit", requireAuth, async (req: AuthRequest, res) => {
     try {
-        if (!isSuperAdmin(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
 
         const { reference, userId, amountNgn } = req.body;
         if (!reference || !userId || !amountNgn) {
