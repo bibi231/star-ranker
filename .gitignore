@@ -1,4 +1,4 @@
-# Logs
+﻿# Logs
 logs
 *.log
 npm-debug.log*
@@ -24,14 +24,8 @@ dist-ssr
 *.sw?
 
 .vercel
-# Local / deployment env (never commit real secrets)
+.env*
 .env
-.env.*
-!.env.example
-.env.local
-.env.production
-.env.vercel
-.env.temp
 .env.vercel.prod
 serviceAccountKey.json
 
