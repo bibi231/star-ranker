@@ -37,6 +37,9 @@ if (typeof window !== "undefined") {
   }
 }
 
+import { getFirestore } from "firebase/firestore";
+
 export const firebaseApp = app;
 export const analyticsInstance = analytics;
 export const auth = getAuth(app);
+export const db = getFirestore(app);

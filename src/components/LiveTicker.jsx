@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { apiGet } from '../lib/api';
+import { useStore } from '../store/storeModel';
 
 const mockVotes = [
     { id: 1, user: "anon_42", item: "Bitcoin", direction: "up", time: "just now" },
@@ -13,6 +15,29 @@ const mockVotes = [
 ];
 
 export function LiveTicker() {
+    const [wins, setWins] = useState([]);
+    const { formatValue } = useStore();
+
+    useEffect(() => {
+        apiGet('/api/wins/recent-public')
+            .then(data => {
+                if (Array.isArray(data)) setWins(data);
+            })
+            .catch(() => {});
+    }, []);
+
+    const displayItems = wins.length > 0 ? wins.map((w, i) => ({
+        id: w.id || i,
+        user: w.username || (w.userEmail ? w.userEmail.split('@')[0] : "anon"),
+        item: w.itemName || "Asset",
+        direction: "win",
+        time: "recent",
+        amount: w.payout || 0
+    })) : mockVotes;
+
+    // Triple array to ensure smooth continuous scroll
+    const scrollingItems = [...displayItems, ...displayItems, ...displayItems];
+
     return (
         <div className="h-10 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden flex items-center shrink-0">
             <div className="bg-brand-accent h-full px-4 flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-[0.2em] z-10 shadow-[4px_0_15px_rgba(0,0,0,0.1)]">
@@ -26,16 +51,29 @@ export function LiveTicker() {
                     animate={{ x: [0, -1500] }}
                     transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
                 >
-                    {[...mockVotes, ...mockVotes, ...mockVotes].map((vote, i) => (
+                    {scrollingItems.map((vote, i) => (
                         <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-slate-500 dark:text-slate-400">
                             <span className="text-slate-900 dark:text-white underline decoration-brand-accent/20 underline-offset-4">{vote.user}</span>
-                            <span className="opacity-50 font-medium">voted</span>
-                            <span className={cn(
-                                "px-1.5 py-0.5 rounded text-[9px] font-black",
-                                vote.direction === "up" ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
-                            )}>
-                                {vote.direction.toUpperCase()}
-                            </span>
+                            
+                            {vote.direction === "win" ? (
+                                <>
+                                    <span className="opacity-50 font-medium">won</span>
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-brand-accent/10 text-brand-accent">
+                                        {formatValue(vote.amount)}
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="opacity-50 font-medium">voted</span>
+                                    <span className={cn(
+                                        "px-1.5 py-0.5 rounded text-[9px] font-black",
+                                        vote.direction === "up" ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
+                                    )}>
+                                        {vote.direction.toUpperCase()}
+                                    </span>
+                                </>
+                            )}
+                            
                             <span className="opacity-50 font-medium">on</span>
                             <span className="font-black text-slate-800 dark:text-slate-200">{vote.item}</span>
                             <span className="text-[9px] text-slate-400 font-medium ml-1">({vote.time})</span>

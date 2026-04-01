@@ -29,6 +29,8 @@ import votePacksRouter from "./routes/votePacks";
 import sponsorshipsRouter from "./routes/sponsorships";
 import activityRouter from "./routes/activity";
 import marketIntelligenceRouter from "./routes/marketIntelligence";
+import watchlistRouter from "./routes/watchlist";
+import alertsRouter from "./routes/alerts";
 
 import { startRankingEngine } from "./engine/rankingEngine";
 import { startEpochScheduler } from "./engine/epochScheduler";
@@ -98,6 +100,23 @@ app.use(globalLimiter);
 
 import usersRouter from "./routes/users";
 import currencyRouter from "./routes/currency";
+import publicStatsRouter from "./routes/publicStats";
+import publicMarketsRouter from "./routes/publicMarkets";
+import publicWinsRouter from "./routes/publicWins";
+import publicLeaderboardRouter from "./routes/publicLeaderboard";
+import portfolioRouter from "./routes/portfolio";
+import searchRouter from "./routes/search";
+
+// Public routes (no auth, aggressive caching)
+app.use("/api/stats/public", publicStatsRouter);
+app.use("/api/markets/public-preview", publicMarketsRouter);
+app.use("/api/wins/recent-public", publicWinsRouter);
+app.use("/api/leaderboard/public", publicLeaderboardRouter);
+app.use("/api/search", searchRouter);
+
+// Protected routes
+app.use("/api/user", portfolioRouter); // /api/user/portfolio
+
 
 app.use("/api/categories", categoriesRouter);
 app.use("/api/items", itemsRouter);
@@ -114,6 +133,8 @@ app.use("/api/vote-packs", votePacksRouter);
 app.use("/api/sponsorships", sponsorshipsRouter);
 app.use("/api/activity", activityRouter);
 app.use("/api/markets", marketIntelligenceRouter);
+app.use("/api/watchlist", watchlistRouter);
+app.use("/api/alerts", alertsRouter);
 app.use("/api/user", usersRouter);
 app.use("/api/currency", currencyRouter);
 

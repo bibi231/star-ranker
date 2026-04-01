@@ -188,7 +188,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                                     className={cn(
                                         "flex-1 py-1 rounded-xl text-[10px] font-black uppercase border transition-all touch-target",
                                         parseFloat(amount) === v
-                                            ? "border-[#C9A84C] text-[#C9A84C] bg-[#C9A84C]/10"
+                                            ? "border-amber-500 text-amber-500 bg-amber-500/10"
                                             : "border-white/5 text-slate-500 hover:text-white"
                                     )}
                                 >
@@ -426,7 +426,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                             ? "bg-slate-800 text-slate-600 cursor-not-allowed"
                             : useStore.getState().parseLocalToUSD(amount) > balance
                                 ? "bg-rose-500/10 text-rose-500 border border-rose-500/20 cursor-not-allowed"
-                                : "bg-[#C9A84C] text-[#0D1B2A] hover:shadow-[0_0_30px_rgba(201,168,76,0.4)] active:scale-[0.98]"
+                                : "bg-amber-500 text-slate-950 hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] active:scale-[0.98]"
                     )}
                 >
                     {isProcessing ? (
@@ -457,19 +457,19 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                         <motion.div
                             initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
                             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                            className="fixed bottom-0 left-0 right-0 z-[101] bg-[#0D1B2A] rounded-t-[2.5rem] border-t border-[#C9A84C]/30 overflow-y-auto"
+                            className="fixed bottom-0 left-0 right-0 z-[101] bg-slate-950 rounded-t-[2.5rem] border-t border-amber-500/30 overflow-y-auto"
                             style={{
                                 height: 'auto',
                                 maxHeight: `calc(${viewportHeight} * 0.95)`,
                                 paddingBottom: 'calc(var(--safe-bottom) + 16px)'
                             }}
                         >
-                            <div className="flex justify-center pt-3 pb-2 w-full sticky top-0 bg-[#0D1B2A] z-10 border-b border-white/5 shadow-md">
+                            <div className="flex justify-center pt-3 pb-2 w-full sticky top-0 bg-slate-950 z-10 border-b border-white/5 shadow-md">
                                 <div className="w-12 h-1.5 rounded-full bg-white/20" />
                             </div>
-                            <div className="p-6 pb-2 flex justify-between items-center sticky top-5 bg-[#0D1B2A] z-10">
+                            <div className="p-6 pb-2 flex justify-between items-center sticky top-5 bg-slate-950 z-10">
                                 <div className="flex items-center gap-3">
-                                    <div className="text-[#C9A84C]">
+                                    <div className="text-amber-500">
                                         <TrendingUp size={24} />
                                     </div>
                                     <h2 className="text-xl font-black text-white uppercase tracking-tighter italic">Quantum Stake</h2>
@@ -502,7 +502,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                         initial={{ scale: 0.95, opacity: 0, y: 40 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.95, opacity: 0, y: 40 }}
-                        className="relative w-full max-w-lg bg-[#0D1B2A] border border-slate-800 rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-y-auto max-h-[90vh] mx-4"
+                        className="relative w-full max-w-lg bg-slate-950 border border-slate-800 rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-y-auto max-h-[90vh] mx-4"
                         style={{ paddingBottom: 'calc(var(--safe-bottom) + 16px)' }}
                     >
                         {/* Visual Accent */}

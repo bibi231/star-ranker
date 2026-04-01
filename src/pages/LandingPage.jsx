@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, TrendingUp, Shield, BarChart3, ChevronRight, Globe, Lock } from 'lucide-react';
 import { LiveTicker } from '../components/LiveTicker';
 import { cn } from '../lib/utils';
+import { apiGet } from '../lib/api';
+import { useStore } from '../store/storeModel';
 
 export function LandingPage() {
     const navigate = useNavigate();
+    const { formatValue } = useStore();
+    const [stats, setStats] = useState({ totalVolume: 0, activeUsers: 0, totalMarkets: 0 });
+
+    useEffect(() => {
+        apiGet('/api/stats/public')
+            .then(data => {
+                if (data) setStats(data);
+            })
+            .catch(() => {});
+    }, []);
 
     return (
         <div className="min-h-screen bg-[#020617] text-white selection:bg-brand-accent/30 overflow-x-hidden">
@@ -45,7 +57,25 @@ export function LandingPage() {
                     Stake your reputation on the future. The first server-authoritative ranking platform protected by Anomalous Velocity Detection.
                 </p>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
+                {/* Live Stats Preview */}
+                <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 py-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                    <div className="flex flex-col items-center">
+                        <span className="text-3xl font-black text-white">{formatValue(stats.totalVolume || 0)}</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Total Volume</span>
+                    </div>
+                    <div className="w-1 h-8 bg-slate-800/50 rounded-full" />
+                    <div className="flex flex-col items-center">
+                        <span className="text-3xl font-black text-white">{((stats.activeUsers || 0) + (stats.totalUsers || 0)) > 0 ? ((stats.activeUsers || 0) + (stats.totalUsers || 0)).toLocaleString() : '---'}</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Live Tracers</span>
+                    </div>
+                    <div className="w-1 h-8 bg-slate-800/50 rounded-full" />
+                    <div className="flex flex-col items-center">
+                        <span className="text-3xl font-black text-brand-accent animate-pulse">{stats.totalMarkets || '---'}</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Active Markets</span>
+                    </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                     <button
                         onClick={() => navigate('/markets')}
                         className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-brand-accent text-slate-950 font-black text-sm uppercase tracking-widest hover:bg-white hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-brand-accent/20 flex items-center justify-center gap-3"

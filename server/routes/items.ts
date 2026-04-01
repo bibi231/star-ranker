@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { db } from "../db/index";
-import { items } from "../db/schema";
-import { eq, desc } from "drizzle-orm";
+import { items, epochs, epochSnapshots } from "../db/schema";
+import { eq, desc, and, lte, gte } from "drizzle-orm";
+import { calculateOdds } from "../engine/oddsCalculator";
 
 const router = Router();
 
-// GET /api/items?category=crypto — Fetch items by category slug
+// GET /api/items?category=crypto — Fetch items by category slug with odds
 router.get("/", async (req, res) => {
     try {
         const category = req.query.category as string;
@@ -13,13 +14,39 @@ router.get("/", async (req, res) => {
             return res.status(400).json({ error: "category query param required" });
         }
 
+        // Get current epoch
+        const now = new Date();
+        const [currentEpoch] = await db
+            .select()
+            .from(epochs)
+            .where(
+                and(
+                    lte(epochs.startTime, now),
+                    gte(epochs.endTime, now)
+                )
+            )
+            .limit(1);
+
+        const epochId = currentEpoch?.id || 1;
+
         const result = await db
             .select()
             .from(items)
             .where(eq(items.categorySlug, category))
-            .orderBy(desc(items.score));
+            .orderBy(desc(items.rank));
 
-        res.json(result);
+        // Add odds to each item
+        const itemsWithOdds = await Promise.all(
+            result.map(async (item) => {
+                const odds = await calculateOdds(item.id, category, epochId);
+                return {
+                    ...item,
+                    odds,
+                };
+            })
+        );
+
+        res.json(itemsWithOdds);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }
@@ -125,6 +152,43 @@ router.get("/:docId", async (req, res) => {
 
         res.json(result[0]);
     } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET /api/items/:itemId/probability-history?hours=24
+router.get("/:itemId/probability-history", async (req, res) => {
+    try {
+        const itemId = req.params.itemId;
+        const hours = parseInt((req.query.hours as string) || '24');
+
+        if (!itemId || isNaN(hours)) {
+            return res.status(400).json({ error: 'itemId and hours required' });
+        }
+
+        const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+
+        const snapshots = await db
+            .select()
+            .from(epochSnapshots)
+            .where(
+                and(
+                    eq(epochSnapshots.itemId, itemId),
+                    gte(epochSnapshots.createdAt, since)
+                )
+            );
+
+        // Map to frontend format
+        const result = snapshots.map(s => ({
+            timestamp: s.createdAt?.toISOString() || new Date().toISOString(),
+            impliedProbability: Math.round(Math.random() * 100), // Placeholder; would calculate from momentum
+            rank: s.rank,
+            momentum: 0,
+        }));
+
+        res.json(result);
+    } catch (error: any) {
+        console.error('[probability-history] Error:', error);
         res.status(500).json({ error: error.message });
     }
 });

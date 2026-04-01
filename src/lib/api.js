@@ -168,3 +168,14 @@ export async function apiPatch(path, body = {}) {
         body: JSON.stringify(body),
     }, { retries: 1, timeoutMs: 10000 });
 }
+
+export async function apiDelete(path, params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    const url = `${API_URL}${path}${queryString ? `?${queryString}` : ""}`;
+    const headers = await getAuthHeaders();
+
+    return fetchWithRetry(url, {
+        method: "DELETE",
+        headers: { ...headers, "Content-Type": "application/json" },
+    }, { retries: 1, timeoutMs: 10000 });
+}

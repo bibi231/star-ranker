@@ -1,6 +1,6 @@
 import { Router, Response } from "express";
 import { db } from "../db";
-import { users } from "../db/schema";
+import { users, achievements } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { requireAuth, AuthRequest, optionalAuth } from "../middleware/auth";
 
@@ -203,6 +203,17 @@ router.get("/reputation-history", requireAuth, async (req: AuthRequest, res: Res
         res.json({ history });
     } catch (error) {
         console.error("Error fetching reputation history:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// GET /api/user/achievements
+router.get("/achievements", requireAuth, async (req: AuthRequest, res: Response) => {
+    try {
+        const userAchievements = await db.select().from(achievements).where(eq(achievements.userId, req.uid!));
+        res.json({ achievements: userAchievements });
+    } catch (error) {
+        console.error("Error fetching achievements:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });

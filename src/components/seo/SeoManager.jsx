@@ -4,9 +4,9 @@ import { useStore } from "../../store/storeModel";
 
 const DEFAULT_TITLE = "Star Ranker | Real-Time Cultural Prediction Markets";
 const DEFAULT_DESCRIPTION =
-  "Track and predict rankings across crypto, music, sports, fashion, games, and more on Star Ranker.";
+  "Vote, rank, and stake on prediction markets across crypto, music, sports, fashion, games, and more. Live oracle-verified rankings with AVD protection.";
 const SITE_NAME = "Star Ranker";
-const DEFAULT_IMAGE = "https://star-ranker.vercel.app/favicon.png";
+const DEFAULT_IMAGE = "https://star-ranker.vercel.app/og-image.png";
 
 function upsertMeta(name, content, attr = "name") {
   let tag = document.head.querySelector(`meta[${attr}="${name}"]`);
@@ -47,19 +47,67 @@ function toTitleCase(slug = "") {
     .join(" ");
 }
 
+const PAGE_SEO = {
+  "/": {
+    title: DEFAULT_TITLE,
+    description: "Vote, rank, and stake on markets across crypto, tech, entertainment, fashion, and sports with live oracle updates.",
+  },
+  "/history": {
+    title: "Epoch History & Snapshots | Star Ranker",
+    description: "Browse immutable epoch snapshots, historical rankings, and market state archives.",
+  },
+  "/leaderboards": {
+    title: "Leaderboards | Star Ranker",
+    description: "See top performers, reputation leaders, and ranking momentum across Star Ranker markets.",
+  },
+  "/activity": {
+    title: "Live Activity Feed | Star Ranker",
+    description: "Real-time feed of votes, staking actions, and market movements across all Star Ranker prediction markets.",
+  },
+  "/how-it-works": {
+    title: "How It Works — Oracle Protocol | Star Ranker",
+    description: "Learn how Star Ranker's server-authoritative oracle protocol, Anomalous Velocity Detection, and epoch settlement system work.",
+  },
+  "/transparency": {
+    title: "Transparency & Trust | Star Ranker",
+    description: "Full transparency into Star Ranker's ranking methodology, oracle settlement process, and anti-manipulation protections.",
+  },
+  "/faq": {
+    title: "FAQ — Beta 2.0 | Star Ranker",
+    description: "Frequently asked questions about Star Ranker's prediction markets, staking, reputation, epochs, and the Beta 2.0 programme.",
+  },
+  "/api-docs": {
+    title: "API Documentation | Star Ranker",
+    description: "Developer API reference for Star Ranker's public endpoints — markets, categories, epochs, leaderboards, and more.",
+  },
+  "/legal/terms": {
+    title: "Terms of Service | Star Ranker",
+    description: "Star Ranker terms of service governing use of the prediction market platform.",
+  },
+  "/legal/privacy": {
+    title: "Privacy Policy | Star Ranker",
+    description: "How Star Ranker collects, uses, and protects your personal data.",
+  },
+  "/legal/responsible-play": {
+    title: "Responsible Play | Star Ranker",
+    description: "Star Ranker's commitment to responsible engagement and player protection guidelines.",
+  },
+  "/legal/avd-compliance": {
+    title: "AVD Compliance | Star Ranker",
+    description: "Anomalous Velocity Detection compliance framework and anti-manipulation policy.",
+  },
+};
+
 function getSeoForPath(pathname, categories, items) {
   const noIndexPaths = ["/signin", "/signup", "/admin", "/dashboard", "/settings", "/portfolio", "/notifications"];
   const noIndex = noIndexPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-  if (pathname === "/") {
-    return {
-      title: DEFAULT_TITLE,
-      description:
-        "Vote, rank, and stake on markets across crypto, tech, entertainment, fashion, and sports with live oracle updates.",
-      noIndex,
-    };
+  // Static page lookup
+  if (PAGE_SEO[pathname]) {
+    return { ...PAGE_SEO[pathname], noIndex };
   }
 
+  // Dynamic: category pages
   if (pathname === "/markets" || pathname.startsWith("/category/")) {
     const slug = pathname.startsWith("/category/") ? pathname.replace("/category/", "") : null;
     const category = slug ? categories.find((c) => c.slug === slug) : null;
@@ -71,6 +119,7 @@ function getSeoForPath(pathname, categories, items) {
     };
   }
 
+  // Dynamic: individual market pages
   if (pathname.startsWith("/market/")) {
     const id = pathname.replace("/market/", "");
     const market = items.find((i) => String(i.id) === id || i.docId === id);
@@ -78,22 +127,6 @@ function getSeoForPath(pathname, categories, items) {
     return {
       title: `${name} Market | Star Ranker`,
       description: `View live ranking movement, activity, and prediction opportunities for ${name} on Star Ranker.`,
-      noIndex,
-    };
-  }
-
-  if (pathname === "/history") {
-    return {
-      title: "Epoch History & Snapshots | Star Ranker",
-      description: "Browse immutable epoch snapshots, historical rankings, and market state archives.",
-      noIndex,
-    };
-  }
-
-  if (pathname === "/leaderboards") {
-    return {
-      title: "Leaderboards | Star Ranker",
-      description: "See top performers, reputation leaders, and ranking momentum across Star Ranker markets.",
       noIndex,
     };
   }

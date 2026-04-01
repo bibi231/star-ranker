@@ -19,13 +19,24 @@ import {
     Loader2,
     RefreshCw,
     Share2,
-    Twitter
+    Twitter,
+    Bookmark,
+    Trophy,
+    ArrowUpRight,
+    Copy,
+    Check
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { ReferralPanel } from '../components/ReferralPanel';
+import { useWatchlist } from '../hooks/useWatchlist';
+import { AchievementsGrid } from '../components/AchievementsGrid';
+import { PortfolioWidget } from '../components/PortfolioWidget';
+import { ActivityLogModal } from '../components/ActivityLogModal';
 
 export function UserDashboard() {
-    const { user, balance, reputation, stakes, reputationHistory, fetchReputationHistory, tier, setDepositOpen, formatValue, bindWallet } = useStore();
+    const { user, balance, reputation, stakes, reputationHistory, fetchReputationHistory, tier, setDepositOpen, setWithdrawalOpen, formatValue, bindWallet } = useStore();
+    const [isActivityLogOpen, setActivityLogOpen] = useState(false);
+    const [isReferralCopied, setReferralCopied] = useState(false);
     const [isResending, setIsResending] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const isMobile = useIsMobile();
@@ -50,6 +61,13 @@ export function UserDashboard() {
         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`, '_blank');
     };
 
+    const copyReferral = () => {
+        const url = `${window.location.origin}/signup?ref=${user?.referralCode || ''}`;
+        navigator.clipboard.writeText(url);
+        setReferralCopied(true);
+        setTimeout(() => setReferralCopied(false), 2000);
+    };
+
     const getRelativeTime = (date) => {
         const now = new Date();
         const diff = now - new Date(date);
@@ -62,7 +80,7 @@ export function UserDashboard() {
     };
 
     return (
-        <div className="p-4 md:p-8 space-y-8 md:space-y-12 bg-[#020617] min-h-screen">
+        <div className="p-4 md:p-8 space-y-8 md:space-y-12 bg-slate-950 min-h-screen">
 
             {/* Header / Stats Bar */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 mb-4">
@@ -74,21 +92,31 @@ export function UserDashboard() {
                 </div>
 
                 <div className="flex flex-wrap gap-4 md:gap-6 w-full lg:w-auto">
-                    <StatCard label="Available Capital" value={formatValue(balance)} icon={<Wallet size={16} />} color="text-emerald-400" />
-                    <StatCard label="Oracle Reputation" value={reputation.toLocaleString()} icon={<Star size={16} />} color="text-[#C9A84C]" />
+                    <div className="relative group">
+                        <StatCard label="Available Capital" value={formatValue(balance)} icon={<Wallet size={16} />} color="text-emerald-400" />
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => setDepositOpen(true)} className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-slate-950 transition-all">
+                                <Zap size={10} fill="currentColor" />
+                            </button>
+                            <button onClick={() => setWithdrawalOpen(true)} className="p-1.5 rounded-lg bg-slate-800/80 text-slate-400 hover:bg-amber-500 hover:text-slate-950 transition-all">
+                                <ArrowUpRight size={10} />
+                            </button>
+                        </div>
+                    </div>
+                    <StatCard label="Oracle Reputation" value={reputation.toLocaleString()} icon={<Star size={16} />} color="text-amber-500" />
                     <StatCard label="Identity Tier" value={tier} icon={<ShieldCheck size={16} />} color="text-brand-accent" />
                 </div>
             </div>
 
             {(!user || user?.balance === 0) && (
-                <div className="bg-[#C9A84C]/10 border border-[#C9A84C]/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
                     <div>
-                        <p className="text-[#C9A84C] font-bold text-lg">Welcome to Star Ranker! 🌟</p>
+                        <p className="text-amber-500 font-bold text-lg">Welcome to Star Ranker! 🌟</p>
                         <p className="text-gray-300 text-sm mt-1">Fund your wallet to start staking on rankings and growing your Oracle reputation.</p>
                     </div>
                     <button
                         onClick={() => setDepositOpen(true)}
-                        className="bg-[#C9A84C] text-[#0D1B2A] font-black px-6 py-3 rounded-xl flex-shrink-0 hover:bg-white transition-all uppercase tracking-widest text-xs"
+                        className="bg-amber-500 text-slate-950 font-black px-6 py-3 rounded-xl flex-shrink-0 hover:bg-white transition-all uppercase tracking-widest text-xs"
                     >
                         Fund Wallet
                     </button>
@@ -98,6 +126,9 @@ export function UserDashboard() {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 md:gap-10">
                 {/* Left Col: Active Stakes & Portfolio */}
                 <div className="xl:col-span-2 space-y-8 md:space-y-12">
+                    {/* Portfolio Summary */}
+                    <PortfolioWidget />
+
                     {/* Active Stakes */}
                     <SectionBox title="Active Deployments" icon={<Briefcase size={16} />}>
                         {stakes.length > 0 ? (
@@ -154,7 +185,7 @@ export function UserDashboard() {
                                     initial={{ height: 0 }}
                                     animate={{ height: `${(item.value / Math.max(140, ...(reputationHistory || []).map(r => r.value))) * 100}%` }}
                                     transition={{ delay: i * 0.03 }}
-                                    className="flex-1 bg-gradient-to-t from-[#1E3A5F]/10 via-[#38bdf8]/40 to-[#38bdf8] rounded-t-sm group relative"
+                                    className="flex-1 bg-gradient-to-t from-slate-700/10 via-sky-400/40 to-sky-400 rounded-t-sm group relative"
                                 >
                                     {/* Tooltip on hover */}
                                     <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-800 px-2 py-1 rounded text-[10px] font-black text-brand-accent transition-opacity pointer-events-none z-10 whitespace-nowrap shadow-xl">
@@ -168,10 +199,20 @@ export function UserDashboard() {
                             )}
                         </div>
                     </SectionBox>
+
+                    {/* Oracle Badges */}
+                    <SectionBox title="Oracle Badges" icon={<Trophy size={16} />}>
+                        <AchievementsGrid />
+                    </SectionBox>
                 </div>
 
                 {/* Right Col: Identity & History */}
                 <div className="space-y-8 md:space-y-12">
+                    {/* Oracle Watchlist */}
+                    <SectionBox title="Oracle Watchlist" icon={<Bookmark size={16} />}>
+                        <WatchlistWidget />
+                    </SectionBox>
+
                     <SectionBox title="Influence Archive" icon={<History size={16} />}>
                         <div className="space-y-8">
                             {user?.recentActivity?.length > 0 ? (
@@ -194,12 +235,34 @@ export function UserDashboard() {
                                 </div>
                             )}
                         </div>
-                        <button className="w-full mt-8 py-4 rounded-2xl border border-white/5 text-[10px] font-black uppercase text-slate-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-3 tracking-widest">
+                        <button 
+                            onClick={() => setActivityLogOpen(true)}
+                            className="w-full mt-8 py-4 rounded-2xl border border-white/5 text-[10px] font-black uppercase text-slate-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-3 tracking-widest"
+                        >
                             View Full Logs <ChevronRight size={14} />
                         </button>
                     </SectionBox>
 
-                    <div className="p-8 rounded-[2.5rem] bg-[#0D1B2A] border border-[#1E3A5F]/30 shadow-2xl space-y-6">
+                    <SectionBox title="Oracle Network" icon={<Share2 size={16} />}>
+                        <div className="p-6 rounded-3xl bg-slate-950 border border-white/5 space-y-4">
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
+                                Expand the network and earn <span className="text-brand-accent">Oracle Commision</span> on every successful deployment.
+                            </p>
+                            <div className="flex gap-2">
+                                <div className="flex-1 px-4 py-3 rounded-xl bg-slate-900 border border-white/5 text-[10px] font-mono text-slate-400 truncate">
+                                    {window.location.origin}/signup?ref={user?.referralCode}
+                                </div>
+                                <button
+                                    onClick={copyReferral}
+                                    className="p-3 rounded-xl bg-white/5 text-slate-400 hover:text-brand-accent hover:bg-brand-accent/10 transition-all"
+                                >
+                                    {isReferralCopied ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
+                                </button>
+                            </div>
+                        </div>
+                    </SectionBox>
+
+                    <div className="p-8 rounded-[2.5rem] bg-slate-900 border border-slate-700/30 shadow-2xl space-y-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-brand-accent/10 border border-brand-accent/20 flex items-center justify-center text-brand-accent shadow-[0_0_20px_rgba(56,189,248,0.1)]">
                                 <ShieldCheck size={24} />
@@ -243,13 +306,15 @@ export function UserDashboard() {
                     </SectionBox>
                 </div>
             </div>
+
+            <ActivityLogModal isOpen={isActivityLogOpen} onClose={() => setActivityLogOpen(false)} />
         </div>
     );
 }
 
 function StatCard({ label, value, icon, color }) {
     return (
-        <div className="px-8 py-5 rounded-[2rem] bg-[#0D1B2A] border border-[#1E3A5F]/30 shadow-2xl min-w-[200px] group hover:border-[#38bdf8]/30 transition-all">
+        <div className="px-8 py-5 rounded-[2rem] bg-slate-900 border border-slate-700/30 shadow-2xl min-w-[200px] group hover:border-sky-400/30 transition-all">
             <div className="flex items-center gap-3 mb-3">
                 <span className="text-slate-500 group-hover:text-brand-accent transition-colors">{icon}</span>
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{label}</span>
@@ -261,7 +326,7 @@ function StatCard({ label, value, icon, color }) {
 
 function SectionBox({ title, icon, children }) {
     return (
-        <div className="p-8 md:p-10 rounded-[2.5rem] bg-[#0D1B2A] border border-[#1E3A5F]/20 shadow-2xl space-y-8 overflow-hidden relative group">
+        <div className="p-8 md:p-10 rounded-[2.5rem] bg-slate-900 border border-slate-700/20 shadow-2xl space-y-8 overflow-hidden relative group">
             <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none">
                 {icon}
             </div>
@@ -271,6 +336,49 @@ function SectionBox({ title, icon, children }) {
             <div className="relative z-10">
                 {children}
             </div>
+        </div>
+    );
+}
+
+function WatchlistWidget() {
+    const { watchlist, loading } = useWatchlist();
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center py-12">
+                <Loader2 size={24} className="text-brand-accent animate-spin" />
+            </div>
+        );
+    }
+
+    if (watchlist.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-12 px-4 border border-slate-800 border-dashed rounded-2xl bg-slate-900/50">
+                <Bookmark size={32} className="text-slate-700 mb-3" />
+                <p className="text-xs font-black text-slate-500 uppercase tracking-widest text-center">Watchlist Empty</p>
+                <p className="text-[10px] text-slate-600 mt-1 max-w-[200px] text-center">Track markets to monitor vital oracle data.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+            {watchlist.map(track => {
+                const item = track.item;
+                if (!item) return null;
+                return (
+                    <div key={track.id} className="flex items-center justify-between p-4 rounded-xl bg-slate-800/40 border border-slate-700/30 hover:bg-slate-800/60 transition-colors">
+                        <div className="flex items-center gap-3">
+                            <span className="font-mono text-sm font-black italic text-brand-accent">#{item.rank || '-'}</span>
+                            <div className="flex flex-col">
+                                <span className="text-xs font-black text-white uppercase">{item.name}</span>
+                                <span className="text-[10px] font-mono text-slate-400">{item.score ? Math.floor(item.score).toLocaleString() + ' pts' : 'N/A'}</span>
+                            </div>
+                        </div>
+                        <Bookmark size={16} className="text-brand-accent fill-brand-accent/20" />
+                    </div>
+                );
+            })}
         </div>
     );
 }

@@ -144,6 +144,9 @@ export const users = pgTable("users", {
     isAdmin: boolean("is_admin").default(false),
     isModerator: boolean("is_moderator").default(false),
     isBanned: boolean("is_banned").default(false),
+    dailyStreak: integer('daily_streak').default(0),
+    longestStreak: integer('longest_streak').default(0),
+    lastActiveDate: timestamp('last_active_date'),
     createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -262,4 +265,41 @@ export const comments = pgTable("comments", {
     createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
     index("comments_item_idx").on(table.itemDocId),
+]);
+
+// ===== WATCHLIST =====
+export const watchlist = pgTable('watchlist', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    itemDocId: text('item_doc_id').notNull(),
+    createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+    index('watchlist_user_idx').on(table.userId),
+    index('watchlist_item_idx').on(table.itemDocId),
+]);
+
+// ===== PRICE ALERTS =====
+export const priceAlerts = pgTable('price_alerts', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    itemDocId: text('item_doc_id').notNull(),
+    alertType: varchar('alert_type', { length: 20 }).notNull(), // rank_above | rank_below | momentum_spike
+    threshold: integer('threshold').notNull(),
+    triggered: boolean('triggered').default(false),
+    active: boolean('active').default(true),
+    createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+    index('price_alerts_user_idx').on(table.userId),
+    index('price_alerts_active_idx').on(table.active),
+]);
+
+// ===== ACHIEVEMENTS =====
+export const achievements = pgTable('achievements', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    type: varchar('type', { length: 50 }).notNull(),
+    unlockedAt: timestamp('unlocked_at').defaultNow(),
+    metadata: jsonb('metadata'),
+}, (table) => [
+    index('achievements_user_idx').on(table.userId),
 ]);

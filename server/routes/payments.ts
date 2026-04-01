@@ -14,6 +14,7 @@ import { requireAuth, AuthRequest } from "../middleware/auth";
 import { z } from "zod";
 import crypto from "crypto";
 import { getRates } from "../services/currencyRate";
+import { checkAndAwardAchievements } from "../services/achievements";
 
 const router = Router();
 
@@ -178,6 +179,9 @@ router.get("/verify/:reference", requireAuth, async (req: AuthRequest, res) => {
         const userResult = await db.select({ balance: users.balance })
             .from(users).where(eq(users.firebaseUid, req.uid!)).limit(1);
 
+        // Check achievements asynchronously
+        checkAndAwardAchievements(req.uid!).catch(err => console.error("[Paystack] verify achievements check failed:", err));
+
         res.json({
             credited: true,
             amountNGN,
@@ -279,6 +283,9 @@ router.post("/webhook", async (req, res) => {
                     });
                 });
                 console.log(`[Paystack Webhook] Credited ${platformCredits} to ${metadata.userId} (Ref: ${refStr})`);
+                
+                // Check achievements asynchronously
+                checkAndAwardAchievements(metadata.userId).catch(err => console.error("[Paystack] webhook achievements check failed:", err));
             }
         }
 

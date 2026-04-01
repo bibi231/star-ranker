@@ -17,11 +17,7 @@ const FAQ_SECTIONS = [
             },
             {
                 q: "Is Star Ranker free to use?",
-                a: "Voting is completely free. Staking requires depositing credits into your account. During the beta, new users may receive bonus credits."
-            },
-            {
-                q: "What beta invite code do I use?",
-                a: "The current beta invite code is BETA2026. This gives you access to all features during the beta period."
+                a: "Voting is completely free. Staking requires depositing credits into your account via our secure payment portals."
             },
         ]
     },
@@ -112,10 +108,10 @@ export function BetaFAQPage() {
                         <div className="p-4 rounded-3xl bg-brand-accent/10 text-brand-accent border border-brand-accent/20 shadow-xl shadow-brand-accent/5">
                             <HelpCircle size={48} />
                         </div>
-                        <h1 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none">Beta FAQ</h1>
+                        <h1 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none">Platform FAQ</h1>
                     </div>
                     <p className="text-slate-400 text-sm font-medium max-w-2xl">
-                        Everything you need to know about the Star Ranker beta. Can't find your answer? Contact us at ops@starranker.market.
+                        Everything you need to know about Star Ranker. Can't find your answer? Contact us at ops@starranker.market.
                     </p>
                 </header>
 

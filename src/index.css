@@ -90,3 +90,106 @@ textarea {
 .momentum-down {
   @apply text-danger animate-pulse-subtle;
 }
+
+/* DESIGN SYSTEM UPGRADES */
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(30, 58, 95, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Gold glow for key numbers */
+.gold-glow {
+  text-shadow: 0 0 24px rgba(201, 168, 76, 0.6), 0 0 48px rgba(201, 168, 76, 0.2);
+  color: #C9A84C;
+}
+
+/* Rank movement animations */
+@keyframes rankUp {
+  0% {
+    color: #10B981;
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  100% {
+    color: inherit;
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes rankDown {
+  0% {
+    color: #EF4444;
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+  100% {
+    color: inherit;
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.rank-up {
+  animation: rankUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.rank-down {
+  animation: rankDown 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Card hover lift */
+.card-hover {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(201, 168, 76, 0.2);
+  border-color: rgba(201, 168, 76, 0.25) !important;
+}
+
+/* Subtle terminal scan lines */
+.scanlines {
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0, 0, 0, 0.04) 2px, rgba(0, 0, 0, 0.04) 4px
+  );
+  pointer-events: none;
+}
+
+/* Pulse animation for live indicators */
+@keyframes livePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #10B981;
+  border-radius: 50%;
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+/* Number update flash */
+@keyframes numberFlash {
+  0% {
+    background: rgba(201, 168, 76, 0.15);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.number-flash {
+  animation: numberFlash 0.6s ease-out;
+}

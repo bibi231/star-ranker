@@ -148,19 +148,19 @@ export function DepositModal({ isOpen, onClose }) {
                         <motion.div
                             initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
                             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                            className="fixed bottom-0 left-0 right-0 z-[101] bg-[#0D1B2A] rounded-t-[2.5rem] border-t border-[#C9A84C]/30 overflow-y-auto"
+                            className="fixed bottom-0 left-0 right-0 z-[101] bg-slate-950 rounded-t-[2.5rem] border-t border-amber-500/30 overflow-y-auto"
                             style={{
                                 height: 'auto',
                                 maxHeight: `calc(${viewportHeight} * 0.95)`,
                                 paddingBottom: 'calc(var(--safe-bottom) + 16px)'
                             }}
                         >
-                            <div className="flex justify-center pt-3 pb-2 w-full sticky top-0 bg-[#0D1B2A] z-10 border-b border-white/5">
+                            <div className="flex justify-center pt-3 pb-2 w-full sticky top-0 bg-slate-950 z-10 border-b border-white/5">
                                 <div className="w-12 h-1.5 rounded-full bg-white/20" />
                             </div>
                             <div className="px-6 pt-4 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
-                                    <div className="text-[#C9A84C]">
+                                    <div className="text-amber-500">
                                         <Wallet size={24} />
                                     </div>
                                     <h2 className="text-xl font-black text-white uppercase tracking-tighter">Deposit</h2>
@@ -205,7 +205,7 @@ export function DepositModal({ isOpen, onClose }) {
                                                         className={cn(
                                                             'flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
                                                             paymentProvider === p.id
-                                                                ? 'bg-[#C9A84C]/20 text-[#C9A84C] border border-[#C9A84C]/40'
+                                                                ? 'bg-amber-500/20 text-amber-500 border border-amber-500/40'
                                                                 : 'text-slate-500 hover:text-slate-300 border border-transparent'
                                                         )}
                                                     >
@@ -238,7 +238,7 @@ export function DepositModal({ isOpen, onClose }) {
                                                         className={cn(
                                                             "flex-1 py-1 rounded-xl text-[10px] font-black uppercase border transition-all touch-target",
                                                             parseInt(amountNGN) === v
-                                                                ? "border-[#C9A84C] text-[#C9A84C] bg-[#C9A84C]/10"
+                                                                ? "border-amber-500 text-amber-500 bg-amber-500/10"
                                                                 : "border-white/5 text-slate-500 hover:text-white"
                                                         )}
                                                     >
@@ -264,7 +264,7 @@ export function DepositModal({ isOpen, onClose }) {
                                                 "w-full min-h-[56px] py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 mt-4",
                                                 isProcessing || parseInt(amountNGN) < MIN_AMOUNT_NGN
                                                     ? "bg-slate-800 text-slate-600 cursor-not-allowed"
-                                                    : "bg-[#C9A84C] text-[#0D1B2A] active:scale-95 shadow-[0_4px_12px_rgba(201,168,76,0.2)]"
+                                                    : "bg-amber-500 text-slate-950 active:scale-95 shadow-[0_4px_12px_rgba(245,158,11,0.2)]"
                                             )}
                                         >
                                             {isProcessing ? (
@@ -357,7 +357,7 @@ export function DepositModal({ isOpen, onClose }) {
                                                         className={cn(
                                                             'flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
                                                             paymentProvider === p.id
-                                                                ? 'bg-[#C9A84C]/20 text-[#C9A84C] border border-[#C9A84C]/40'
+                                                                ? 'bg-amber-500/20 text-amber-500 border border-amber-500/40'
                                                                 : 'text-slate-500 hover:text-slate-300 border border-transparent'
                                                         )}
                                                     >
@@ -390,7 +390,7 @@ export function DepositModal({ isOpen, onClose }) {
                                                         className={cn(
                                                             "flex-1 py-1 rounded-xl text-[10px] font-black uppercase border transition-all touch-target",
                                                             parseInt(amountNGN) === v
-                                                                ? "border-[#C9A84C] text-[#C9A84C] bg-[#C9A84C]/10"
+                                                                ? "border-amber-500 text-amber-500 bg-amber-500/10"
                                                                 : "border-white/5 text-slate-500 hover:text-white"
                                                         )}
                                                     >
@@ -416,7 +416,7 @@ export function DepositModal({ isOpen, onClose }) {
                                                 "w-full min-h-[56px] py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 mt-4",
                                                 isProcessing || parseInt(amountNGN) < MIN_AMOUNT_NGN
                                                     ? "bg-slate-800 text-slate-600 cursor-not-allowed"
-                                                    : "bg-[#C9A84C] text-[#0D1B2A] active:scale-95 shadow-[0_4px_12px_rgba(201,168,76,0.2)]"
+                                                    : "bg-amber-500 text-slate-950 active:scale-95 shadow-[0_4px_12px_rgba(245,158,11,0.2)]"
                                             )}
                                         >
                                             {isProcessing ? (

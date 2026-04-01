@@ -13,6 +13,7 @@ import { db } from "../db/index";
 import { stakes, items, users, notifications, transactions, platformRevenue, marketActivity } from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { sendEmail, templates } from "../lib/email";
+import { checkAndAwardAchievements } from "../services/achievements";
 
 export async function settleBets() {
     console.log("[Settlement] Starting pool-based settlement...");
@@ -159,6 +160,9 @@ export async function settleBets() {
                 type: isWin ? "win" : "loss"
             });
         });
+        
+        // After transaction and notification creation, check achievements non-blockingly
+        checkAndAwardAchievements(stake.userId).catch(err => console.error("[Settlement] achievements check failed:", err));
 
         // Send settlement email (outside transaction)
         if (userEmail) {

@@ -1,5 +1,6 @@
-import { Request, Response, NextFunction } from "express";
 import admin from "firebase-admin";
+import { Request, Response, NextFunction } from "express";
+import { updateDailyStreak } from "../services/achievements";
 
 /**
  * Firebase Admin — verifyIdToken needs real credentials on Render / non-GCP hosts.
@@ -54,6 +55,10 @@ export async function requireAuth(req: AuthRequest, res: Response, next: NextFun
         req.uid = decoded.uid;
         req.userEmail = decoded.email;
         (req as any).userName = decoded.name; // Capture display name if present
+        
+        // Update daily streak asynchronously
+        updateDailyStreak(decoded.uid).catch(err => console.error("[auth] updateDailyStreak failed:", err));
+        
         next();
     } catch (error) {
         return res.status(401).json({ error: "Invalid or expired token" });

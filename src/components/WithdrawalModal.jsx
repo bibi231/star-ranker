@@ -120,7 +120,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
     const ModalHeader = ({ title, sub }) => (
         <div className="p-8 border-b border-white/5 flex justify-between items-center">
             <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-[#C9A84C]/10 text-[#C9A84C]">
+                <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500">
                     <Wallet size={22} />
                 </div>
                 <div>
@@ -177,7 +177,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                     <p className="text-slate-400">₦{numAmount.toLocaleString()} → <span className="text-white font-bold">{accountName}</span></p>
                                     <p className="text-slate-500">Processing ETA: 24 Hours</p>
                                 </div>
-                                <button onClick={onClose} className="mt-4 px-8 py-3 bg-[#C9A84C] text-slate-950 rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full touch-target hover:bg-white transition-all">
+                                <button onClick={onClose} className="mt-4 px-8 py-3 bg-amber-500 text-slate-950 rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full touch-target hover:bg-white transition-all">
                                     Done
                                 </button>
                             </div>
@@ -203,7 +203,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                                     value={amount}
                                                     onChange={e => setAmount(e.target.value)}
                                                     placeholder="0"
-                                                    className="w-full bg-slate-950 border border-white/5 rounded-2xl pl-10 pr-4 py-4 text-xl font-mono font-black text-white focus:outline-none focus:border-[#C9A84C]/50 transition-all font-bold"
+                                                    className="w-full bg-slate-950 border border-white/5 rounded-2xl pl-10 pr-4 py-4 text-xl font-mono font-black text-white focus:outline-none focus:border-amber-500/50 transition-all font-bold"
                                                 />
                                             </div>
                                             <div className="flex gap-2 w-full pt-1">
@@ -214,7 +214,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                                         className={cn(
                                                             "flex-1 py-1 rounded-xl text-[10px] font-black uppercase border transition-all touch-target",
                                                             parseInt(amount) === v
-                                                                ? "border-[#C9A84C] text-[#C9A84C] bg-[#C9A84C]/10"
+                                                                ? "border-amber-500 text-amber-500 bg-amber-500/10"
                                                                 : "border-white/5 text-slate-500 hover:text-white"
                                                         )}
                                                     >
@@ -243,7 +243,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                                 "w-full min-h-[56px] py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 mt-4",
                                                 !isAmountValid
                                                     ? "bg-slate-800 text-slate-600 cursor-not-allowed"
-                                                    : "bg-[#00D18E] text-[#0D1B2A] active:scale-95 shadow-[0_4px_12px_rgba(0,209,142,0.2)]"
+                                                    : "bg-emerald-400 text-slate-950 active:scale-95 shadow-[0_4px_12px_rgba(0,209,142,0.2)]"
                                             )}
                                         >
                                             Next Stage <ArrowRight size={16} />
@@ -313,7 +313,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                                 disabled={!accountName}
                                                 className={cn(
                                                     "flex-2 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all",
-                                                    !accountName ? "bg-slate-800 text-slate-600" : "bg-[#C9A84C] text-[#0D1B2A]"
+                                                    !accountName ? "bg-slate-800 text-slate-600" : "bg-amber-500 text-slate-950"
                                                 )}
                                             >
                                                 Audit Transfer

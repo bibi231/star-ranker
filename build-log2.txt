@@ -1,0 +1,7 @@
+
+> star-ranker@1.0.0-beta build
+> vite build && npm run build:server
+
+[36mvite v7.1.5 [32mbuilding for production...[36m[39m
+transforming...
+[32m???[39m 4795 modules transformed.

@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Star, Zap, ChevronUp, ChevronDown, ShieldAlert, Loader2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Star, Zap, ChevronUp, ChevronDown, ShieldAlert, Loader2, Bookmark, BookmarkCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStore } from '../store/storeModel';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { db } from '../firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { useWatchlist } from '../hooks/useWatchlist';
 
 export function RankingTable() {
     const navigate = useNavigate();
@@ -17,11 +20,60 @@ export function RankingTable() {
         user,
         usePowerVote,
         togglePowerVote,
-        activeFilter
+        activeFilter,
+        currentCategorySlug,
+        formatValue,
+        searchQuery,
+        setSearchQuery
     } = useStore();
 
     const isMobile = useIsMobile();
     const items = getFilteredItems();
+    const { isTracked, toggleWatchlist } = useWatchlist();
+
+    const totalScore = items.reduce((sum, item) => sum + Math.max(0, item.score || 0), 0) || 1;
+
+    useEffect(() => {
+        if (!currentCategorySlug) return;
+        
+        const colRef = collection(db, `rankings/${currentCategorySlug}/items`);
+        const unsubscribe = onSnapshot(colRef, (snapshot) => {
+            if (snapshot.empty) return;
+            
+            const updates = {};
+            snapshot.docs.forEach(doc => {
+                updates[doc.id] = doc.data();
+            });
+            
+            useStore.setState(state => {
+                // Return if items empty to prevent accidental hydration issues
+                if (!state.items || state.items.length === 0) return state;
+
+                const newItems = state.items.map(item => {
+                    const next = updates[item.id];
+                    if (next) {
+                        return { 
+                            ...item, 
+                            rank: next.rank ?? item.rank,
+                            momentum: next.momentum ?? item.momentum,
+                            velocity: next.velocity ?? item.velocity,
+                            score: next.score ?? item.score,
+                            trend: next.trend ?? item.trend,
+                            rankChange: next.rankChange ?? item.rankChange
+                        };
+                    }
+                    return item;
+                });
+                
+                newItems.sort((a, b) => (a.isSponsored && !b.isSponsored) ? -1 : ((a.rank || 0) - (b.rank || 0)));
+                return { items: newItems };
+            });
+        }, (err) => {
+            console.error("Firebase onSnapshot error:", err);
+        });
+
+        return () => unsubscribe();
+    }, [currentCategorySlug]);
 
     if (isSyncing && items.length === 0) {
         return (
@@ -51,9 +103,23 @@ export function RankingTable() {
 
     if (isMobile) {
         return (
-            <div className="flex flex-col gap-2 px-3 py-2 pb-6">
+            <div className="flex flex-col gap-2 px-3 py-2 pb-safe">
+                {/* Search Bar Mobile */}
+                <div className="relative mb-2">
+                    <input
+                        type="text"
+                        placeholder="Search markets..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-slate-800/40 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-accent/50 transition-all shadow-inner"
+                    />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <Star size={14} className="text-slate-600" />
+                    </div>
+                </div>
+
                 {user?.powerVotes > 0 && (
-                    <div className="flex items-center justify-between px-4 py-3 bg-[#1E3A5F]/40 rounded-xl border border-amber-500/20 mb-1">
+                    <div className="flex items-center justify-between px-4 py-3 bg-slate-800/40 rounded-xl border border-amber-500/20 mb-1">
                         <div className="flex items-center gap-2">
                             <Zap size={14} className="text-amber-500 fill-amber-500 animate-pulse" />
                             <span className="text-[10px] font-black text-amber-500 uppercase tracking-tighter">{user.powerVotes} P-VOTES</span>
@@ -72,7 +138,14 @@ export function RankingTable() {
                     </div>
                 )}
                 {(items || []).map((item, index) => (
-                    <MobileItemCard key={item.id} item={item} index={index} />
+                    <MobileItemCard 
+                        key={item.id} 
+                        item={item} 
+                        index={index} 
+                        isTracked={isTracked(item.id)}
+                        toggleWatchlist={() => toggleWatchlist(item.id)}
+                        totalScore={totalScore}
+                    />
                 ))}
             </div>
         );
@@ -80,13 +153,34 @@ export function RankingTable() {
 
     return (
         <div className="w-full border border-slate-800 rounded-3xl bg-slate-900 shadow-2xl overflow-hidden flex flex-col">
-            {/* Desktop Table Header */}
+            {/* Desktop Table Header Tools */}
+            <div className="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+                <div className="flex flex-col">
+                    <h3 className="text-xs font-black text-slate-400 tracking-widest uppercase">Live Oracle Feed</h3>
+                    <p className="text-[10px] text-slate-600 font-bold uppercase tracking-tight">Real-time Ranking & Potential Worth</p>
+                </div>
+                
+                <div className="relative w-64">
+                    <input
+                        type="text"
+                        placeholder="Search units/symbols..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-brand-accent/30 transition-all font-mono"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-700">
+                        <TrendingUp size={12} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Desktop Table Header Names */}
             <div className="hidden md:flex items-center px-6 py-4 bg-slate-950/50 border-b border-slate-800 shrink-0">
                 <div className="w-16 shrink-0 text-center font-black text-[9px] text-slate-500 tracking-widest">Rank</div>
                 <div className="flex-1 font-black text-[9px] text-slate-500 tracking-widest">Oracle Context</div>
                 <div className="w-28 shrink-0 text-right font-black text-[9px] text-slate-500 tracking-widest">Score</div>
                 <div className="w-28 shrink-0 text-right pr-4 font-black text-[9px] text-slate-500 tracking-widest">Velocity</div>
-                <div className="w-40 shrink-0 text-center font-black text-[9px] text-slate-500 tracking-widest">Operations</div>
+                <div className="w-48 shrink-0 text-center font-black text-[9px] text-slate-500 tracking-widest">Operations</div>
             </div>
 
             {/* Power Vote Global Toggle */}
@@ -137,12 +231,18 @@ export function RankingTable() {
                                 {/* Rank */}
                                 <div className="w-16 shrink-0 text-center flex flex-col items-center justify-center">
                                     <span className={cn(
-                                        "font-mono text-base font-black italic",
+                                        "font-mono text-base font-black italic leading-none",
                                         index === 0 ? "text-amber-400" : index === 1 ? "text-slate-300" : index === 2 ? "text-amber-700" : "text-slate-600",
                                         activeFilter !== 'all' && "text-sm"
                                     )}>
                                         #{index + 1}
                                     </span>
+                                    
+                                    {/* Implied Probability (Currency) */}
+                                    <span className="text-[9px] font-black text-slate-400 mt-1 uppercase tracking-tighter bg-slate-950/80 px-1 py-0.5 rounded border border-slate-800">
+                                        {formatValue(Math.max(0.01, (Math.max(0, item.score || 0) / totalScore)))}
+                                    </span>
+
                                     {activeFilter !== 'all' && item.rankChange !== undefined && (
                                         <span className={cn(
                                             "text-[9px] font-black mt-0.5",
@@ -204,7 +304,16 @@ export function RankingTable() {
                                 </div>
 
                                 {/* Operations */}
-                                <div className="w-40 shrink-0 flex items-center justify-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                <div className="w-48 shrink-0 flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                        onClick={() => toggleWatchlist(item.id)}
+                                        className={cn(
+                                            "w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-slate-800",
+                                            isTracked(item.id) ? "text-brand-accent" : "text-slate-500 hover:text-white"
+                                        )}
+                                    >
+                                        {isTracked(item.id) ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+                                    </button>
                                     <div className="relative">
                                         <div className="flex bg-slate-950 border border-slate-800 rounded-lg p-0.5">
                                             <button
@@ -289,6 +398,15 @@ export function RankingTable() {
 
                                 {/* Mobile Actions */}
                                 <div className="flex items-center gap-1.5 shrink-0 relative" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                        onClick={() => toggleWatchlist(item.id)}
+                                        className={cn(
+                                            "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                                            isTracked(item.id) ? "text-brand-accent bg-brand-accent/10" : "text-slate-500 bg-slate-800 active:bg-slate-700"
+                                        )}
+                                    >
+                                        {isTracked(item.id) ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+                                    </button>
                                     {user?.powerVotes > 0 && (
                                         <div className="absolute -top-2 left-1 z-10 w-4 h-4 rounded-full bg-slate-950 border border-amber-500/50 flex items-center justify-center shadow-lg" title={`${user.powerVotes} Power Votes available`}>
                                             <Zap size={8} className="text-amber-500 fill-amber-500 animate-pulse" />
@@ -338,9 +456,9 @@ export function RankingTable() {
     );
 }
 
-function MobileItemCard({ item, index }) {
+function MobileItemCard({ item, index, isTracked, toggleWatchlist, totalScore }) {
     const navigate = useNavigate();
-    const { vote, userVotes, openModal, user } = useStore();
+    const { vote, userVotes, openModal, user, formatValue } = useStore();
     const currentVote = userVotes[item.id];
 
     return (
@@ -349,22 +467,29 @@ function MobileItemCard({ item, index }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: Math.min(index * 0.05, 0.3) }}
             onClick={() => navigate(`/market/${item.id}`)}
-            className="bg-[#1E3A5F]/40 rounded-xl border border-white/10 flex items-center gap-3 px-4 py-3 active:bg-[#1E3A5F]/70 transition-colors cursor-pointer"
+            className="bg-slate-800/40 rounded-xl border border-white/10 flex items-center gap-3 px-4 py-3 active:bg-slate-800/70 transition-colors cursor-pointer"
         >
             {/* Rank badge */}
-            <span className={cn(
-                "font-black text-lg w-6 text-center flex-shrink-0",
-                index === 0 ? "text-[#C9A84C]" : index === 1 ? "text-slate-300" : index === 2 ? "text-amber-700" : "text-slate-500"
-            )}>
-                {index + 1}
-            </span>
+            <div className="flex flex-col items-center justify-center flex-shrink-0 w-8">
+                <span className={cn(
+                    "font-black text-lg text-center",
+                    index === 0 ? "text-amber-400" : index === 1 ? "text-slate-300" : index === 2 ? "text-amber-600" : "text-slate-500"
+                )}>
+                    {index + 1}
+                </span>
+                
+                {/* Implied Probability (Currency) */}
+                <span className="text-[8px] font-black text-slate-400 mt-0.5 uppercase tracking-tighter bg-slate-950 px-1 py-0.5 rounded border border-slate-800 text-center truncate w-full">
+                    {formatValue(Math.max(0.01, (Math.max(0, item.score || 0) / totalScore)))}
+                </span>
+            </div>
 
             {/* Item info */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="font-bold text-white text-sm truncate max-w-[85%]">{item.name}</p>
                     {item.symbol && <span className="text-[9px] text-slate-500 font-bold">{item.symbol}</span>}
-                    {item.isSponsored && <div className="w-1.5 h-1.5 rounded-full bg-[#C9A84C] animate-pulse" />}
+                    {item.isSponsored && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-xs font-mono text-slate-400">{Math.floor(item.score || 0).toLocaleString()} pts</span>
@@ -378,17 +503,26 @@ function MobileItemCard({ item, index }) {
             </div>
 
             {/* Vote buttons — large touch targets */}
-            <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-col gap-1 items-center" onClick={(e) => e.stopPropagation()}>
                 <button
-                    onClick={() => vote(item.id, 1)}
+                    onClick={toggleWatchlist}
                     className={cn(
-                        "min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg transition-colors",
-                        currentVote === 'up' ? "bg-emerald-500 text-slate-950" : "bg-emerald-500/10 text-emerald-400 active:bg-emerald-500/30"
+                        "min-h-[28px] min-w-[36px] flex items-center justify-center rounded-lg transition-colors mb-1",
+                        isTracked ? "text-brand-accent" : "text-slate-500 hover:text-white"
                     )}
                 >
-                    <ChevronUp size={20} strokeWidth={3} />
+                    {isTracked ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
                 </button>
-                <div className="relative">
+                <div className="flex flex-col gap-1 relative">
+                    <button
+                        onClick={() => vote(item.id, 1)}
+                        className={cn(
+                            "min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg transition-colors",
+                            currentVote === 'up' ? "bg-emerald-500 text-slate-950" : "bg-emerald-500/10 text-emerald-400 active:bg-emerald-500/30"
+                        )}
+                    >
+                        <ChevronUp size={20} strokeWidth={3} />
+                    </button>
                     <button
                         onClick={() => vote(item.id, -1)}
                         className={cn(
@@ -399,8 +533,8 @@ function MobileItemCard({ item, index }) {
                         <ChevronDown size={20} strokeWidth={3} />
                     </button>
                     {user?.powerVotes > 0 && (
-                        <div className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-4 h-4 rounded-full bg-[#0D1B2A] border border-[#C9A84C]/50 flex items-center justify-center shadow-lg">
-                            <Zap size={8} className="text-[#C9A84C] fill-[#C9A84C] animate-pulse" />
+                        <div className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-4 h-4 rounded-full bg-slate-950 border border-amber-500/50 flex items-center justify-center shadow-lg">
+                            <Zap size={8} className="text-amber-500 fill-amber-500 animate-pulse" />
                         </div>
                     )}
                 </div>
@@ -409,7 +543,7 @@ function MobileItemCard({ item, index }) {
             {/* Stake CTA */}
             <button
                 onClick={(e) => { e.stopPropagation(); openModal('stake', item); }}
-                className="min-h-[44px] px-3.5 rounded-xl bg-[#C9A84C] text-[#0D1B2A] shadow-[0_4px_12px_rgba(201,168,76,0.2)] font-black text-[10px] uppercase tracking-widest flex-shrink-0 active:scale-95 transition-all flex items-center"
+                className="min-h-[44px] px-3.5 rounded-xl bg-amber-500 text-slate-950 shadow-[0_4px_12px_rgba(245,158,11,0.2)] font-black text-[10px] uppercase tracking-widest flex-shrink-0 active:scale-95 transition-all flex items-center"
             >
                 STAKE
             </button>

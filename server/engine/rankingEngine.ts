@@ -7,8 +7,17 @@
  */
 
 import { db } from "../db/index";
-import { items, votes, epochSnapshots } from "../db/schema";
+import { items, votes, epochSnapshots, priceAlerts, notifications } from "../db/schema";
 import { eq, or, isNull, and } from "drizzle-orm";
+import { calculateOdds } from "./oddsCalculator";
+
+let firestoreDb: any = null;
+try {
+    const { getFirestore } = require('firebase-admin/firestore');
+    firestoreDb = getFirestore();
+} catch (err) {
+    console.warn('[MWR] Firebase Firestore not available');
+}
 
 const GRAVITY = 0.05;   // Decay constant
 const VISCOSITY = 1.0;  // Resistance to movement
@@ -83,10 +92,118 @@ export async function reifyRankings() {
                         .where(eq(items.id, update.id));
                 }
             });
+
+            // Update allItems references so downstream functions get fresh data
+            for (const item of allItems) {
+                const u = updates.find(x => x.id === item.id);
+                if (u) {
+                    item.rank = u.rank;
+                    item.momentum = u.momentum;
+                    item.velocity = u.velocity;
+                    item.score = u.score;
+                }
+            }
         }
     }
 
     console.log(`[MWR] Reified ${allItems.length} items across ${Object.keys(byCategory).length} categories`);
+
+    // Process alerts with the fresh data
+    await checkPriceAlerts(allItems);
+
+    // Sync to Firestore for real-time listeners
+    await syncRankingsToFirestore(allItems);
+}
+
+/**
+ * Sync updated rankings to Firestore for real-time listeners
+ */
+async function syncRankingsToFirestore(allItems: typeof items.$inferSelect[]) {
+    if (!firestoreDb) return; // Firestore not available
+
+    try {
+        const batch = firestoreDb.batch();
+        const currentEpochId = 1; // Get current epoch ID if needed
+
+        for (const item of allItems) {
+            const odds = await calculateOdds(item.id, item.categorySlug, currentEpochId);
+            const ref = firestoreDb.doc(`rankings/${item.categorySlug}/items/${item.id}`);
+            batch.set(ref, {
+                rank: item.rank,
+                momentum: item.momentum,
+                impliedProbability: odds.impliedProbability,
+                multiplier: odds.multiplier,
+                riskLevel: odds.riskLevel,
+                updatedAt: new Date().toISOString(),
+            }, { merge: true });
+        }
+
+        // Update category summary
+        const categories = [...new Set(allItems.map(i => i.categorySlug))];
+        for (const categorySlug of categories) {
+            const categoryItems = allItems.filter(i => i.categorySlug === categorySlug);
+            const ref = firestoreDb.doc(`categories/${categorySlug}`);
+            batch.set(ref, {
+                lastUpdated: new Date().toISOString(),
+                topItem: categoryItems[0]?.name || '',
+            }, { merge: true });
+        }
+
+        await batch.commit();
+        console.log(`[MWR] Synced ${allItems.length} items to Firestore`);
+    } catch (err: any) {
+        console.error('[MWR] Firestore sync failed:', err.message);
+        // Never crash rankingEngine because of Firestore failure
+    }
+}
+
+/**
+ * Cross-references updated item ranks with user priceAlerts and issues notifications
+ */
+async function checkPriceAlerts(updatedItems: typeof items.$inferSelect[]) {
+    try {
+        const activeAlerts = await db.select().from(priceAlerts).where(eq(priceAlerts.active, true));
+        if (activeAlerts.length === 0) return;
+
+        for (const alert of activeAlerts) {
+            const item = updatedItems.find(i => i.docId === alert.itemDocId);
+            if (!item) continue;
+
+            let isTriggered = false;
+            let triggerValue = "";
+
+            if (alert.alertType === "rank_above" && (item.rank ?? 999) <= alert.threshold) {
+                isTriggered = true;
+                triggerValue = `Rank reached ${item.rank} (crossed ${alert.threshold})`;
+            } else if (alert.alertType === "rank_below" && (item.rank ?? 0) >= alert.threshold) {
+                isTriggered = true;
+                triggerValue = `Rank dropped to ${item.rank} (crossed ${alert.threshold})`;
+            } else if (alert.alertType === "momentum_spike" && (item.momentum ?? 0) >= alert.threshold) {
+                isTriggered = true;
+                triggerValue = `Momentum spiked to ${item.momentum?.toFixed(2)} (crossed ${alert.threshold})`;
+            }
+
+            if (isTriggered) {
+                await db.transaction(async (tx) => {
+                    // Mark as triggered and inactive (one-shot alert)
+                    await tx.update(priceAlerts).set({
+                        active: false,
+                        triggered: true
+                    }).where(eq(priceAlerts.id, alert.id));
+
+                    await tx.insert(notifications).values({
+                        userId: alert.userId,
+                        type: 'general',
+                        title: `Alert Triggered: ${item.name}`,
+                        message: `Your alert conditions were met. ${triggerValue}`,
+                        metadata: { alertId: alert.id, itemDocId: item.docId, rank: item.rank }
+                    });
+                });
+            }
+        }
+    } catch (err) {
+        console.error("[MWR] checkPriceAlerts failed:", err);
+    }
 }
 
 /**

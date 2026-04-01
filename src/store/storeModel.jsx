@@ -76,6 +76,7 @@ export const useStore = create((set, get) => ({
     items: [],
     categories: [],
     reputationHistory: [],
+    searchQuery: '',
     bio: '',
     settings: {
         twoFactorEnabled: false,
@@ -133,26 +134,18 @@ export const useStore = create((set, get) => ({
             if (data && Array.isArray(data) && data.length > 0) {
                 set({ categories: data });
             } else {
-                // API OK but empty DB — show nav labels; items still need seeding on the server
                 console.warn("[Store] /api/categories returned empty — database may need seeding.");
                 const { categories: existing } = get();
-                if (existing.length === 0) {
-                    set({ categories: fallbackCategories });
-                }
+                if (existing.length === 0) set({ categories: fallbackCategories });
             }
         } catch (err) {
             console.error("Failed to fetch categories:", err);
             clearCategoriesCache();
-            toast.error(
-                "Could not load categories from the API. Check that the API is up and VITE_API_URL is correct.",
-                { id: "fetch-categories-fail", duration: 6000 }
-            );
-            const { categories } = get();
-            if (categories.length === 0) {
-                set({ categories: fallbackCategories });
-            }
+            const { categories: existing } = get();
+            if (existing.length === 0) set({ categories: fallbackCategories });
         }
     },
+
     currentCategorySlug: 'crypto',
     isSyncing: false,
     lastRefresh: Date.now(),
@@ -169,7 +162,6 @@ export const useStore = create((set, get) => ({
 
     // Layout & UI State
     activeFilter: 'all',
-    searchQuery: '',
     activeModal: null,
     selectedItem: null,
 
@@ -280,7 +272,6 @@ export const useStore = create((set, get) => ({
         try {
             const data = await apiGet(`/api/items/movers?categoryId=${categoryId}&type=${type}`);
             if (data && Array.isArray(data)) {
-                // Map the data similar to fetch category items
                 const formattedItems = data.map(item => ({
                     id: item.docId,
                     name: item.name,
@@ -291,10 +282,9 @@ export const useStore = create((set, get) => ({
                     trend: item.trend || Array.from({ length: 15 }, () => Math.random() * 100),
                     imageUrl: item.imageUrl,
                     rank: item.rank || 1,
-                    rankChange: item.rankChange || 0, // NEW field from API
+                    rankChange: item.rankChange || 0,
                     isSponsored: false,
                 }));
-                // Fetch user votes if logged in
                 if (get().user) {
                     get().fetchUserVotes(categoryId);
                 }
@@ -319,7 +309,6 @@ export const useStore = create((set, get) => ({
     },
 
     syncUser: () => {
-        // Handle redirect result for mobile/Vercel compatibility
         getRedirectResult(auth)
             .then((result) => {
                 if (result?.user) {
@@ -333,16 +322,13 @@ export const useStore = create((set, get) => ({
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Determine if Google provider is used
                 const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
                 set({ user, emailVerified: user.emailVerified || isGoogle, isAuthLoading: false });
                 await get().fetchUserProfile();
 
-                // Also fetch votes for current category
                 const { currentCategorySlug, syncInterval } = get();
                 get().fetchUserVotes(currentCategorySlug);
 
-                // Setup background synchronization (60s loop)
                 if (!syncInterval) {
                     const interval = setInterval(() => {
                         console.log("[Sync] Background refresh triggered");
@@ -377,7 +363,6 @@ export const useStore = create((set, get) => ({
             }
         } catch (err) {
             console.error("Failed to fetch current epoch:", err);
-            // Fallback for UI if API fails completely
             const now = new Date();
             const utcMins = now.getUTCMinutes();
             const start = new Date(now);
@@ -427,7 +412,6 @@ export const useStore = create((set, get) => ({
                 user: {
                     ...auth.currentUser,
                     ...profile,
-                    // System-core UI: only configured super-admin emails (ignore DB is_admin / Oracle for nav)
                     isSuperAdmin: superUser,
                     isAdmin: superUser,
                     isModerator:
@@ -436,12 +420,10 @@ export const useStore = create((set, get) => ({
                 }
             });
 
-            // Also load user's active stakes
             get().fetchStakes();
         } catch (err) {
             console.warn("Could not fetch profile:", err);
             if (superUser) {
-                // Emergency fallback for superadmin to ensure UI access
                 set({
                     tier: "Oracle",
                     user: {
@@ -452,7 +434,6 @@ export const useStore = create((set, get) => ({
                     }
                 });
             } else if (auth.currentUser) {
-                // Keep session visible if API/token verification fails (e.g. server env misconfigured)
                 const prev = get().user;
                 set({
                     user: {
@@ -484,14 +465,12 @@ export const useStore = create((set, get) => ({
     },
 
     vote: async (itemId, direction) => {
-        const { user, currentCategorySlug, userVotes, items } = get();
+        const { user, currentCategorySlug, userVotes } = get();
         if (!user) return;
 
-        // Optimistic UI update
         const previousVotes = { ...userVotes };
         const newVotes = { ...userVotes };
 
-        // Handle toggle logic (same as backend)
         const currentVote = userVotes[itemId];
         let finalDirection = direction;
 
@@ -511,17 +490,14 @@ export const useStore = create((set, get) => ({
                 categorySlug: currentCategorySlug,
                 usePowerVote: get().usePowerVote
             });
-            // Instantly update power vote count if one was used
             if (response?.newPowerVotes !== undefined) {
                 set(state => ({
                     user: { ...state.user, powerVotes: response.newPowerVotes }
                 }));
             }
-            // Also refresh full profile for reputation etc.
             get().fetchUserProfile();
         } catch (error) {
             console.error("Vote error:", error);
-            // Rollback on error
             set({ userVotes: previousVotes });
         }
     },
@@ -583,7 +559,6 @@ export const useStore = create((set, get) => ({
         }
     },
 
-    // ===== NOTIFICATIONS =====
     fetchNotifications: async () => {
         try {
             const data = await apiGet("/api/notifications");
@@ -593,7 +568,6 @@ export const useStore = create((set, get) => ({
         }
     },
 
-    // ===== REPUTATION HISTORY =====
     fetchReputationHistory: async () => {
         try {
             const data = await apiGet("/api/user/reputation-history");
@@ -633,7 +607,6 @@ export const useStore = create((set, get) => ({
         set({ isAuthLoading: true });
         try {
             const provider = new GoogleAuthProvider();
-            // Use Redirect for mobile compatibility (more robust on Vercel/Chrome mobile)
             await signInWithRedirect(auth, provider);
         } catch (error) {
             console.error("Login failed", error);

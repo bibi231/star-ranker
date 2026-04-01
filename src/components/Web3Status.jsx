@@ -40,7 +40,7 @@ export function Web3Status() {
                                     <button
                                         onClick={openConnectModal}
                                         type="button"
-                                        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#C9A84C]/30 bg-[#C9A84C]/10 text-[#C9A84C] text-[10px] font-black uppercase tracking-widest transition-all hover:bg-[#C9A84C]/20 touch-target"
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase tracking-widest transition-all hover:bg-amber-500/20 touch-target"
                                     >
                                         <Wallet size={12} />
                                         Connect Wallet
@@ -92,13 +92,13 @@ export function Web3Status() {
                                     <button
                                         onClick={openAccountModal}
                                         type="button"
-                                        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#C9A84C]/30 bg-[#C9A84C]/10 text-[#C9A84C] text-[10px] font-black uppercase tracking-widest transition-all hover:bg-[#C9A84C]/20 touch-target shadow-[0_0_15px_rgba(201,168,76,0.15)]"
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase tracking-widest transition-all hover:bg-amber-500/20 touch-target shadow-[0_0_15px_rgba(201,168,76,0.15)]"
                                     >
                                         <Wallet size={12} className="hidden sm:block" />
                                         {account.displayBalance
                                             ? <span className="hidden sm:inline opacity-70">{account.displayBalance}</span>
                                             : ''}
-                                        <span className="text-[#C9A84C] ml-1">{account.displayName}</span>
+                                        <span className="text-amber-500 ml-1">{account.displayName}</span>
                                     </button>
                                 </div>
                             );

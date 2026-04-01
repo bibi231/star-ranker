@@ -3,8 +3,8 @@
 ## 1. Nature of the Platform
 Star Ranker is a cultural ranking platform. "Staking" on assets represents a vote of confidence in the future popularity or reputation of an item. It is NOT an investment, derivative, or financial instrument.
 
-## 2. Beta Testing Status
-This platform is currently in **BETA**. All items, scores, and balances are subject to reset. No real-world currency is currently involved unless explicitly stated in a secured fiat portal.
+## 2. Platform Status
+This platform is live. While we strive for 100% uptime, the "Oracle Velocity" and ranking algorithms are subject to tuning updates to ensure fair play.
 
 ## 3. Jurisdictional Gating
 By using this platform, you acknowledge that:
