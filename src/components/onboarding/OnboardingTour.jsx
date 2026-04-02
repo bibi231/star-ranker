@@ -71,17 +71,27 @@ export const OnboardingTour = () => {
         
         if (element) {
             setTargetRect(element.getBoundingClientRect());
+        }
+    }, [currentStepIndex]);
+
+    useEffect(() => {
+        if (currentStepIndex < 0 || currentStepIndex >= TOUR_STEPS.length) return;
+        const step = TOUR_STEPS[currentStepIndex];
+        const element = document.querySelector(`[data-tour="${step.target}"]`);
+        if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }, [currentStepIndex]);
 
     useEffect(() => {
+        const interval = setInterval(updateTargetRect, 50); // Continuously track position
         updateTargetRect();
         window.addEventListener('resize', updateTargetRect);
-        window.addEventListener('scroll', updateTargetRect);
+        window.addEventListener('scroll', updateTargetRect, true); // Capture scroll on all containers
         return () => {
+            clearInterval(interval);
             window.removeEventListener('resize', updateTargetRect);
-            window.removeEventListener('scroll', updateTargetRect);
+            window.removeEventListener('scroll', updateTargetRect, true);
         };
     }, [updateTargetRect]);
 
@@ -255,22 +265,33 @@ export const OnboardingTour = () => {
                             </div>
 
                             <div className="flex gap-2">
-                                {currentStepIndex > 0 && (
+                                {currentStepIndex === TOUR_STEPS.length - 1 ? (
                                     <button 
-                                        onClick={handleBack}
-                                        className="p-1.5 rounded-lg bg-white/5 text-white/40 hover:text-white border border-white/5 transition-all"
-                                    >
-                                        <ChevronLeft size={16} />
-                                    </button>
-                                )}
-                                {!currentStep.requireAction && (
-                                    <button 
-                                        onClick={handleNext}
+                                        onClick={handleSkip}
                                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#22d3ee] text-black font-black text-[10px] uppercase tracking-tighter hover:scale-105 active:scale-95 transition-all"
                                     >
-                                        {currentStepIndex === TOUR_STEPS.length - 1 ? 'Got it!' : 'Next'}
-                                        <ChevronRight size={14} strokeWidth={3} />
+                                        End
                                     </button>
+                                ) : (
+                                    <>
+                                        {currentStepIndex > 0 && (
+                                            <button 
+                                                onClick={handleBack}
+                                                className="p-1.5 rounded-lg bg-white/5 text-white/40 hover:text-white border border-white/5 transition-all"
+                                            >
+                                                <ChevronLeft size={16} />
+                                            </button>
+                                        )}
+                                        {!currentStep.requireAction && (
+                                            <button 
+                                                onClick={handleNext}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#22d3ee] text-black font-black text-[10px] uppercase tracking-tighter hover:scale-105 active:scale-95 transition-all"
+                                            >
+                                                Next
+                                                <ChevronRight size={14} strokeWidth={3} />
+                                            </button>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
