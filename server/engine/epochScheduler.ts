@@ -48,7 +48,7 @@ export async function checkAndRollEpoch() {
                 await createEpochSnapshot(current.epochNumber);
 
                 // Settle stakes from expired epoch
-                await settleBets();
+                await settleBets(current.epochNumber);
 
                 // Force a global ranking reification immediately
                 await reifyRankings();

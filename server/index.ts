@@ -31,6 +31,13 @@ import activityRouter from "./routes/activity";
 import marketIntelligenceRouter from "./routes/marketIntelligence";
 import watchlistRouter from "./routes/watchlist";
 import alertsRouter from "./routes/alerts";
+import commentsRouter from "./routes/comments";
+import battlesRouter from "./routes/battles";
+import questsRouter from "./routes/quests";
+import trialsRouter from "./routes/trials";
+import seasonsRouter from "./routes/seasons";
+import systemStatusRouter from "./routes/systemStatus";
+import demoRouter from "./routes/demo";
 
 import { startRankingEngine } from "./engine/rankingEngine";
 import { startEpochScheduler } from "./engine/epochScheduler";
@@ -91,10 +98,12 @@ app.use(express.json({
 }));
 app.use(geoMiddleware);
 
-// Rate Limiting — Drastically relaxed for beta testing
-const globalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10000, message: { error: "Too many requests" } });
-const stakeLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5000, message: { error: "Staking rate limit reached" } });
-const adminLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5000, message: { error: "Admin rate limit reached" } });
+// Rate Limiting — Production Hardening
+const globalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 2000, message: { error: "Too many requests" } });
+const stakeLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200, message: { error: "Staking rate limit reached" } });
+const voteLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500, message: { error: "Voting rate limit reached" } });
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50, message: { error: "Auth rate limit reached" } });
+const adminLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, message: { error: "Admin rate limit reached" } });
 
 app.use(globalLimiter);
 
@@ -105,9 +114,11 @@ import publicMarketsRouter from "./routes/publicMarkets";
 import publicWinsRouter from "./routes/publicWins";
 import publicLeaderboardRouter from "./routes/publicLeaderboard";
 import portfolioRouter from "./routes/portfolio";
+import healthRouter from "./routes/health";
 import searchRouter from "./routes/search";
 
 // Public routes (no auth, aggressive caching)
+app.use("/api/health", healthRouter);
 app.use("/api/stats/public", publicStatsRouter);
 app.use("/api/markets/public-preview", publicMarketsRouter);
 app.use("/api/wins/recent-public", publicWinsRouter);
@@ -120,14 +131,14 @@ app.use("/api/user", portfolioRouter); // /api/user/portfolio
 
 app.use("/api/categories", categoriesRouter);
 app.use("/api/items", itemsRouter);
-app.use("/api/votes", votesRouter);
+app.use("/api/votes", voteLimiter, votesRouter);
 app.use("/api/stakes", stakeLimiter, stakesRouter);
 app.use("/api/epochs", epochsRouter);
 app.use("/api/admin", adminLimiter, adminRouter);
 app.use("/api/leaderboard", leaderboardRouter);
 app.use("/api/payments", paymentsRouter);
 app.use("/api/withdrawals", withdrawalsRouter);
-app.use("/api/auth", authRouter);
+app.use("/api/auth", authLimiter, authRouter);
 app.use("/api/notifications", notificationRouter);
 app.use("/api/vote-packs", votePacksRouter);
 app.use("/api/sponsorships", sponsorshipsRouter);
@@ -135,8 +146,16 @@ app.use("/api/activity", activityRouter);
 app.use("/api/markets", marketIntelligenceRouter);
 app.use("/api/watchlist", watchlistRouter);
 app.use("/api/alerts", alertsRouter);
+app.use("/api/comments", commentsRouter);
+app.use("/api/battles", battlesRouter);
+app.use("/api/quests", questsRouter);
+app.use("/api/trials", trialsRouter);
+app.use("/api/seasons", seasonsRouter);
+app.use("/api/system/status", systemStatusRouter);
+app.use("/api/demo", demoRouter);
 app.use("/api/user", usersRouter);
 app.use("/api/currency", currencyRouter);
+app.use("/api/oracle-trial", trialsRouter);
 
 if (process.env.SENTRY_DSN && (Sentry as any).Handlers) {
     app.use((Sentry as any).Handlers.errorHandler());
@@ -349,6 +368,95 @@ async function ensureSchemaPatches(): Promise<void> {
         await run("epoch_snapshots.rank_change", `ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS rank_change INTEGER`);
 
         await run("users.bio", `ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`);
+
+        // feature: social layer
+        await run("market_comments table", `
+            CREATE TABLE IF NOT EXISTS market_comments (
+                id SERIAL PRIMARY KEY,
+                item_id INTEGER NOT NULL REFERENCES items(id),
+                user_id TEXT NOT NULL,
+                content TEXT NOT NULL,
+                parent_id INTEGER,
+                likes INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        
+        await run("oracle_battles table", `
+            CREATE TABLE IF NOT EXISTS oracle_battles (
+                id SERIAL PRIMARY KEY,
+                creator_id TEXT,
+                title VARCHAR(100) NOT NULL,
+                item_a_id INTEGER REFERENCES items(id),
+                item_b_id INTEGER REFERENCES items(id),
+                category_id INTEGER REFERENCES categories(id),
+                question VARCHAR(200) NOT NULL,
+                ends_at TIMESTAMP NOT NULL,
+                status VARCHAR(20) DEFAULT 'active',
+                total_votes_a INTEGER DEFAULT 0,
+                total_votes_b INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
+        await run("daily_quests table", `
+            CREATE TABLE IF NOT EXISTS daily_quests (
+                id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                quest_date DATE NOT NULL,
+                voted_today BOOLEAN DEFAULT false,
+                staked_today BOOLEAN DEFAULT false,
+                commented_today BOOLEAN DEFAULT false,
+                checked_in_today BOOLEAN DEFAULT false,
+                claimed BOOLEAN DEFAULT false,
+                xp_earned INTEGER DEFAULT 0,
+                UNIQUE(user_id, quest_date)
+            )
+        `);
+
+        await run("oracle_trials table", `
+            CREATE TABLE IF NOT EXISTS oracle_trials (
+                id SERIAL PRIMARY KEY,
+                trial_date DATE NOT NULL UNIQUE,
+                item_ids JSONB NOT NULL,
+                category_id INTEGER REFERENCES categories(id)
+            )
+        `);
+
+        await run("trial_attempts table", `
+            CREATE TABLE IF NOT EXISTS trial_attempts (
+                id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                trial_id INTEGER REFERENCES oracle_trials(id),
+                guess_order JSONB NOT NULL,
+                score INTEGER NOT NULL,
+                completed_at TIMESTAMP DEFAULT NOW(),
+                UNIQUE(user_id, trial_id)
+            )
+        `);
+
+        await run("seasons table", `
+            CREATE TABLE IF NOT EXISTS seasons (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(50) NOT NULL,
+                start_date DATE NOT NULL,
+                end_date DATE NOT NULL,
+                status VARCHAR(20) DEFAULT 'active'
+            )
+        `);
+
+        await run("season_leaderboard table", `
+            CREATE TABLE IF NOT EXISTS season_leaderboard (
+                id SERIAL PRIMARY KEY,
+                season_id INTEGER REFERENCES seasons(id),
+                user_id TEXT NOT NULL,
+                season_xp INTEGER DEFAULT 0,
+                season_rank INTEGER,
+                tier VARCHAR(20) DEFAULT 'apprentice',
+                UNIQUE(user_id, season_id)
+            )
+        `);
+
     } catch (e) {
         console.warn("[schema] ensureSchemaPatches outer error:", e);
     }

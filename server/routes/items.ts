@@ -4,6 +4,8 @@ import { items, epochs, epochSnapshots } from "../db/schema";
 import { eq, desc, and, lte, gte } from "drizzle-orm";
 import { calculateOdds } from "../engine/oddsCalculator";
 
+import { cacheGet, cacheSet } from "../services/cache";
+
 const router = Router();
 
 // GET /api/items?category=crypto — Fetch items by category slug with odds
@@ -13,6 +15,10 @@ router.get("/", async (req, res) => {
         if (!category) {
             return res.status(400).json({ error: "category query param required" });
         }
+
+        const cacheKey = `items:${category}`;
+        const cached = await cacheGet(cacheKey);
+        if (cached) return res.json(cached);
 
         // Get current epoch
         const now = new Date();
@@ -46,6 +52,7 @@ router.get("/", async (req, res) => {
             })
         );
 
+        await cacheSet(cacheKey, itemsWithOdds, 30);
         res.json(itemsWithOdds);
     } catch (error: any) {
         res.status(500).json({ error: error.message });

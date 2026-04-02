@@ -32,9 +32,12 @@ import { useWatchlist } from '../hooks/useWatchlist';
 import { AchievementsGrid } from '../components/AchievementsGrid';
 import { PortfolioWidget } from '../components/PortfolioWidget';
 import { ActivityLogModal } from '../components/ActivityLogModal';
+import { DailyQuests } from '../components/DailyQuests';
+import { SystemStatus } from '../components/SystemStatus';
 
 export function UserDashboard() {
-    const { user, balance, reputation, stakes, reputationHistory, fetchReputationHistory, tier, setDepositOpen, setWithdrawalOpen, formatValue, bindWallet } = useStore();
+    const { user, balance, playBalance, stakes, reputation, reputationHistory, fetchReputationHistory, tier, setDepositOpen, setWithdrawalOpen, formatValue, bindWallet, fetchStakes, fetchUserProfile } = useStore();
+    const [isExiting, setIsExiting] = useState(null); // ID of stake being exited
     const [isActivityLogOpen, setActivityLogOpen] = useState(false);
     const [isReferralCopied, setReferralCopied] = useState(false);
     const [isResending, setIsResending] = useState(false);
@@ -66,6 +69,26 @@ export function UserDashboard() {
         navigator.clipboard.writeText(url);
         setReferralCopied(true);
         setTimeout(() => setReferralCopied(false), 2000);
+    };
+
+    const handleExit = async (stakeId) => {
+        if (!window.confirm("Are you sure you want to cash out early? This action is irreversible.")) return;
+        setIsExiting(stakeId);
+        try {
+            const { apiPost } = await import('../lib/api');
+            const res = await apiPost(`/api/stakes/${stakeId}/exit`);
+            if (res.success) {
+                toast.success(`Position liquidated for ${formatValue(res.payout)}`);
+                await fetchStakes();
+                await fetchUserProfile();
+            } else {
+                toast.error(res.error || "Exit failed");
+            }
+        } catch (err) {
+            toast.error("Network error during exit");
+        } finally {
+            setIsExiting(null);
+        }
     };
 
     const getRelativeTime = (date) => {
@@ -104,6 +127,7 @@ export function UserDashboard() {
                         </div>
                     </div>
                     <StatCard label="Oracle Reputation" value={reputation.toLocaleString()} icon={<Star size={16} />} color="text-amber-500" />
+                    <StatCard label="Practice Fund" value={`STARS ${playBalance.toLocaleString()}`} icon={<Trophy size={16} />} color="text-sky-400" />
                     <StatCard label="Identity Tier" value={tier} icon={<ShieldCheck size={16} />} color="text-brand-accent" />
                 </div>
             </div>
@@ -116,7 +140,7 @@ export function UserDashboard() {
                     </div>
                     <button
                         onClick={() => setDepositOpen(true)}
-                        className="bg-amber-500 text-slate-950 font-black px-6 py-3 rounded-xl flex-shrink-0 hover:bg-white transition-all uppercase tracking-widest text-xs"
+                        className="premium-btn-gold px-6 py-3 rounded-xl flex-shrink-0 transition-all tracking-widest text-xs"
                     >
                         Fund Wallet
                     </button>
@@ -139,29 +163,50 @@ export function UserDashboard() {
                                             <th className="py-4">Market Item</th>
                                             <th className="py-4 text-right">Magnitude</th>
                                             <th className="py-4 text-right">Target</th>
-                                            <th className="py-4 text-right">Est. Yield</th>
-                                            <th className="py-4 text-right">Share</th>
+                                            <th className="py-4 text-right">Yield</th>
+                                            <th className="py-4 text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
                                         {(stakes || []).map(stake => (
                                             <tr key={stake.id} className="group hover:bg-white/[0.02] transition-colors">
                                                 <td className="py-5 flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-xl bg-slate-950 border border-white/10 flex items-center justify-center text-slate-600 group-hover:border-brand-accent/30 transition-all">
-                                                        <Zap size={16} fill="currentColor" className="text-emerald-500" />
+                                                    <div className={cn(
+                                                        "w-10 h-10 rounded-xl bg-slate-950 border border-white/10 flex items-center justify-center transition-all",
+                                                        stake.isPlayMode ? "border-amber-500/30" : "group-hover:border-brand-accent/30"
+                                                    )}>
+                                                        {stake.isPlayMode ? <Star size={16} className="text-amber-500" /> : <Zap size={16} fill="currentColor" className="text-emerald-500" />}
                                                     </div>
-                                                    <span className="text-xs font-black text-white uppercase tracking-tight">{stake.itemName}</span>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-black text-white uppercase tracking-tight">{stake.itemName}</span>
+                                                        {stake.isPlayMode && <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Free Play Mode</span>}
+                                                    </div>
                                                 </td>
-                                                <td className="py-5 text-right font-mono text-xs font-black text-slate-300">{formatValue(stake.amount)}</td>
+                                                <td className="py-5 text-right font-mono text-xs font-black text-slate-300">
+                                                    {stake.isPlayMode ? `STARS ${stake.amount.toLocaleString()}` : formatValue(stake.amount)}
+                                                </td>
                                                 <td className="py-5 text-right font-mono text-xs font-black text-brand-accent">#{stake.targetRank}</td>
-                                                <td className="py-5 text-right font-mono text-xs font-black text-emerald-400">+{formatValue((stake.amount * stake.odds) - stake.amount)}</td>
+                                                <td className="py-5 text-right font-mono text-xs font-black text-emerald-400">
+                                                    +{stake.isPlayMode ? `STARS ${Math.floor((stake.amount * stake.odds) - stake.amount).toLocaleString()}` : formatValue((stake.amount * stake.odds) - stake.amount)}
+                                                </td>
                                                 <td className="py-5 text-right">
-                                                    <button
-                                                        onClick={() => shareToX(stake)}
-                                                        className="p-2 ml-auto rounded-lg bg-white/5 text-slate-500 hover:text-brand-accent hover:bg-brand-accent/10 transition-all flex items-center justify-center border border-white/5"
-                                                    >
-                                                        <Twitter size={12} fill="currentColor" />
-                                                    </button>
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        {!stake.isPlayMode && stake.status === 'active' && (
+                                                            <button
+                                                                onClick={() => handleExit(stake.id)}
+                                                                disabled={isExiting === stake.id}
+                                                                className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/20 text-[9px] font-black uppercase transition-all"
+                                                            >
+                                                                {isExiting === stake.id ? '...' : 'Cash Out'}
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            onClick={() => shareToX(stake)}
+                                                            className="p-1.5 rounded-lg bg-white/5 text-slate-500 hover:text-brand-accent hover:bg-brand-accent/10 transition-all flex items-center justify-center border border-white/5"
+                                                        >
+                                                            <Twitter size={12} fill="currentColor" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -208,6 +253,9 @@ export function UserDashboard() {
 
                 {/* Right Col: Identity & History */}
                 <div className="space-y-8 md:space-y-12">
+                     <SystemStatus />
+                     <DailyQuests />
+
                     {/* Oracle Watchlist */}
                     <SectionBox title="Oracle Watchlist" icon={<Bookmark size={16} />}>
                         <WatchlistWidget />
@@ -237,7 +285,7 @@ export function UserDashboard() {
                         </div>
                         <button 
                             onClick={() => setActivityLogOpen(true)}
-                            className="w-full mt-8 py-4 rounded-2xl border border-white/5 text-[10px] font-black uppercase text-slate-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-3 tracking-widest"
+                            className="w-full mt-8 py-4 rounded-2xl border border-white/10 glass-card card-hover text-[10px] font-black uppercase text-brand-accent hover:text-white transition-all flex items-center justify-center gap-3 tracking-widest"
                         >
                             View Full Logs <ChevronRight size={14} />
                         </button>
@@ -262,7 +310,7 @@ export function UserDashboard() {
                         </div>
                     </SectionBox>
 
-                    <div className="p-8 rounded-[2.5rem] bg-slate-900 border border-slate-700/30 shadow-2xl space-y-6">
+                    <div className="p-8 rounded-[2.5rem] glass-card card-hover shadow-2xl space-y-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-brand-accent/10 border border-brand-accent/20 flex items-center justify-center text-brand-accent shadow-[0_0_20px_rgba(56,189,248,0.1)]">
                                 <ShieldCheck size={24} />
@@ -314,7 +362,7 @@ export function UserDashboard() {
 
 function StatCard({ label, value, icon, color }) {
     return (
-        <div className="px-8 py-5 rounded-[2rem] bg-slate-900 border border-slate-700/30 shadow-2xl min-w-[200px] group hover:border-sky-400/30 transition-all">
+        <div className="px-8 py-5 rounded-[2rem] glass-card card-hover shadow-2xl min-w-[200px] group transition-all relative overflow-hidden">
             <div className="flex items-center gap-3 mb-3">
                 <span className="text-slate-500 group-hover:text-brand-accent transition-colors">{icon}</span>
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{label}</span>
@@ -326,7 +374,7 @@ function StatCard({ label, value, icon, color }) {
 
 function SectionBox({ title, icon, children }) {
     return (
-        <div className="p-8 md:p-10 rounded-[2.5rem] bg-slate-900 border border-slate-700/20 shadow-2xl space-y-8 overflow-hidden relative group">
+        <div className="p-8 md:p-10 rounded-[2.5rem] glass-panel shadow-2xl space-y-8 overflow-hidden relative group">
             <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none">
                 {icon}
             </div>

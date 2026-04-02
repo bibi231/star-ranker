@@ -15,6 +15,7 @@ import { z } from "zod";
 import crypto from "crypto";
 import { getRates } from "../services/currencyRate";
 import { checkAndAwardAchievements } from "../services/achievements";
+import { handleFirstDepositBonus } from "../services/depositBonus";
 
 const router = Router();
 
@@ -174,6 +175,9 @@ router.get("/verify/:reference", requireAuth, async (req: AuthRequest, res) => {
                 description: `Deposit of ${platformCredits.toFixed(2)} units confirmed (Ref: ${reference})`,
                 metadata: { reference, paystackId: data.data.id }
             });
+
+            // Handle first-deposit bonus and demo-to-real switch
+            await handleFirstDepositBonus(req.uid!, amountNGN, tx);
         });
 
         const userResult = await db.select({ balance: users.balance })
@@ -281,6 +285,9 @@ router.post("/webhook", async (req, res) => {
                         description: `Deposit of ${platformCredits.toFixed(2)} units confirmed via Webhook (Ref: ${refStr})`,
                         metadata: { reference: refStr, paystackId, source: "webhook" }
                     });
+
+                    // Handle bonus and demo-to-real switch
+                    await handleFirstDepositBonus(metadata.userId, amountNGN, tx);
                 });
                 console.log(`[Paystack Webhook] Credited ${platformCredits} to ${metadata.userId} (Ref: ${refStr})`);
                 
@@ -516,6 +523,9 @@ router.get("/flutterwave/verify/:txRef", requireAuth, async (req: AuthRequest, r
                 description: `Deposit of ${platformCredits.toFixed(2)} units confirmed (Flutterwave, Ref: ${txRef})`,
                 metadata: { reference: txRef, flutterwaveId: flwId },
             });
+
+            // Handle bonus and demo-to-real switch
+            await handleFirstDepositBonus(req.uid!, amountNGN, tx);
         });
 
         const userResult = await db.select({ balance: users.balance })
@@ -613,6 +623,9 @@ router.post("/flutterwave/webhook", async (req, res) => {
                     description: `Deposit via Flutterwave webhook (Ref: ${txRef})`,
                     metadata: { reference: txRef, source: "flutterwave_webhook" },
                 });
+
+                // Handle bonus and demo-to-real switch
+                await handleFirstDepositBonus(userId, amountNGN, tx);
             });
         }
 

@@ -24,6 +24,8 @@ import {
 // Auth & Social
 import { SignInPage, SignUpPage, EmailVerificationPrompt } from "./pages/AuthPages";
 import { ActivityPage, LeaderboardPage, HowItWorksPage, TransparencyPage } from "./pages/StaticPages";
+import { OracleBattles } from "./pages/OracleBattles";
+import { OracleTrialPage } from "./pages/OracleTrialPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import AdminZMGPage from "./pages/AdminZMGPage";
 import AdminOpsPage from "./pages/AdminOpsPage";
@@ -101,6 +103,8 @@ function App() {
 
             <Route path="/activity" element={<ActivityPage />} />
             <Route path="/leaderboards" element={<LeaderboardPage />} />
+            <Route path="/battles" element={<OracleBattles />} />
+            <Route path="/trial" element={<OracleTrialPage />} />
             <Route path="/notifications" element={
               user ? (
                 <EmailVerificationGuard>

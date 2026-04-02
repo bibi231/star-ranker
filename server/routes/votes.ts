@@ -4,6 +4,7 @@ import { votes, items, users, marketActivity } from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { checkAndAwardAchievements } from "../services/achievements";
+import { cacheDel } from "../services/cache";
 
 const router = Router();
 
@@ -124,6 +125,9 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
 
         // Check for achievements asynchronously
         checkAndAwardAchievements(userId).catch(err => console.error("[Votes] Achievement check failed:", err));
+
+        // Invalidate cache for this category
+        await cacheDel(`items:${categorySlug}`);
 
         res.json({ success: true, newScore: updated[0]?.score ?? 0, powerVoteUsed: powerVoteDeducted, newPowerVotes });
     } catch (error: any) {

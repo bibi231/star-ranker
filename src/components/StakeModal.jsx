@@ -10,9 +10,10 @@ import { useStore } from '../store/storeModel';
 import { cn } from '../lib/utils';
 import debounce from 'lodash-es/debounce';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { triggerTourAction } from './onboarding/OnboardingTour';
 
 export function StakeModal({ isOpen, onClose, itemId, itemName }) {
-    const { balance, placeStake, getLiveOdds, currentEpoch, serverTimeOffset, formatValue, currency } = useStore();
+    const { balance, demoBalance, isDemoMode, setIsDemoMode, placeStake, getLiveOdds, currentEpoch, serverTimeOffset, formatValue, currency } = useStore();
     const [amount, setAmount] = useState('10');
     const [betType, setBetType] = useState('exact'); // exact, range, directional
     const [targetRank, setTargetRank] = useState('1');
@@ -98,10 +99,10 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
 
     const handleStake = async () => {
         if (!amount || parseFloat(amount) <= 0) return;
-        const usdAmount = useStore.getState().parseLocalToUSD(amount);
-
-        if (usdAmount > balance) {
-            setError("Insufficient balance for this stake.");
+        
+        const currentBalance = isDemoMode ? demoBalance : balance;
+        if (parseFloat(amount) > currentBalance) {
+            setError(`Insufficient ${isDemoMode ? 'demo credits' : 'balance'} for this stake.`);
             return;
         }
 
@@ -109,12 +110,15 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
         setError(null);
         try {
             const target = betType === 'exact' ? parseInt(targetRank) : betType === 'range' ? { min: parseInt(rangeMin), max: parseInt(rangeMax) } : { dir: direction, k: parseInt(kPositions) };
-            const response = await placeStake(itemId, usdAmount, target, itemName, betType);
+            
+            // Note: store's placeStake already uses isDemoMode internally
+            const success = await placeStake(itemId, itemName, useStore.getState().currentCategorySlug, parseFloat(amount), target, betType);
 
-            if (response.success) {
+            if (success) {
+                if (isDemoMode) triggerTourAction('stake-placed');
                 onClose();
             } else {
-                setError(response.error || "Transaction failed. Please try again.");
+                setError("Transaction failed. Please try again.");
             }
         } catch (err) {
             setError(err.message || "An unexpected error occurred.");
@@ -137,11 +141,19 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                 <div className="relative group">
                     <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-3xl blur opacity-25 group-hover:opacity-50 transition-opacity" />
                     <div className="relative p-6 rounded-3xl bg-slate-950 border border-white/5">
-                        <div className="flex justify-between items-start mb-2">
+                        <div className="flex justify-between items-center mb-2">
                             <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Target Market Item</div>
-                            <div className={cn("px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-tighter border", riskColor, riskLevel === 'High' ? 'border-rose-500/30 bg-rose-500/10' : 'border-current/30')}>
-                                {riskLevel} Risk
-                            </div>
+                            <button 
+                                onClick={() => setIsDemoMode(!isDemoMode)}
+                                className={cn(
+                                    "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest transition-all",
+                                    isDemoMode 
+                                        ? "bg-amber-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.4)]" 
+                                        : "glass-card text-brand-accent hover:border-brand-accent/50"
+                                )}
+                            >
+                                {isDemoMode ? "★ Practice Mode ON" : "Real Stake Mode"}
+                            </button>
                         </div>
                         <div className="text-3xl font-black text-white uppercase tracking-tighter truncate">{itemName}</div>
                     </div>
@@ -166,10 +178,10 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
-                            <BadgeDollarSign size={12} className="text-emerald-500" /> Stake Capital
+                            <BadgeDollarSign size={12} className={isDemoMode ? "text-amber-500" : "text-emerald-500"} /> {isDemoMode ? "Practice Amount (STARS)" : "Stake Capital"}
                         </label>
                         <div className="relative group">
-                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-lg font-black">{currency === 'NGN' ? '₦' : currency === 'EUR' ? '€' : '$'}</span>
+                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-lg font-black">{isDemoMode ? '★' : (currency === 'NGN' ? '₦' : currency === 'EUR' ? '€' : '$')}</span>
                             <input
                                 type="number"
                                 inputMode="decimal"
@@ -312,7 +324,10 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                             <div>
                                 <div className="text-[9px] font-black text-emerald-500/50 uppercase mb-1">Potential Payout</div>
                                 <div className="text-2xl md:text-3xl font-mono font-black text-emerald-400 drop-shadow-lg">
-                                    {formatValue(quote ? (useStore.getState().parseLocalToUSD(amount || 0) * quote.effectiveMultiplier) : 0)}
+                                    {isDemoMode 
+                                        ? `★${Math.floor(quote ? (parseFloat(amount || 0) * quote.effectiveMultiplier) : 0).toLocaleString()}`
+                                        : formatValue(quote ? (useStore.getState().parseLocalToUSD(amount || 0) * quote.effectiveMultiplier) : 0)
+                                    }
                                 </div>
                             </div>
                             <div>
@@ -339,8 +354,14 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                     {/* Fee Breakdown */}
                     <div className="mt-4 pt-4 border-t border-slate-800/50 space-y-2">
                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                            <span className="text-slate-500">Available Balance</span>
+                            <span className="text-white">
+                                {isDemoMode ? `★${demoBalance.toLocaleString()}` : formatValue(balance)}
+                            </span>
+                        </div>
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest pt-2">
                             <span className="text-slate-500">Stake Amount</span>
-                            <span className="text-white">{formatValue(useStore.getState().parseLocalToUSD(amount))}</span>
+                            <span className="text-white">{isDemoMode ? `★${parseFloat(amount || 0).toLocaleString()}` : formatValue(useStore.getState().parseLocalToUSD(amount))}</span>
                         </div>
                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                             <span className="text-rose-400">Platform Fee (5%)</span>
@@ -424,9 +445,9 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                         "flex-[2.5] min-h-[56px] py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none",
                         isLocked
                             ? "bg-slate-800 text-slate-600 cursor-not-allowed"
-                            : useStore.getState().parseLocalToUSD(amount) > balance
+                            : (isDemoMode ? parseFloat(amount) > demoBalance : useStore.getState().parseLocalToUSD(amount) > balance)
                                 ? "bg-rose-500/10 text-rose-500 border border-rose-500/20 cursor-not-allowed"
-                                : "bg-amber-500 text-slate-950 hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] active:scale-[0.98]"
+                                : isDemoMode ? "premium-btn-gold" : "premium-btn-cyan active:scale-[0.98]"
                     )}
                 >
                     {isProcessing ? (
@@ -436,7 +457,9 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                     ) : (
                         <>
                             <ArrowUpRight size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                            {parseFloat(amount) > balance ? 'Insufficient Balance' : 'Protocol Entry'}
+                            {(isDemoMode ? parseFloat(amount) > demoBalance : useStore.getState().parseLocalToUSD(amount) > balance) 
+                                ? 'Insufficient Funds' 
+                                : isDemoMode ? 'Deploy Practice Stake' : 'Execute Protocol Entry'}
                         </>
                     )}
                 </button>

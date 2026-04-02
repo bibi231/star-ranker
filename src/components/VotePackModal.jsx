@@ -76,7 +76,7 @@ export function VotePackModal({ isOpen, onClose }) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 40 }}
                         className={cn(
-                            "fixed z-[151] bg-slate-900 border-t border-x md:border-b md:border-brand-accent/30 border-brand-accent/30 shadow-2xl overflow-hidden flex flex-col",
+                            "fixed z-[151] glass-panel border border-amber-500/30 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col",
                             "md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg md:rounded-[2rem] md:max-h-[85vh]",
                             "bottom-0 left-0 right-0 rounded-t-[2.5rem] max-h-[90vh]"
                         )}
@@ -142,7 +142,7 @@ export function VotePackModal({ isOpen, onClose }) {
                                             <button
                                                 onClick={() => handlePurchase(pack)}
                                                 disabled={isPurchasing}
-                                                className="px-6 py-3 rounded-xl bg-amber-500 text-slate-950 font-black text-xs uppercase tracking-widest hover:bg-amber-400 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-6 py-3 rounded-xl premium-btn-gold font-black text-xs uppercase tracking-widest active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {formatValue(pack.priceNgn / 1500)}
                                             </button>

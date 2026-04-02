@@ -9,7 +9,8 @@ import {
     serial,
     uniqueIndex,
     index,
-    varchar
+    varchar,
+    date
 } from "drizzle-orm/pg-core";
 
 // ===== CATEGORIES =====
@@ -42,6 +43,7 @@ export const items = pgTable("items", {
     createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
     index("items_category_idx").on(table.categorySlug),
+    index("items_category_rank_idx").on(table.categorySlug, table.rank),
 ]);
 
 // ===== VOTES =====
@@ -55,6 +57,8 @@ export const votes = pgTable("votes", {
 }, (table) => [
     uniqueIndex("votes_user_item_idx").on(table.userId, table.itemDocId),
     index("votes_user_category_idx").on(table.userId, table.categorySlug),
+    index("votes_item_idx").on(table.itemDocId),
+    index("votes_user_updated_idx").on(table.userId, table.updatedAt),
 ]);
 
 // ===== STAKES =====
@@ -78,9 +82,15 @@ export const stakes = pgTable("stakes", {
     platformFee: real("platform_fee").default(0),
     outcome: text("outcome"),
     isSettled: boolean("is_settled").default(false),
+    isPlayMode: boolean("is_play_mode").default(false), // True = uses virtual STAKE
+    exitValue: real("exit_value"), // Payout from early exit
+    exitAt: timestamp("exit_at"), // Time of early exit
+    isDemo: boolean("is_demo").default(false), // Flag for practice/demo stakes
     createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
     index("stakes_user_idx").on(table.userId),
+    index("stakes_user_status_idx").on(table.userId, table.status),
+    index("stakes_epoch_idx").on(table.epochId),
 ]);
 
 // ===== EPOCHS =====
@@ -110,6 +120,7 @@ export const epochSnapshots = pgTable("epoch_snapshots", {
 }, (table) => [
     index("epoch_snapshots_epoch_idx").on(table.epochId),
     index("epoch_snapshots_item_idx").on(table.itemId),
+    index("snapshot_epoch_item_idx").on(table.epochId, table.itemId),
 ]);
 
 // ===== MARKET META =====
@@ -130,7 +141,8 @@ export const users = pgTable("users", {
     displayName: text("display_name"),
     bio: text("bio"),
     walletAddress: varchar("wallet_address", { length: 42 }).unique(),
-    balance: real("balance").default(0), // Starting balance
+    balance: real("balance").default(0), // Starting real balance
+    playBalance: real("play_balance").default(10000), // Starting free-play balance
     reputation: integer("reputation").default(100),
     tier: text("tier").default("Initiate"), // Initiate, Peer, Sage, Oracle
     powerVotes: integer("power_votes").default(0),
@@ -147,6 +159,15 @@ export const users = pgTable("users", {
     dailyStreak: integer('daily_streak').default(0),
     longestStreak: integer('longest_streak').default(0),
     lastActiveDate: timestamp('last_active_date'),
+    demoBalance: integer('demo_balance').default(50000), // Practice credits (NGN value)
+    demoTotalWon: integer('demo_total_won').default(0),
+    demoTotalStaked: integer('demo_total_staked').default(0),
+    demoStakesCount: integer('demo_stakes_count').default(0),
+    demoWinsCount: integer('demo_wins_count').default(0),
+    isDemoMode: boolean('is_demo_mode').default(true), // Users start in demo mode
+    hasCompletedTour: boolean('has_completed_tour').default(false),
+    hasDeposited: boolean('has_deposited').default(false),
+    demoConversionShown: boolean('demo_conversion_shown').default(false),
     createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -183,6 +204,7 @@ export const notifications = pgTable("notifications", {
     createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
     index("notifications_user_idx").on(table.userId),
+    index("notif_user_read_idx").on(table.userId, table.read),
 ]);
 
 // ===== TRANSACTIONS (The Financial Ledger) =====
@@ -302,4 +324,87 @@ export const achievements = pgTable('achievements', {
     metadata: jsonb('metadata'),
 }, (table) => [
     index('achievements_user_idx').on(table.userId),
+]);
+
+// ===== MARKET COMMENTS =====
+export const marketComments = pgTable('market_comments', {
+  id:        serial('id').primaryKey(),
+  itemId:    integer('item_id').references(() => items.id).notNull(),
+  userId:    text('user_id').notNull(),
+  content:   text('content').notNull(),
+  parentId:  integer('parent_id'),
+  likes:     integer('likes').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+    index("market_comments_item_idx").on(table.itemId),
+]);
+
+// ===== ORACLE BATTLES =====
+export const oracleBattles = pgTable('oracle_battles', {
+  id:          serial('id').primaryKey(),
+  creatorId:   text('creator_id'),
+  title:       varchar('title', { length: 100 }).notNull(),
+  itemAId:     integer('item_a_id').references(() => items.id),
+  itemBId:     integer('item_b_id').references(() => items.id),
+  categoryId:  integer('category_id').references(() => categories.id),
+  question:    varchar('question', { length: 200 }).notNull(),
+  endsAt:      timestamp('ends_at').notNull(),
+  status:      varchar('status', { length: 20 }).default('active'),
+  totalVotesA: integer('total_votes_a').default(0),
+  totalVotesB: integer('total_votes_b').default(0),
+  createdAt:   timestamp('created_at').defaultNow(),
+});
+
+// ===== DAILY QUESTS =====
+export const dailyQuests = pgTable('daily_quests', {
+  id:          serial('id').primaryKey(),
+  userId:      text('user_id').notNull(),
+  questDate:   date('quest_date').notNull(),
+  votedToday:  boolean('voted_today').default(false),
+  stakedToday: boolean('staked_today').default(false),
+  commentedToday: boolean('commented_today').default(false),
+  checkedInToday: boolean('checked_in_today').default(false),
+  claimed:     boolean('claimed').default(false),
+  xpEarned:    integer('xp_earned').default(0),
+}, (table) => [
+    uniqueIndex('daily_quests_user_date_idx').on(table.userId, table.questDate)
+]);
+
+// ===== ORACLE TRIALS =====
+export const oracleTrials = pgTable('oracle_trials', {
+  id:         serial('id').primaryKey(),
+  trialDate:  date('trial_date').unique().notNull(),
+  itemIds:    jsonb('item_ids').notNull(),
+  categoryId: integer('category_id').references(() => categories.id),
+});
+
+export const trialAttempts = pgTable('trial_attempts', {
+  id:           serial('id').primaryKey(),
+  userId:       text('user_id').notNull(),
+  trialId:      integer('trial_id').references(() => oracleTrials.id),
+  guessOrder:   jsonb('guess_order').notNull(),
+  score:        integer('score').notNull(),
+  completedAt:  timestamp('completed_at').defaultNow(),
+}, (table) => [
+    uniqueIndex('trial_attempts_user_trial_idx').on(table.userId, table.trialId)
+]);
+
+// ===== SEASONS =====
+export const seasons = pgTable('seasons', {
+  id:          serial('id').primaryKey(),
+  name:        varchar('name', { length: 50 }).notNull(),
+  startDate:   date('start_date').notNull(),
+  endDate:     date('end_date').notNull(),
+  status:      varchar('status', { length: 20 }).default('active'),
+});
+
+export const seasonLeaderboard = pgTable('season_leaderboard', {
+  id:          serial('id').primaryKey(),
+  seasonId:    integer('season_id').references(() => seasons.id),
+  userId:      text('user_id').notNull(),
+  seasonXP:    integer('season_xp').default(0),
+  seasonRank:  integer('season_rank'),
+  tier:        varchar('tier', { length: 20 }).default('apprentice'),
+}, (table) => [
+    uniqueIndex('season_leaderboard_user_season_idx').on(table.userId, table.seasonId)
 ]);

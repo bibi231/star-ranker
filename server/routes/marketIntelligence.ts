@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db/index";
-import { marketActivity, users, votes, comments, items } from "../db/schema";
+import { marketActivity, users, votes, marketComments, items } from "../db/schema";
 import { desc, eq, and, sql } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 
@@ -67,24 +67,31 @@ router.get("/:id/stats", async (req, res) => {
     }
 });
 
-// GET /api/markets/:id/comments — Get discussion
+// GET /api/markets/:id/comments — Get discussion (threaded)
 router.get("/:id/comments", async (req, res) => {
     try {
-        const { id } = req.params;
+        const { id } = req.params; // docId
+
+        // Resolve itemId from docId
+        const [item] = await db.select({ id: items.id }).from(items).where(eq(items.docId, id)).limit(1);
+        if (!item) return res.status(404).json({ error: "Item not found" });
+
         const result = await db
             .select({
-                id: comments.id,
-                userId: comments.userId,
-                content: comments.content,
-                createdAt: comments.createdAt,
+                id: marketComments.id,
+                userId: marketComments.userId,
+                content: marketComments.content,
+                createdAt: marketComments.createdAt,
+                parentId: marketComments.parentId,
+                likes: marketComments.likes,
                 userDisplayName: users.displayName,
-                userPhoto: users.oracleHandle, // Use handle or just name
+                oracleHandle: users.oracleHandle,
             })
-            .from(comments)
-            .leftJoin(users, eq(comments.userId, users.firebaseUid))
-            .where(eq(comments.itemDocId, id))
-            .orderBy(desc(comments.createdAt))
-            .limit(50);
+            .from(marketComments)
+            .leftJoin(users, eq(marketComments.userId, users.firebaseUid))
+            .where(eq(marketComments.itemId, item.id))
+            .orderBy(desc(marketComments.createdAt))
+            .limit(100);
 
         res.json(result);
     } catch (error: any) {
@@ -92,24 +99,58 @@ router.get("/:id/comments", async (req, res) => {
     }
 });
 
-// POST /api/markets/:id/comments — Post comment
+// POST /api/markets/:id/comments — Post comment (supports threading)
 router.post("/:id/comments", requireAuth, async (req: AuthRequest, res) => {
     try {
-        const { id } = req.params;
-        const { content } = req.body;
+        const id = req.params.id as string;
+        const { content, parentId } = req.body;
         const userId = req.uid!;
 
-        if (!content) return res.status(400).json({ error: "Content required" });
+        if (!content || content.length > 500) return res.status(400).json({ error: "Content required" });
 
-        await db.insert(comments).values({
+        // Resolve itemId from docId
+        const [item] = await db.select({ id: items.id }).from(items).where(eq(items.docId, id)).limit(1);
+        if (!item) return res.status(404).json({ error: "Item not found" });
+
+        const [newComment] = await db.insert(marketComments).values({
             userId,
-            itemDocId: id as string,
-            content
-        });
+            itemId: item.id,
+            content,
+            parentId: parentId || null
+        }).returning();
 
-        res.json({ success: true });
+        // Update quest progress
+        try {
+            await db.execute(sql`
+                INSERT INTO daily_quests (user_id, quest_date, commented_today)
+                VALUES (${userId as string}, CURRENT_DATE, true)
+                ON CONFLICT (user_id, quest_date)
+                DO UPDATE SET commented_today = true
+            `);
+        } catch (questErr) {
+            console.error("Quest update failed:", questErr);
+        }
+
+        res.json(newComment);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/markets/comments/:commentId/like — Like a comment
+router.post("/comments/:commentId/like", requireAuth, async (req: AuthRequest, res) => {
+    try {
+        const commentId = parseInt(req.params.commentId as string);
+        if (isNaN(commentId)) return res.status(400).json({ error: "Invalid commentId" });
+
+        const [updated] = await db.update(marketComments)
+            .set({ likes: sql`${marketComments.likes} + 1` })
+            .where(eq(marketComments.id, commentId))
+            .returning();
+
+        res.json(updated);
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
     }
 });
 

@@ -5,6 +5,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { requireStakeAccess } from "../middleware/geo";
 import { z } from "zod";
+import { cacheDel } from "../services/cache";
 
 const stakeSchema = z.object({
     itemDocId: z.string().min(1).max(200),
@@ -14,6 +15,7 @@ const stakeSchema = z.object({
     itemName: z.string().min(1).max(200),
     betType: z.enum(["exact", "range", "directional"]),
     quotedEpoch: z.number().int().optional(), // For stale quote rejection
+    isPlayMode: z.boolean().optional().default(false),
 });
 
 const router = Router();
@@ -148,6 +150,18 @@ router.get("/odds", [requireAuth, requireStakeAccess], async (req: AuthRequest, 
             parseFloat(amount as string)
         );
 
+        // Update quest progress
+        try {
+            await db.execute(sql`
+                INSERT INTO daily_quests (user_id, quest_date, staked_today)
+                VALUES (${req.uid}, CURRENT_DATE, true)
+                ON CONFLICT (user_id, quest_date)
+                DO UPDATE SET staked_today = true
+            `);
+        } catch (questErr) {
+            console.error("Stake quest update failed:", questErr);
+        }
+
         res.json(quote);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
@@ -170,7 +184,7 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
             console.error("[STAKE_POST] Validation failed:", parsed.error.flatten().fieldErrors);
             return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten().fieldErrors });
         }
-        const { itemDocId, amount, target, categorySlug, itemName, betType, quotedEpoch } = parsed.data;
+        const { itemDocId, amount, target, categorySlug, itemName, betType, quotedEpoch, isPlayMode } = parsed.data;
         const userId = req.uid!;
 
         // ===== PLATFORM FEE CONFIG =====
@@ -192,6 +206,59 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
         const platformFee = amount * PLATFORM_FEE_RATE;
         const netStake = amount - platformFee - referralFee; // Amount that enters the risk pool
 
+        // Fetched user earlier, now check for demo mode
+        const isDemo = user.isDemoMode === true || req.body.isDemo === true;
+
+        if (isDemo) {
+            // Demo mode handling — bypass real-money logic
+            if ((user.demoBalance || 0) < amount) {
+                return res.status(400).json({ 
+                    error: 'Insufficient demo credits',
+                    isDemoError: true,
+                    currentDemoBalance: user.demoBalance || 0
+                });
+            }
+
+            // Fetch current epoch for demo stake
+            const demoEpochResult = await db.select().from(epochs).where(eq(epochs.isActive, true)).limit(1);
+            if (demoEpochResult.length === 0) return res.status(400).json({ error: "No active epoch" });
+            const demoEpoch = demoEpochResult[0];
+
+            // Deduct from demo balance
+            await db.update(users)
+                .set({ 
+                    demoBalance: (user.demoBalance || 0) - amount,
+                    demoStakesCount: (user.demoStakesCount || 0) + 1,
+                    demoTotalStaked: (user.demoTotalStaked || 0) + amount,
+                })
+                .where(eq(users.firebaseUid, userId));
+            
+            // Insert stake marked as demo
+            const [newDemoStake] = await db.insert(stakes).values({
+                userId,
+                itemDocId,
+                itemName,
+                categorySlug,
+                amount: netStake,
+                platformFee,
+                target: target as any,
+                betType,
+                initialRank: 50, // Fallback rank for demo
+                status: 'active',
+                epochId: demoEpoch.epochNumber,
+                isDemo: true,
+                isPlayMode: true, // Also mark as play mode for UI compatibility
+            }).returning();
+
+            return res.json({ 
+                success: true, 
+                stake: newDemoStake,
+                isDemo: true,
+                newDemoBalance: (user.demoBalance || 0) - amount,
+                message: 'Demo stake placed! This is practice — no real money involved.'
+            });
+        }
+
         // Fetch epoch
         const epochResult = await db.select().from(epochs).where(eq(epochs.isActive, true)).limit(1);
         if (epochResult.length === 0) return res.status(400).json({ error: "No active epoch" });
@@ -212,12 +279,18 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
 
 
 
-        if ((user.balance ?? 0) < amount) {
-            return res.status(400).json({ error: "Insufficient funds" });
-        }
+        if (isPlayMode) {
+            if ((user.playBalance ?? 0) < amount) {
+                return res.status(400).json({ error: "Insufficient practice funds (STARS)" });
+            }
+        } else {
+            if ((user.balance ?? 0) < amount) {
+                return res.status(400).json({ error: "Insufficient funds" });
+            }
 
-        if ((Number(user.balance) - amount) < 1.0) {
-            return res.status(400).json({ error: "Must maintain a minimum balance of $1.00 USD" });
+            if ((Number(user.balance) - amount) < 1.0) {
+                return res.status(400).json({ error: "Must maintain a minimum balance of $1.00 USD" });
+            }
         }
 
         // Fetch item
@@ -249,12 +322,20 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
             // 1. Re-fetch user balance within transaction for absolute consistency
             const activeUser = await tx.select().from(users).where(eq(users.firebaseUid, userId)).limit(1).for("update");
             if (activeUser.length === 0) throw new Error("User lost during transaction");
-            if ((activeUser[0].balance ?? 0) < amount) throw new Error("Insufficient funds (race condition)");
 
-            // 2. Deduct FULL amount from user
-            await tx.update(users)
-                .set({ balance: sql`${users.balance} - ${amount}` })
-                .where(eq(users.firebaseUid, userId));
+            if (isPlayMode) {
+                if ((activeUser[0].playBalance ?? 0) < amount) throw new Error("Insufficient practice funds (race condition)");
+                // 2. Deduct from playBalance
+                await tx.update(users)
+                    .set({ playBalance: sql`${users.playBalance} - ${amount}` })
+                    .where(eq(users.firebaseUid, userId));
+            } else {
+                if ((activeUser[0].balance ?? 0) < amount) throw new Error("Insufficient funds (race condition)");
+                // 2. Deduct FULL amount from user balance
+                await tx.update(users)
+                    .set({ balance: sql`${users.balance} - ${amount}` })
+                    .where(eq(users.firebaseUid, userId));
+            }
 
             // 3. Credit referrer if applicable
             if (powerReferrer && referralFee > 0) {
@@ -308,6 +389,7 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
                 multiplierUsed: quote.multiplier,
                 slippageApplied: quote.slippage,
                 platformFee,
+                isPlayMode,
             }).returning({ id: stakes.id });
 
             // 7. Log to Market Activity (safe fetch)
@@ -328,6 +410,9 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
 
             return stakeResult[0].id;
         });
+
+        // Invalidate cache for this category
+        await cacheDel(`items:${categorySlug}`);
 
         res.json({
             success: true,
@@ -352,6 +437,121 @@ router.get("/my", requireAuth, async (req: AuthRequest, res: any) => {
 
         res.json(result);
     } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /api/stakes/:id/exit — Early Exit (Cash Out)
+ */
+router.post("/:id/exit", requireAuth, async (req: AuthRequest, res: any) => {
+    try {
+        const { id } = req.params;
+        const userId = req.uid!;
+
+        // 1. Fetch stake and verify ownership
+        const stakeResult = await db.select().from(stakes).where(and(eq(stakes.id, parseInt(id)), eq(stakes.userId, userId))).limit(1);
+        if (stakeResult.length === 0) return res.status(404).json({ error: "Stake not found" });
+        const stake = stakeResult[0];
+
+        if (stake.status !== "active") return res.status(400).json({ error: "Stake is not active" });
+
+        // 2. Fetch current market rank
+        const itemResult = await db.select().from(items).where(eq(items.docId, stake.itemDocId)).limit(1);
+        if (itemResult.length === 0) return res.status(404).json({ error: "Market data lost" });
+        const item = itemResult[0];
+        const actualRank = item.rank || 50;
+
+        // 3. Current win status
+        let isWin = false;
+        const target: any = stake.target;
+
+        if (stake.betType === "exact") {
+            const targetRankValue = typeof target === 'number' ? target : parseInt(target);
+            isWin = actualRank === targetRankValue;
+        } else if (stake.betType === "range") {
+            isWin = actualRank >= target.min && actualRank <= target.max;
+        } else if (stake.betType === "directional") {
+            const initial = stake.initialRank || 50;
+            if (target.dir === 'up') {
+                isWin = actualRank <= (initial - (target.k || 1));
+            } else {
+                isWin = actualRank >= (initial + (target.k || 1));
+            }
+        }
+
+        // 4. Calculate Exit Value
+        // Winning Exit: 70% of potential payout (30% Haircut)
+        // Losing Exit: 40% of original stake (60% Loss)
+        let exitValue = 0;
+        if (isWin) {
+            const potentialPayout = stake.amount * (stake.effectiveMultiplier || 2);
+            exitValue = potentialPayout * 0.7;
+        } else {
+            exitValue = stake.amount * 0.4;
+        }
+
+        exitValue = Math.floor(exitValue * 100) / 100;
+
+        // 5. ATOMIC TRANSACTION
+        await db.transaction(async (tx) => {
+            // Update stake status
+            await tx.update(stakes).set({
+                status: "exited",
+                exitValue,
+                exitAt: new Date(),
+                isSettled: true
+            }).where(eq(stakes.id, stake.id));
+
+            // Update user balance
+            if (stake.isPlayMode) {
+                await tx.update(users).set({ 
+                    playBalance: sql`${users.playBalance} + ${exitValue}` 
+                }).where(eq(users.firebaseUid, userId));
+            } else {
+                await tx.update(users).set({ 
+                    balance: sql`${users.balance} + ${exitValue}` 
+                }).where(eq(users.firebaseUid, userId));
+            }
+
+            // Log transaction
+            const txRef = `ext_${Date.now()}_${stake.id}`;
+            await tx.insert(transactions).values({
+                userId,
+                type: "exit",
+                amountUsd: exitValue,
+                netAmountUsd: exitValue,
+                status: "completed",
+                reference: txRef,
+                epochId: stake.epochId,
+                marketId: stake.itemDocId,
+                metadata: { stakeId: stake.id, isWin, originalAmount: stake.amount }
+            });
+
+            // Log activity
+            try {
+                await tx.insert(marketActivity).values({
+                    type: "exit",
+                    userId,
+                    itemDocId: stake.itemDocId,
+                    itemName: stake.itemName,
+                    categorySlug: stake.categorySlug,
+                    amount: exitValue,
+                    description: `Oracle liquidated influence on ${stake.itemName} early (Exit realized)`,
+                    metadata: { win: isWin, realized: exitValue }
+                });
+            } catch (e) {
+                console.warn("[Exit] Activity log failed:", e);
+            }
+        });
+
+        res.json({
+            success: true,
+            exitValue,
+            isWin
+        });
+    } catch (error: any) {
+        console.error("Early Exit error:", error);
         res.status(500).json({ error: error.message });
     }
 });

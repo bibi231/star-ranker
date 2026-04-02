@@ -21,6 +21,7 @@ export const useStore = create((set, get) => ({
     user: null,
     reputation: 0,
     balance: 0,
+    playBalance: 0,
     tier: "Newbie",
     emailVerified: false,
     isAuthLoading: true,
@@ -28,6 +29,15 @@ export const useStore = create((set, get) => ({
     usePowerVote: false,
     isWithdrawalOpen: false,
     setWithdrawalOpen: (val) => set({ isWithdrawalOpen: val }),
+
+    // Demo Mode & Onboarding
+    demoBalance: 50000,
+    isDemoMode: true, // Default to demo for new users
+    hasCompletedTour: false,
+    demoStats: { stakesPlaced: 0, winsCount: 0, totalEarned: 0, winRate: 0 },
+    showDemoConversion: false,
+    setDemoMode: (val) => set({ isDemoMode: val }),
+    setShowDemoConversion: (val) => set({ showDemoConversion: val }),
 
     // Currency System
     currency: 'USD',
@@ -233,7 +243,8 @@ export const useStore = create((set, get) => ({
                 let formattedItems = apiItems.map(item => {
                     const sponsor = apiSponsors.find(s => s.itemId === item.docId);
                     return {
-                        id: item.docId,
+                        id: item.id, // Numeric PK
+                        docId: item.docId, // String Identifier
                         name: item.name,
                         symbol: item.symbol,
                         score: item.score || 0,
@@ -339,7 +350,7 @@ export const useStore = create((set, get) => ({
             } else {
                 const { syncInterval } = get();
                 if (syncInterval) clearInterval(syncInterval);
-                set({ user: null, isAuthLoading: false, balance: 0, reputation: 0, tier: "Newbie", bio: "", userVotes: {}, syncInterval: null });
+                set({ user: null, isAuthLoading: false, balance: 0, playBalance: 0, reputation: 0, tier: "Newbie", bio: "", userVotes: {}, syncInterval: null });
             }
         });
     },
@@ -404,16 +415,34 @@ export const useStore = create((set, get) => ({
             const profile = await apiGet("/api/admin/users/me", ref ? { ref } : {});
             console.log("[Store] Profile response:", profile);
 
+            if (profile) {
+                set({
+                    reputation: profile.reputation || 0,
+                    balance: profile.balance || 0,
+                    playBalance: profile.playBalance || 0,
+                    demoBalance: profile.demoBalance || 50000,
+                    isDemoMode: profile.isDemoMode ?? true,
+                    hasCompletedTour: profile.hasCompletedTour || false,
+                    tier: profile.tier || "Newbie",
+                    bio: profile.bio || "",
+                    settings: profile.settings || get().settings,
+                    isAdmin: profile.isAdmin || false,
+                    isModerator: profile.isModerator || false,
+                });
+                
+                // Fetch demo stats if in demo mode
+                if (profile.isDemoMode) {
+                    const stats = await apiGet('/api/demo/stats');
+                    if (stats) set({ demoStats: stats });
+                }
+            }
+
             set({
-                balance: Number(profile.balance) || 0,
-                reputation: profile.reputation || 0,
-                tier: superUser ? "Oracle" : (profile.tier || "Newbie"),
-                bio: profile.bio ?? "",
                 user: {
                     ...auth.currentUser,
                     ...profile,
                     isSuperAdmin: superUser,
-                    isAdmin: superUser,
+                    isAdmin: superUser || profile.isAdmin,
                     isModerator:
                         superUser ||
                         (profile.isModerator ?? ["Sage", "Oracle"].includes(profile.tier)),
@@ -519,28 +548,51 @@ export const useStore = create((set, get) => ({
         }
     },
 
-    placeStake: async (itemId, amount, targetRank, itemName, betType) => {
-        const { balance } = get();
-        if (balance - amount < 1.0) {
-            return { success: false, error: "Must maintain a minimum balance of $1.00 USD" };
+    placeStake: async (itemDocId, itemName, categorySlug, amount, target, betType) => {
+        const { user, balance, demoBalance, isDemoMode } = get();
+        if (!user) {
+            toast.error("Please login to place a stake");
+            return false;
         }
+
+        const currentBalance = isDemoMode ? demoBalance : balance;
+
+        if (currentBalance < amount) {
+            toast.error(`Insufficient ${isDemoMode ? 'demo credits' : 'balance'}`);
+            return false;
+        }
+
         try {
-            const result = await apiPost("/api/stakes", {
-                itemDocId: itemId,
-                amount,
-                target: targetRank,
-                categorySlug: get().currentCategorySlug,
+            const res = await apiPost("/api/stakes", {
+                itemDocId,
                 itemName,
+                categorySlug,
+                amount,
+                target,
                 betType,
+                isDemo: isDemoMode
             });
-            if (result.success) {
-                await get().fetchUserProfile();
-                await get().fetchStakes();
+
+            if (res && res.success) {
+                toast.success(isDemoMode ? "Demo stake placed! (Practice)" : "Stake placed successfully!");
+                
+                if (isDemoMode) {
+                    set({ demoBalance: res.newDemoBalance || (demoBalance - amount) });
+                } else {
+                    set({ balance: balance - amount });
+                }
+                
+                // Refresh stakes list
+                get().fetchStakes();
+                return true;
+            } else {
+                toast.error(res?.error || "Failed to place stake");
+                return false;
             }
-            return result;
-        } catch (error) {
-            console.error("Stake error:", error);
-            return { success: false, error: error.message };
+        } catch (err) {
+            console.error("Stake error:", err);
+            toast.error("Failed to place stake");
+            return false;
         }
     },
 

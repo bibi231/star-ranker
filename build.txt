@@ -1,0 +1,106 @@
+﻿
+> star-ranker@1.0.0-beta build
+> vite build && npm run build:server
+
+[36mvite v7.1.5 [32mbuilding for production...[36m[39m
+node.exe : 
+[baseline-browser-mapping] 
+The data in this module is 
+over two months old.  To 
+ensure accurate Baseline 
+data, please update: `npm 
+i baseline-browser-mapping@
+latest -D`
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecified: ([ba  
+  seline-brows...ping@la   
+ test -D`:String) [], R    
+emoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+transforming...
+Browserslist: browsers 
+data (caniuse-lite) is 7 
+months old. Please run:
+  npx update-browserslist-d
+b@latest
+  Why you should do it 
+regularly: https://github.c
+om/browserslist/update-db#r
+eadme
+[32mΓ£ô[39m 4808 modules transformed.
+[31mΓ£ù[39m Build failed 
+in 14.33s
+[31merror during build:
+[31mCannot assign "node_mo
+dules/lucide-react/dist/esm
+/lucide-react.js" to the 
+"vendor-utils" chunk as it 
+is already in the 
+"vendor-icons" chunk.[31m
+    at getRollupError (file
+:///C:/Users/bgadz/Document
+s/star-ranker/node_modules/
+rollup/dist/es/shared/parse
+Ast.js:401:41)
+    at error (file:///C:/Us
+ers/bgadz/Documents/star-ra
+nker/node_modules/rollup/di
+st/es/shared/parseAst.js:39
+7:42)
+    at 
+addModuleToManualChunk (fil
+e:///C:/Users/bgadz/Documen
+ts/star-ranker/node_modules
+/rollup/dist/es/shared/node
+-entry.js:20690:16)
+    at 
+Bundle.addManualChunks (fil
+e:///C:/Users/bgadz/Documen
+ts/star-ranker/node_modules
+/rollup/dist/es/shared/node
+-entry.js:20576:17)
+    at async 
+Bundle.generateChunks (file
+:///C:/Users/bgadz/Document
+s/star-ranker/node_modules/
+rollup/dist/es/shared/node-
+entry.js:20620:15)
+    at async 
+Bundle.generate (file:///C:
+/Users/bgadz/Documents/star
+-ranker/node_modules/rollup
+/dist/es/shared/node-entry.
+js:20540:28)
+    at async file:///C:/Use
+rs/bgadz/Documents/star-ran
+ker/node_modules/rollup/dis
+t/es/shared/node-entry.js:2
+3412:27
+    at async 
+catchUnfinishedHookActions 
+(file:///C:/Users/bgadz/Doc
+uments/star-ranker/node_mod
+ules/rollup/dist/es/shared/
+node-entry.js:22782:16)
+    at async 
+buildEnvironment (file:///C
+:/Users/bgadz/Documents/sta
+r-ranker/node_modules/vite/
+dist/node/chunks/dep-M_KD0X
+SK.js:34246:64)
+    at async Object.build (
+file:///C:/Users/bgadz/Docu
+ments/star-ranker/node_modu
+les/vite/dist/node/chunks/d
+ep-M_KD0XSK.js:34614:19)[3
+9m

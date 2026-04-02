@@ -135,7 +135,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
     );
 
     const commonContainerClass = cn(
-        "relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-y-auto mx-4",
+        "relative w-full max-w-md glass-panel border border-slate-800 rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-y-auto mx-4",
         isMobile ? "fixed bottom-0 left-0 right-0 rounded-t-[2.5rem] max-h-[95vh] border-t border-slate-800 rounded-b-none" : "max-h-[85vh]"
     );
 
@@ -177,7 +177,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                     <p className="text-slate-400">₦{numAmount.toLocaleString()} → <span className="text-white font-bold">{accountName}</span></p>
                                     <p className="text-slate-500">Processing ETA: 24 Hours</p>
                                 </div>
-                                <button onClick={onClose} className="mt-4 px-8 py-3 bg-amber-500 text-slate-950 rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full touch-target hover:bg-white transition-all">
+                                <button onClick={onClose} className="mt-4 px-8 py-3 premium-btn-gold rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full touch-target hover:bg-white transition-all">
                                     Done
                                 </button>
                             </div>
@@ -241,9 +241,9 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                             disabled={!isAmountValid}
                                             className={cn(
                                                 "w-full min-h-[56px] py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 mt-4",
-                                                !isAmountValid
-                                                    ? "bg-slate-800 text-slate-600 cursor-not-allowed"
-                                                    : "bg-emerald-400 text-slate-950 active:scale-95 shadow-[0_4px_12px_rgba(0,209,142,0.2)]"
+                                                    !isAmountValid
+                                                        ? "bg-slate-800 text-slate-600 cursor-not-allowed"
+                                                        : "premium-btn-cyan shadow-[0_4px_12px_rgba(0,209,142,0.2)]"
                                             )}
                                         >
                                             Next Stage <ArrowRight size={16} />
@@ -313,7 +313,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                                 disabled={!accountName}
                                                 className={cn(
                                                     "flex-2 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all",
-                                                    !accountName ? "bg-slate-800 text-slate-600" : "bg-amber-500 text-slate-950"
+                                                    !accountName ? "bg-slate-800 text-slate-600" : "premium-btn-gold"
                                                 )}
                                             >
                                                 Audit Transfer
@@ -355,7 +355,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                             <button
                                                 onClick={handleSubmit}
                                                 disabled={submitting}
-                                                className="flex-2 px-10 py-4 rounded-2xl bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
+                                                className="flex-2 px-10 py-4 rounded-2xl premium-btn-cyan font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
                                             >
                                                 {submitting ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Execute Transfer'}
                                             </button>

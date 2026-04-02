@@ -180,7 +180,7 @@ export function DepositModal({ isOpen, onClose }) {
                                             <p className="text-slate-400">₦{success.amountNGN?.toLocaleString()} → <span className="text-emerald-400 font-bold">${success.credits?.toFixed(2)}</span> credited</p>
                                             <p className="text-slate-500">New Balance: <span className="text-white font-bold">{formatValue(success.newBalance)}</span></p>
                                         </div>
-                                        <button onClick={handleReset} className="mt-4 px-8 py-3 bg-emerald-500 text-slate-950 rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full md:w-auto touch-target">
+                                        <button onClick={handleReset} className="mt-4 px-8 py-3 premium-btn-cyan rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full md:w-auto touch-target">
                                             Done
                                         </button>
                                     </div>
@@ -264,7 +264,7 @@ export function DepositModal({ isOpen, onClose }) {
                                                 "w-full min-h-[56px] py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 mt-4",
                                                 isProcessing || parseInt(amountNGN) < MIN_AMOUNT_NGN
                                                     ? "bg-slate-800 text-slate-600 cursor-not-allowed"
-                                                    : "bg-amber-500 text-slate-950 active:scale-95 shadow-[0_4px_12px_rgba(245,158,11,0.2)]"
+                                                    : "premium-btn-gold"
                                             )}
                                         >
                                             {isProcessing ? (
@@ -305,7 +305,7 @@ export function DepositModal({ isOpen, onClose }) {
                             initial={{ y: 40, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: 40, opacity: 0 }}
-                            className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-y-auto max-h-[85vh] mx-4"
+                            className="relative w-full max-w-md glass-panel border border-slate-800 rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-y-auto max-h-[85vh] mx-4"
                         >
                             <div className="p-8 border-b border-white/5 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
@@ -332,7 +332,7 @@ export function DepositModal({ isOpen, onClose }) {
                                             <p className="text-slate-400">₦{success.amountNGN?.toLocaleString()} → <span className="text-emerald-400 font-bold">${success.credits?.toFixed(2)}</span> credited</p>
                                             <p className="text-slate-500">New Balance: <span className="text-white font-bold">{formatValue(success.newBalance)}</span></p>
                                         </div>
-                                        <button onClick={handleReset} className="mt-4 px-8 py-3 bg-emerald-500 text-slate-950 rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full md:w-auto touch-target">
+                                        <button onClick={handleReset} className="mt-4 px-8 py-3 premium-btn-cyan rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full md:w-auto touch-target">
                                             Done
                                         </button>
                                     </div>
@@ -416,7 +416,7 @@ export function DepositModal({ isOpen, onClose }) {
                                                 "w-full min-h-[56px] py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 mt-4",
                                                 isProcessing || parseInt(amountNGN) < MIN_AMOUNT_NGN
                                                     ? "bg-slate-800 text-slate-600 cursor-not-allowed"
-                                                    : "bg-amber-500 text-slate-950 active:scale-95 shadow-[0_4px_12px_rgba(245,158,11,0.2)]"
+                                                    : "premium-btn-gold"
                                             )}
                                         >
                                             {isProcessing ? (
