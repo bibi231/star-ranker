@@ -87,7 +87,7 @@ function App() {
         <LegalModal />
         <Routes>
           {/* Landing Page is Standalone, but redirect if authenticated */}
-          <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
+          <Route path="/" element={user ? <Navigate to="/markets" replace /> : <LandingPage />} />
 
           {/* Legal Policies (Standalone) */}
           <Route path="/legal/terms" element={<TermsPage />} />

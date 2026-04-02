@@ -49,7 +49,7 @@ function CompactEpochTracker() {
 }
 
 export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, unreadCount, isNotifOpen, setNotifOpen }) {
-    const { balance = 0, formatValue, currency } = useStore();
+    const { balance = 0, formatValue, currency, currentEpoch } = useStore();
 
     const displayBalance = typeof formatValue === 'function' ? formatValue(balance) : `$${balance.toLocaleString()}`;
 
@@ -125,9 +125,6 @@ export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, u
                             <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-brand-accent rounded-full animate-pulse" />
                         )}
                     </button>
-                    {isNotifOpen && typeof setNotifOpen === 'function' && (
-                        <NotificationsPanel isOpen={isNotifOpen} onClose={() => setNotifOpen(false)} />
-                    )}
                 </div>
             </div>
         </header>

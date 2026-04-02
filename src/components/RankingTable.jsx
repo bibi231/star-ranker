@@ -27,7 +27,7 @@ const RankingRow = React.memo(({
     return (
         <div 
             className="glass-panel card-hover transition-all group cursor-pointer border border-slate-800/50 mb-1 rounded-xl overflow-hidden"
-            onClick={() => navigate(`/market/${item.id}`)}
+            onClick={() => navigate(`/market/${item.docId}`)}
         >
             <div className="flex items-center px-6 py-3">
                 {/* Rank */}
@@ -431,7 +431,7 @@ export function RankingTable() {
                                     item={item}
                                     index={virtualRow.index}
                                     currentVote={userVotes[item.id]}
-                                    isTracked={isTracked(item.id)}
+                                    isTracked={isTracked(item.docId)}
                                     totalScore={totalScore}
                                     formatValue={formatValue}
                                     activeFilter={activeFilter}

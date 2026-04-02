@@ -130,7 +130,7 @@ export function MainLayout() {
 
                     <NavSection title="PERSONAL" compact={!isSidebarOpen}>
                         <NavItem to="/portfolio" icon={LayoutDashboard} label="Portfolio" compact={!isSidebarOpen} />
-                        <NavItem to="/notifications" icon={Bell} label="Alerts" compact={!isSidebarOpen} />
+                        <NavItem to="/notifications" icon={Bell} label="Alerts" compact={!isSidebarOpen} onClick={() => setNotifOpen(false)} />
                         <NavItem to="/settings" icon={Settings} label="Settings" compact={!isSidebarOpen} />
                         <NavItem to="/history" icon={History} label="History" compact={!isSidebarOpen} />
                         {user?.email && isSuperAdminEmail(user.email) && (
@@ -266,7 +266,7 @@ export function MainLayout() {
 
                                 <NavSection title="PERSONAL">
                                     <NavItem to="/portfolio" icon={LayoutDashboard} label="Portfolio" onClick={() => setIsMobileMenuOpen(false)} />
-                                    <NavItem to="/notifications" icon={Bell} label="Alerts" onClick={() => setIsMobileMenuOpen(false)} />
+                                    <NavItem to="/notifications" icon={Bell} label="Alerts" onClick={() => { setIsMobileMenuOpen(false); setNotifOpen(true); }} />
                                     <NavItem to="/settings" icon={Settings} label="Settings" onClick={() => setIsMobileMenuOpen(false)} />
                                     {user?.email && isSuperAdminEmail(user.email) && (
                                         <NavItem to="/admin/zmg" icon={PlusSquare} label="Admin ZMG" onClick={() => setIsMobileMenuOpen(false)} />
@@ -349,8 +349,6 @@ export function MainLayout() {
                     onFundClick={() => setDepositOpen(true)}
                     onNotifClick={() => setNotifOpen(!isNotifOpen)}
                     unreadCount={unreadCount}
-                    isNotifOpen={isNotifOpen}
-                    setNotifOpen={setNotifOpen}
                 />
 
                 {/* Desktop Header — responsive: md=compact, lg=full */}
@@ -433,7 +431,6 @@ export function MainLayout() {
                                     <span className="absolute top-0 right-0 w-2 h-2 bg-brand-accent rounded-full animate-pulse" />
                                 )}
                             </button>
-                            <NotificationsPanel isOpen={isNotifOpen} onClose={() => setNotifOpen(false)} />
                         </div>
 
                         {user && (
@@ -472,6 +469,9 @@ export function MainLayout() {
             {/* Onboarding & Demo Overlays */}
             <OnboardingTour />
             <DemoConversionModal />
+            
+            {/* Global Notifications Panel */}
+            <NotificationsPanel isOpen={isNotifOpen} onClose={() => setNotifOpen(false)} />
         </div>
     );
 }

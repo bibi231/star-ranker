@@ -37,11 +37,9 @@ import { SystemStatus } from '../components/SystemStatus';
 
 export function UserDashboard() {
     const { user, balance, playBalance, stakes, reputation, reputationHistory, fetchReputationHistory, tier, setDepositOpen, setWithdrawalOpen, formatValue, bindWallet, fetchStakes, fetchUserProfile } = useStore();
-    const [isExiting, setIsExiting] = useState(null); // ID of stake being exited
+    const [isExiting, setIsExiting] = useState(null);
     const [isActivityLogOpen, setActivityLogOpen] = useState(false);
     const [isReferralCopied, setReferralCopied] = useState(false);
-    const [isResending, setIsResending] = useState(false);
-    const [isRefreshing, setIsRefreshing] = useState(false);
     const isMobile = useIsMobile();
     const { address, isConnected } = useAccount();
     const { disconnect } = useDisconnect();
@@ -78,14 +76,12 @@ export function UserDashboard() {
             const { apiPost } = await import('../lib/api');
             const res = await apiPost(`/api/stakes/${stakeId}/exit`);
             if (res.success) {
-                toast.success(`Position liquidated for ${formatValue(res.payout)}`);
+                // toast.success(`Position liquidated for ${formatValue(res.payout)}`);
                 await fetchStakes();
                 await fetchUserProfile();
-            } else {
-                toast.error(res.error || "Exit failed");
             }
         } catch (err) {
-            toast.error("Network error during exit");
+            console.error("Exit failed");
         } finally {
             setIsExiting(null);
         }
@@ -103,150 +99,185 @@ export function UserDashboard() {
     };
 
     return (
-        <div className="p-4 md:p-8 space-y-8 md:space-y-12 bg-slate-950 min-h-screen">
+        <div className="p-4 md:p-8 space-y-8 md:space-y-12 bg-slate-950 min-h-screen relative overflow-hidden noise-bg">
+            {/* Background Glows */}
+            <div className="absolute top-0 -left-1/4 w-1/2 h-full bg-brand-accent/5 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-0 -right-1/4 w-1/2 h-full bg-brand-accent/5 rounded-full blur-[120px] pointer-events-none" />
 
             {/* Header / Stats Bar */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 mb-4">
-                <div className="space-y-3">
-                    <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-none">Oracle Portfolio</h1>
-                    <p className="text-[10px] md:text-xs text-slate-500 font-black uppercase tracking-[0.25em] leading-none opacity-80">
-                        Session established: {new Date().toLocaleDateString()}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-12 mb-4 relative z-10">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                        <div className="h-0.5 w-8 bg-brand-accent rounded-full" />
+                        <span className="text-[10px] font-black text-brand-accent uppercase tracking-[0.4em] italic">System Core</span>
+                    </div>
+                    <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-none">Command Center</h1>
+                    <p className="text-[10px] md:text-xs text-slate-500 font-black uppercase tracking-[0.25em] flex items-center gap-2 opacity-80 pt-2">
+                        <Clock size={10} className="text-brand-accent" />
+                        Network Active: {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase()}
                     </p>
                 </div>
 
                 <div className="flex flex-wrap gap-4 md:gap-6 w-full lg:w-auto">
-                    <div className="relative group">
-                        <StatCard label="Available Capital" value={formatValue(balance)} icon={<Wallet size={16} />} color="text-emerald-400" />
-                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => setDepositOpen(true)} className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-slate-950 transition-all">
-                                <Zap size={10} fill="currentColor" />
-                            </button>
-                            <button onClick={() => setWithdrawalOpen(true)} className="p-1.5 rounded-lg bg-slate-800/80 text-slate-400 hover:bg-amber-500 hover:text-slate-950 transition-all">
-                                <ArrowUpRight size={10} />
-                            </button>
-                        </div>
-                    </div>
-                    <StatCard label="Oracle Reputation" value={reputation.toLocaleString()} icon={<Star size={16} />} color="text-amber-500" />
-                    <StatCard label="Practice Fund" value={`STARS ${playBalance.toLocaleString()}`} icon={<Trophy size={16} />} color="text-sky-400" />
-                    <StatCard label="Identity Tier" value={tier} icon={<ShieldCheck size={16} />} color="text-brand-accent" />
+                    <StatCard label="Network Credits" value={formatValue(balance)} icon={<Wallet size={16} />} color="text-emerald-400" glow="emerald" onActionClick={() => setDepositOpen(true)} />
+                    <StatCard label="Oracle Rating" value={reputation.toLocaleString()} icon={<Star size={16} />} color="text-amber-500" glow="amber" />
+                    <StatCard label="Identity Tier" value={tier} icon={<ShieldCheck size={16} />} color="text-brand-accent" glow="cyan" />
                 </div>
             </div>
 
             {(!user || user?.balance === 0) && (
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
-                    <div>
-                        <p className="text-amber-500 font-bold text-lg">Welcome to Star Ranker! 🌟</p>
-                        <p className="text-gray-300 text-sm mt-1">Fund your wallet to start staking on rankings and growing your Oracle reputation.</p>
+                <div className="bg-brand-accent/5 border border-brand-accent/20 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 mb-8 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-brand-accent/0 via-brand-accent/5 to-brand-accent/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    <div className="relative z-10 flex items-center gap-6">
+                        <div className="w-16 h-16 rounded-2xl bg-brand-accent/10 flex items-center justify-center border border-brand-accent/20 shadow-[0_0_30px_rgba(56,189,248,0.2)]">
+                            <Zap size={32} className="text-brand-accent" />
+                        </div>
+                        <div>
+                            <p className="text-white font-black text-xl italic uppercase tracking-tight">Initialization Required</p>
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Fund your wallet to synchronize with the market network and establish reputation.</p>
+                        </div>
                     </div>
                     <button
                         onClick={() => setDepositOpen(true)}
-                        className="premium-btn-gold px-6 py-3 rounded-xl flex-shrink-0 transition-all tracking-widest text-xs"
+                        className="premium-btn-cyan px-10 py-4 rounded-2xl flex-shrink-0 transition-all font-black text-[10px] tracking-[0.3em] uppercase group"
                     >
-                        Fund Wallet
+                        Synchronize Wallet
                     </button>
                 </div>
             )}
 
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 md:gap-10">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 md:gap-12 relative z-10">
                 {/* Left Col: Active Stakes & Portfolio */}
-                <div className="xl:col-span-2 space-y-8 md:space-y-12">
+                <div className="xl:col-span-2 space-y-8 md:space-y-16">
                     {/* Portfolio Summary */}
                     <PortfolioWidget />
 
                     {/* Active Stakes */}
-                    <SectionBox title="Active Deployments" icon={<Briefcase size={16} />}>
+                    <SectionBox title="Active Operations" icon={<Briefcase size={16} />}>
                         {stakes.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="border-b border-white/5 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                                            <th className="py-4">Market Item</th>
-                                            <th className="py-4 text-right">Magnitude</th>
-                                            <th className="py-4 text-right">Target</th>
-                                            <th className="py-4 text-right">Yield</th>
-                                            <th className="py-4 text-right">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {(stakes || []).map(stake => (
-                                            <tr key={stake.id} className="group hover:bg-white/[0.02] transition-colors">
-                                                <td className="py-5 flex items-center gap-4">
-                                                    <div className={cn(
-                                                        "w-10 h-10 rounded-xl bg-slate-950 border border-white/10 flex items-center justify-center transition-all",
-                                                        stake.isPlayMode ? "border-amber-500/30" : "group-hover:border-brand-accent/30"
-                                                    )}>
-                                                        {stake.isPlayMode ? <Star size={16} className="text-amber-500" /> : <Zap size={16} fill="currentColor" className="text-emerald-500" />}
+                            <div className="premium-ledger">
+                                <div className="hidden md:flex border-b border-white/5 bg-white/[0.02] px-6 py-4">
+                                    <span className="w-1/3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Market Entity</span>
+                                    <span className="w-1/6 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Magnitude</span>
+                                    <span className="w-1/6 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Coordinate</span>
+                                    <span className="w-1/6 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Yield Target</span>
+                                    <span className="w-1/6 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Control</span>
+                                </div>
+                                <div className="divide-y divide-white/5">
+                                    {(stakes || []).map(stake => (
+                                        <div key={stake.id} className="ledger-row group">
+                                            <div className="w-full md:w-1/3 flex items-center gap-4">
+                                                <div className={cn(
+                                                    "w-12 h-12 rounded-xl bg-slate-900 border flex items-center justify-center transition-all shadow-xl group-hover:scale-105",
+                                                    stake.isPlayMode ? "border-amber-500/20 text-amber-500" : "border-emerald-500/20 text-emerald-500"
+                                                )}>
+                                                    {stake.isPlayMode ? <Trophy size={20} /> : <Zap size={20} fill="currentColor" />}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-black text-white uppercase tracking-tight italic">{stake.itemName}</span>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Active Signal</span>
                                                     </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-xs font-black text-white uppercase tracking-tight">{stake.itemName}</span>
-                                                        {stake.isPlayMode && <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Free Play Mode</span>}
-                                                    </div>
-                                                </td>
-                                                <td className="py-5 text-right font-mono text-xs font-black text-slate-300">
-                                                    {stake.isPlayMode ? `STARS ${stake.amount.toLocaleString()}` : formatValue(stake.amount)}
-                                                </td>
-                                                <td className="py-5 text-right font-mono text-xs font-black text-brand-accent">#{stake.targetRank}</td>
-                                                <td className="py-5 text-right font-mono text-xs font-black text-emerald-400">
-                                                    +{stake.isPlayMode ? `STARS ${Math.floor((stake.amount * stake.odds) - stake.amount).toLocaleString()}` : formatValue((stake.amount * stake.odds) - stake.amount)}
-                                                </td>
-                                                <td className="py-5 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        {!stake.isPlayMode && stake.status === 'active' && (
-                                                            <button
-                                                                onClick={() => handleExit(stake.id)}
-                                                                disabled={isExiting === stake.id}
-                                                                className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/20 text-[9px] font-black uppercase transition-all"
-                                                            >
-                                                                {isExiting === stake.id ? '...' : 'Cash Out'}
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            onClick={() => shareToX(stake)}
-                                                            className="p-1.5 rounded-lg bg-white/5 text-slate-500 hover:text-brand-accent hover:bg-brand-accent/10 transition-all flex items-center justify-center border border-white/5"
-                                                        >
-                                                            <Twitter size={12} fill="currentColor" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="hidden md:flex flex-col items-end w-1/6">
+                                                <span className="text-[11px] font-mono font-black text-white italic">
+                                                    {stake.isPlayMode ? `S ${stake.amount.toLocaleString()}` : formatValue(stake.amount)}
+                                                </span>
+                                                <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Entry magnitude</span>
+                                            </div>
+
+                                            <div className="hidden md:flex flex-col items-end w-1/6">
+                                                <span className="text-[11px] font-mono font-black text-brand-accent tracking-widest">#{stake.targetRank}</span>
+                                                <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Target rank</span>
+                                            </div>
+
+                                            <div className="hidden md:flex flex-col items-end w-1/6">
+                                                <span className="text-[11px] font-mono font-black text-emerald-400">
+                                                    +{stake.isPlayMode ? `${Math.floor((stake.amount * stake.odds) - stake.amount).toLocaleString()}` : formatValue((stake.amount * stake.odds) - stake.amount)}
+                                                </span>
+                                                <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Potential win</span>
+                                            </div>
+
+                                            <div className="w-full md:w-1/6 flex items-center justify-end gap-3">
+                                                {!stake.isPlayMode && stake.status === 'active' && (
+                                                    <button
+                                                        onClick={() => handleExit(stake.id)}
+                                                        disabled={isExiting === stake.id}
+                                                        className="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/10 text-[9px] font-black uppercase transition-all tracking-widest"
+                                                    >
+                                                        {isExiting === stake.id ? '...' : 'Exit'}
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => shareToX(stake)}
+                                                    className="p-2 rounded-xl bg-white/5 text-slate-500 hover:text-brand-accent hover:border-brand-accent/20 transition-all border border-white/5"
+                                                >
+                                                    <Twitter size={14} fill="currentColor" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         ) : (
-                            <div className="py-24 text-center border-2 border-dashed border-white/5 rounded-[2.5rem]">
-                                <Zap size={40} className="mx-auto text-slate-800 mb-6 opacity-20" />
-                                <p className="text-[11px] font-black text-slate-700 uppercase tracking-[0.3em]">No active market participation detected.</p>
+                            <div className="py-32 text-center bg-slate-900/40 border-2 border-dashed border-white/5 rounded-3xl group hover:border-brand-accent/20 transition-all">
+                                <Zap size={48} className="mx-auto text-slate-800 mb-6 group-hover:text-brand-accent/20 transition-all" />
+                                <p className="text-[11px] font-black text-slate-600 uppercase tracking-[0.4em] italic">No active neural connections established.</p>
+                                <button
+                                    onClick={() => window.location.href = '/markets'}
+                                    className="mt-6 text-[10px] font-black text-brand-accent uppercase tracking-widest hover:text-white transition-all underline underline-offset-8 decoration-brand-accent/30"
+                                >
+                                    Access Global Markets
+                                </button>
                             </div>
                         )}
                     </SectionBox>
 
                     {/* Reputation Velocity Chart */}
-                    <SectionBox title="Reputation Velocity" icon={<TrendingUp size={16} />}>
-                        <div className="h-56 flex items-end gap-1.5 px-2">
+                    <div className="command-panel min-h-[300px]">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-3">
+                                <TrendingUp size={20} className="text-brand-accent" />
+                                <h2 className="text-sm font-black text-white uppercase tracking-widest italic">Neural Reputation Velocity</h2>
+                            </div>
+                            <div className="flex gap-1">
+                                {[1,2,3].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-brand-accent/20" />)}
+                            </div>
+                        </div>
+                        
+                        <div className="h-64 flex items-end gap-2 px-1 relative">
+                            {/* Grid Lines */}
+                            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-5">
+                                {[1,2,3,4].map(i => <div key={i} className="h-px w-full bg-white" />)}
+                            </div>
+                            
                             {reputationHistory && reputationHistory.length > 0 ? (reputationHistory || []).map((item, i) => (
                                 <motion.div
                                     key={i}
                                     initial={{ height: 0 }}
                                     animate={{ height: `${(item.value / Math.max(140, ...(reputationHistory || []).map(r => r.value))) * 100}%` }}
-                                    transition={{ delay: i * 0.03 }}
-                                    className="flex-1 bg-gradient-to-t from-slate-700/10 via-sky-400/40 to-sky-400 rounded-t-sm group relative"
+                                    transition={{ delay: i * 0.03, type: 'spring', damping: 15 }}
+                                    className="flex-1 bg-gradient-to-t from-brand-accent/5 via-brand-accent/40 to-brand-accent rounded-t-lg group relative cursor-crosshair min-w-[8px]"
                                 >
-                                    {/* Tooltip on hover */}
-                                    <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-800 px-2 py-1 rounded text-[10px] font-black text-brand-accent transition-opacity pointer-events-none z-10 whitespace-nowrap shadow-xl">
-                                        {item.day}: {item.value}
+                                    <div className="opacity-0 group-hover:opacity-100 absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 border border-brand-accent/30 px-3 py-2 rounded-xl text-[11px] font-mono font-black text-brand-accent transition-all pointer-events-none z-10 whitespace-nowrap shadow-2xl scale-50 group-hover:scale-100 origin-bottom">
+                                        <div className="text-[8px] text-slate-500 uppercase tracking-widest mb-0.5">{item.day}</div>
+                                        {item.value} REP
                                     </div>
+                                    <div className="absolute inset-0 bg-brand-accent blur-[20px] opacity-0 group-hover:opacity-20 transition-opacity" />
                                 </motion.div>
                             )) : (
                                 <div className="w-full flex items-center justify-center h-full">
-                                    <Loader2 size={24} className="text-slate-800 animate-spin" />
+                                    <Loader2 size={32} className="text-brand-accent animate-spin opacity-20" />
                                 </div>
                             )}
                         </div>
-                    </SectionBox>
+                    </div>
 
                     {/* Oracle Badges */}
-                    <SectionBox title="Oracle Badges" icon={<Trophy size={16} />}>
+                    <SectionBox title="Achievement Credentials" icon={<Trophy size={16} />}>
                         <AchievementsGrid />
                     </SectionBox>
                 </div>
@@ -257,97 +288,79 @@ export function UserDashboard() {
                      <DailyQuests />
 
                     {/* Oracle Watchlist */}
-                    <SectionBox title="Oracle Watchlist" icon={<Bookmark size={16} />}>
+                    <SectionBox title="Intelligence Monitor" icon={<Bookmark size={16} />}>
                         <WatchlistWidget />
                     </SectionBox>
 
-                    <SectionBox title="Influence Archive" icon={<History size={16} />}>
-                        <div className="space-y-8">
+                    <SectionBox title="Synchronized Feed" icon={<History size={16} />}>
+                        <div className="space-y-8 relative">
+                            <div className="absolute left-[3px] top-4 bottom-4 w-px bg-white/5" />
                             {user?.recentActivity?.length > 0 ? (
                                 (user?.recentActivity || []).map((act, i) => (
-                                    <div key={act.id || i} className="flex gap-4 items-start group">
-                                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-800 group-hover:bg-brand-accent transition-all shrink-0 shadow-[0_0_8px_rgba(56,189,248,0.3)]" />
-                                        <div className="space-y-1.5">
-                                            <p className="text-[11px] font-bold text-slate-300 leading-tight uppercase tracking-tight">
+                                    <div key={act.id || i} className="flex gap-6 items-start group relative">
+                                        <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-800 group-hover:bg-brand-accent transition-all shrink-0 shadow-[0_0_12px_rgba(56,189,248,0.5)] z-10" />
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-black text-slate-300 leading-tight uppercase tracking-tight group-hover:text-white transition-colors italic">
                                                 {act.description}
                                             </p>
-                                            <p className="text-[9px] font-mono text-slate-600 font-black uppercase tracking-widest">
-                                                {getRelativeTime(act.createdAt)} • {act.type.toUpperCase()}
+                                            <p className="text-[9px] font-mono text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
+                                                {getRelativeTime(act.createdAt)} <span className="opacity-30">|</span> <span className="text-brand-accent/60">{act.type.toUpperCase()}</span>
                                             </p>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="py-12 text-center">
-                                    <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest">No archival data available.</p>
+                                <div className="py-12 text-center opacity-40">
+                                    <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic">History vault empty.</p>
                                 </div>
                             )}
                         </div>
                         <button 
                             onClick={() => setActivityLogOpen(true)}
-                            className="w-full mt-8 py-4 rounded-2xl border border-white/10 glass-card card-hover text-[10px] font-black uppercase text-brand-accent hover:text-white transition-all flex items-center justify-center gap-3 tracking-widest"
+                            className="w-full mt-10 py-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] text-[10px] font-black uppercase text-brand-accent hover:text-white hover:border-brand-accent/20 transition-all flex items-center justify-center gap-3 tracking-[0.3em] font-mono italic"
                         >
-                            View Full Logs <ChevronRight size={14} />
+                            DECRYPT FULL LOGS <ChevronRight size={14} />
                         </button>
                     </SectionBox>
 
-                    <SectionBox title="Oracle Network" icon={<Share2 size={16} />}>
-                        <div className="p-6 rounded-3xl bg-slate-950 border border-white/5 space-y-4">
-                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
-                                Expand the network and earn <span className="text-brand-accent">Oracle Commision</span> on every successful deployment.
-                            </p>
-                            <div className="flex gap-2">
-                                <div className="flex-1 px-4 py-3 rounded-xl bg-slate-900 border border-white/5 text-[10px] font-mono text-slate-400 truncate">
-                                    {window.location.origin}/signup?ref={user?.referralCode}
-                                </div>
-                                <button
-                                    onClick={copyReferral}
-                                    className="p-3 rounded-xl bg-white/5 text-slate-400 hover:text-brand-accent hover:bg-brand-accent/10 transition-all"
-                                >
-                                    {isReferralCopied ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
-                                </button>
-                            </div>
-                        </div>
-                    </SectionBox>
-
-                    <div className="p-8 rounded-[2.5rem] glass-card card-hover shadow-2xl space-y-6">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-brand-accent/10 border border-brand-accent/20 flex items-center justify-center text-brand-accent shadow-[0_0_20px_rgba(56,189,248,0.1)]">
-                                <ShieldCheck size={24} />
+                    <div className="command-panel p-8 space-y-6 group">
+                        <div className="flex items-center gap-5">
+                            <div className="w-14 h-14 rounded-2xl bg-brand-accent/5 border border-brand-accent/20 flex items-center justify-center text-brand-accent shadow-[0_0_30px_rgba(56,189,248,0.1)] group-hover:scale-110 transition-all">
+                                <ShieldCheck size={28} />
                             </div>
                             <div>
-                                <h3 className="text-xs font-black text-white uppercase tracking-wider">AVD Verification</h3>
-                                <p className="text-[11px] text-emerald-400 font-mono font-black italic">TRUST SCORE: 98.4%</p>
+                                <h3 className="text-sm font-black text-white uppercase tracking-wider italic">AVD Verification</h3>
+                                <p className="text-[11px] text-emerald-400 font-mono font-black italic tracking-widest uppercase">SCORE: 98.4% ALPHA</p>
                             </div>
                         </div>
-                        <p className="text-[10px] text-slate-500 leading-relaxed font-bold uppercase tracking-wide italic opacity-70">
-                            "Account synchronized with Anomalous Velocity Detection engine. Oracle clearance active."
+                        <p className="text-[10px] text-slate-500 leading-relaxed font-black uppercase tracking-widest italic opacity-60">
+                            "Protocol established. Anomalous velocity detection synchronized. Terminal clearance level: V."
                         </p>
                     </div>
 
-                    <SectionBox title="Linked Web3 Identity" icon={<Wallet size={16} />}>
+                    <SectionBox title="Identity Protocol" icon={<Wallet size={16} />}>
                         {isConnected ? (
                             <div className="space-y-4">
-                                <div className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex flex-col gap-3">
-                                    <div className="text-[10px] text-emerald-400 font-[900] uppercase flex items-center gap-2 tracking-[0.2em]">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Linked
+                                <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 flex flex-col gap-4">
+                                    <div className="text-[10px] text-emerald-400 font-black uppercase flex items-center gap-3 tracking-[0.3em] italic">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10B981]" /> Bound
                                     </div>
-                                    <div className="font-mono text-[11px] text-slate-400 break-all leading-relaxed px-1">
+                                    <div className="font-mono text-[11px] text-slate-400 break-all leading-relaxed px-1 opacity-70 group-hover:opacity-100 transition-opacity">
                                         {address}
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => disconnect()}
-                                    className="w-full py-4 rounded-2xl bg-rose-500/5 hover:bg-rose-500/10 text-rose-400 font-black text-[10px] uppercase tracking-[0.2em] transition-all"
+                                    className="w-full py-5 rounded-2xl bg-rose-500/5 border border-rose-500/10 hover:border-rose-500/30 text-rose-400 font-black text-[10px] uppercase tracking-[0.3em] transition-all italic"
                                 >
-                                    Terminate Link
+                                    Terminate Connection
                                 </button>
                             </div>
                         ) : (
-                            <div className="text-center py-10 border border-dashed border-white/5 rounded-3xl">
-                                <Wallet size={32} className="mx-auto text-slate-800 mb-4 opacity-50" />
-                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] px-6 leading-relaxed">
-                                    Establishing Web3 protocol bridge... Use the Terminal console to bind identity.
+                            <div className="text-center py-16 border border-dashed border-white/5 rounded-3xl group hover:border-brand-accent/20 transition-all">
+                                <Wallet size={40} className="mx-auto text-slate-800 mb-6 group-hover:text-brand-accent/20 transition-all" />
+                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.25em] px-8 leading-relaxed italic opacity-80">
+                                    Awaiting cryptographical signature. Initialize via Terminal console.
                                 </p>
                             </div>
                         )}
@@ -360,27 +373,49 @@ export function UserDashboard() {
     );
 }
 
-function StatCard({ label, value, icon, color }) {
+function StatCard({ label, value, icon, color, glow, onActionClick }) {
+    const glowClass = glow === 'emerald' ? 'bg-emerald-500/5' : glow === 'amber' ? 'bg-amber-500/5' : 'bg-brand-accent/5';
+    
     return (
-        <div className="px-8 py-5 rounded-[2rem] glass-card card-hover shadow-2xl min-w-[200px] group transition-all relative overflow-hidden">
-            <div className="flex items-center gap-3 mb-3">
-                <span className="text-slate-500 group-hover:text-brand-accent transition-colors">{icon}</span>
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{label}</span>
+        <div className={cn("px-10 py-6 rounded-3xl glass-panel shadow-2xl min-w-[220px] group transition-all relative overflow-hidden flex flex-col justify-end min-h-[140px]", glowClass)}>
+            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-all group-hover:scale-110">
+                {icon}
             </div>
-            <div className={cn("text-2xl md:text-3xl font-mono font-black italic tracking-tighter", color)}>{value}</div>
+            
+            <div className="relative z-10 space-y-1">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2 block opacity-60">{label}</span>
+                <div className={cn("text-3xl md:text-4xl font-mono font-black italic tracking-tighter leading-none", color)}>
+                    {value}
+                </div>
+            </div>
+
+            {onActionClick && (
+                <button 
+                  onClick={onActionClick}
+                  className="absolute top-4 left-4 p-2 rounded-xl bg-white/5 text-slate-600 hover:text-white hover:bg-white/10 transition-all"
+                >
+                    <ArrowUpRight size={14} />
+                </button>
+            )}
         </div>
     );
 }
 
 function SectionBox({ title, icon, children }) {
     return (
-        <div className="p-8 md:p-10 rounded-[2.5rem] glass-panel shadow-2xl space-y-8 overflow-hidden relative group">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none">
+        <div className="p-8 md:p-12 rounded-3xl glass-panel shadow-2xl space-y-10 overflow-hidden relative group">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none group-hover:scale-125 transition-transform duration-700">
                 {icon}
             </div>
-            <h2 className="text-xs font-[900] text-slate-400 uppercase tracking-[0.3em] flex items-center gap-4 opacity-80">
-                <span className="text-brand-accent">{icon}</span> {title}
-            </h2>
+            <div className="flex items-center gap-4 relative z-10">
+                <div className="p-3 rounded-2xl bg-brand-accent/5 border border-brand-accent/20">
+                    <span className="text-brand-accent">{icon}</span>
+                </div>
+                <h2 className="text-sm font-black text-white uppercase tracking-[0.3em] italic">
+                    {title}
+                </h2>
+                <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent ml-4" />
+            </div>
             <div className="relative z-10">
                 {children}
             </div>
@@ -393,38 +428,56 @@ function WatchlistWidget() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center py-12">
-                <Loader2 size={24} className="text-brand-accent animate-spin" />
+            <div className="flex items-center justify-center py-20">
+                <Loader2 size={32} className="text-brand-accent animate-spin opacity-20" />
             </div>
         );
     }
 
     if (watchlist.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-12 px-4 border border-slate-800 border-dashed rounded-2xl bg-slate-900/50">
-                <Bookmark size={32} className="text-slate-700 mb-3" />
-                <p className="text-xs font-black text-slate-500 uppercase tracking-widest text-center">Watchlist Empty</p>
-                <p className="text-[10px] text-slate-600 mt-1 max-w-[200px] text-center">Track markets to monitor vital oracle data.</p>
+            <div className="flex flex-col items-center justify-center py-16 px-6 border-2 border-slate-800/50 border-dashed rounded-3xl bg-slate-900/40 group hover:border-brand-accent/20 transition-all">
+                <Bookmark size={48} className="text-slate-800 mb-6 group-hover:text-brand-accent/20 transition-all" />
+                <p className="text-[11px] font-black text-slate-600 uppercase tracking-[0.3em] text-center italic">Monitor Disconnected</p>
+                <button 
+                    onClick={() => window.location.href = '/markets'}
+                    className="mt-6 text-[10px] font-black text-brand-accent uppercase tracking-widest hover:text-white transition-all underline underline-offset-8 decoration-brand-accent/30"
+                >
+                    Add Market Tracks
+                </button>
             </div>
         );
     }
 
     return (
-        <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+        <div className="space-y-4 max-h-[450px] overflow-y-auto custom-scrollbar pr-3">
             {watchlist.map(track => {
                 const item = track.item;
                 if (!item) return null;
                 return (
-                    <div key={track.id} className="flex items-center justify-between p-4 rounded-xl bg-slate-800/40 border border-slate-700/30 hover:bg-slate-800/60 transition-colors">
-                        <div className="flex items-center gap-3">
-                            <span className="font-mono text-sm font-black italic text-brand-accent">#{item.rank || '-'}</span>
+                    <motion.div 
+                        key={track.id} 
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center justify-between p-5 rounded-2xl bg-slate-900/60 border border-white/5 hover:border-brand-accent/30 hover:bg-slate-900 transition-all cursor-pointer group shadow-xl"
+                        onClick={() => window.location.href = `/market/${item.docId}`}
+                    >
+                        <div className="flex items-center gap-5">
+                            <div className="flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-slate-950 border border-white/5 group-hover:border-brand-accent/20 transition-all">
+                                <span className="font-mono text-xs font-black italic text-brand-accent">#{item.rank || '-'}</span>
+                            </div>
                             <div className="flex flex-col">
-                                <span className="text-xs font-black text-white uppercase">{item.name}</span>
-                                <span className="text-[10px] font-mono text-slate-400">{item.score ? Math.floor(item.score).toLocaleString() + ' pts' : 'N/A'}</span>
+                                <span className="text-sm font-black text-white uppercase tracking-tight italic">{item.name}</span>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                    <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span className="text-[10px] font-mono font-black text-slate-500 italic">{item.score ? Math.floor(item.score).toLocaleString() : '---'} SIG</span>
+                                </div>
                             </div>
                         </div>
-                        <Bookmark size={16} className="text-brand-accent fill-brand-accent/20" />
-                    </div>
+                        <div className="p-3 rounded-xl bg-white/5 text-brand-accent/40 group-hover:text-brand-accent transition-all">
+                            <ArrowUpRight size={16} />
+                        </div>
+                    </motion.div>
                 );
             })}
         </div>
