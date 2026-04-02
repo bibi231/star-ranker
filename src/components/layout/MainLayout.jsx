@@ -349,6 +349,8 @@ export function MainLayout() {
                     onFundClick={() => setDepositOpen(true)}
                     onNotifClick={() => setNotifOpen(!isNotifOpen)}
                     unreadCount={unreadCount}
+                    isNotifOpen={isNotifOpen}
+                    setNotifOpen={setNotifOpen}
                 />
 
                 {/* Desktop Header — responsive: md=compact, lg=full */}

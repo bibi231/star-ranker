@@ -1,9 +1,55 @@
 import React from 'react';
 import { Menu, Bell, PlusCircle, ChevronDown } from 'lucide-react';
 import { useStore } from '../store/storeModel';
+import { NotificationsPanel } from './NotificationsPanel';
+import { cn } from '../lib/utils';
 
-export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, unreadCount }) {
-    const { balance = 0, formatValue, currentEpoch, currency } = useStore();
+function CompactEpochTracker() {
+    const { currentEpoch, serverTimeOffset } = useStore();
+    const [status, setStatus] = React.useState('stable');
+
+    React.useEffect(() => {
+        if (!currentEpoch) return;
+        const timer = setInterval(() => {
+            const nowServer = Date.now() + serverTimeOffset;
+            const remaining = Math.max(0, currentEpoch.endTime - nowServer);
+            const secondsRemaining = remaining / 1000;
+            if (secondsRemaining <= 60) setStatus('locking');
+            else if (secondsRemaining <= 300) setStatus('closing');
+            else setStatus('stable');
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [currentEpoch, serverTimeOffset]);
+
+    if (!currentEpoch) return null;
+
+    return (
+        <div className={cn(
+            "hidden min-[400px]:flex items-center gap-1 px-2 py-1 rounded-lg shrink-0 mx-1 border transition-colors",
+            status === 'stable' && "bg-emerald-500/5 border-emerald-500/20",
+            status === 'closing' && "bg-amber-500/10 border-amber-500/30",
+            status === 'locking' && "bg-rose-500/20 border-rose-500/40 animate-pulse"
+        )}>
+            <div className={cn(
+                "w-1.5 h-1.5 rounded-full shrink-0",
+                status === 'stable' && "bg-emerald-500 animate-pulse",
+                status === 'closing' && "bg-amber-500 animate-pulse",
+                status === 'locking' && "bg-rose-500"
+            )} />
+            <span className={cn(
+                "text-[9px] font-black uppercase tracking-wider whitespace-nowrap",
+                status === 'stable' && "text-emerald-400",
+                status === 'closing' && "text-amber-400",
+                status === 'locking' && "text-rose-400"
+            )}>
+                {status === 'locking' ? 'LOCK' : `E${currentEpoch.epochId}`}
+            </span>
+        </div>
+    );
+}
+
+export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, unreadCount, isNotifOpen, setNotifOpen }) {
+    const { balance = 0, formatValue, currency } = useStore();
 
     const displayBalance = typeof formatValue === 'function' ? formatValue(balance) : `$${balance.toLocaleString()}`;
 
@@ -33,15 +79,8 @@ export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, u
                 />
             </div>
 
-            {/* CENTER: Compact epoch badge — only shows on wider phones */}
-            {epochLabel && (
-                <div className="hidden min-[400px]:flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/20 shrink-0 mx-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider whitespace-nowrap">
-                        {epochLabel}
-                    </span>
-                </div>
-            )}
+            {/* CENTER: Compact epoch badge — dynamic status */}
+            <CompactEpochTracker />
 
             {/* RIGHT: Currency badge + Balance + Fund + Notif */}
             <div className="flex items-center gap-1.5 shrink-0">
@@ -75,16 +114,21 @@ export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, u
                     <PlusCircle size={16} />
                 </button>
 
-                <button
-                    onClick={onNotifClick}
-                    className="relative p-1.5 rounded-lg hover:bg-white/5 text-slate-400 transition-all active:scale-95 shrink-0"
-                    title="Notifications"
-                >
-                    <Bell size={16} />
-                    {unreadCount > 0 && (
-                        <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-brand-accent rounded-full animate-pulse" />
+                <div className="relative">
+                    <button
+                        onClick={onNotifClick}
+                        className="relative p-1.5 rounded-lg hover:bg-white/5 text-slate-400 transition-all active:scale-95 shrink-0"
+                        title="Notifications"
+                    >
+                        <Bell size={16} />
+                        {unreadCount > 0 && (
+                            <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-brand-accent rounded-full animate-pulse" />
+                        )}
+                    </button>
+                    {isNotifOpen && typeof setNotifOpen === 'function' && (
+                        <NotificationsPanel isOpen={isNotifOpen} onClose={() => setNotifOpen(false)} />
                     )}
-                </button>
+                </div>
             </div>
         </header>
     );
