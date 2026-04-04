@@ -290,27 +290,33 @@ export function HowItWorksPage() {
                     />
                     <StepCard
                         number={2}
+                        icon={<RotateCcw size={24} />}
+                        title="Master the Practice Mode (Stars ★)"
+                        description="Toggle into Practice Mode to refine your strategies. Use your initial allocation of ★50,000 (Stars) to learn the market dynamics without any financial risk."
+                    />
+                    <StepCard
+                        number={3}
                         icon={<TrendingUp size={24} />}
                         title="Explore Markets"
                         description="Browse categories like Crypto, Tech Giants, Smartphones, and more. Each market contains items ranked by community sentiment."
                     />
                     <StepCard
-                        number={3}
+                        number={4}
                         icon={<Zap size={24} />}
                         title="Cast Your Influence"
                         description="Vote on items to influence their ranking. Your vote weight depends on your Oracle tier — higher tiers have more influence."
                     />
                     <StepCard
-                        number={4}
+                        number={5}
                         icon={<Target size={24} />}
-                        title="Stake Your Prediction"
-                        description="Believe an item will reach a specific rank? Deploy capital to back your prediction. Accurate predictions earn multiplied returns."
+                        title="Deploy Your Stake"
+                        description="Believe an item will reach a specific rank? Deploy capital (or Stars ★ in Practice Mode) to back your prediction. Accurate predictions earn multiplied returns."
                     />
                     <StepCard
-                        number={5}
+                        number={6}
                         icon={<Coins size={24} />}
                         title="Collect Your Payout"
-                        description="When the market settles (every 30 minutes), the Oracle compares actual ranks to predictions. Exact matches earn 5x, close calls earn 1.5x."
+                        description="When the market settles (every 30 minutes), the system compares actual ranks to predictions. Exact matches earn the maximum multiplier."
                     />
                 </div>
 

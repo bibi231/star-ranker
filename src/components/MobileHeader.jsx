@@ -107,9 +107,11 @@ function CompactEpochTracker() {
 }
 
 export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, unreadCount, isNotifOpen, setNotifOpen }) {
-    const { balance = 0, formatValue, currency, currentEpoch } = useStore();
+    const { balance = 0, demoBalance = 0, isDemoMode, formatValue, currency, currentEpoch } = useStore();
 
-    const displayBalance = typeof formatValue === 'function' ? formatValue(balance) : `$${balance.toLocaleString()}`;
+    const displayBalance = isDemoMode 
+        ? `★${demoBalance.toLocaleString()}` 
+        : (typeof formatValue === 'function' ? formatValue(balance) : `$${balance.toLocaleString()}`);
 
     // Compact epoch display — just the countdown, no labels
     const epochLabel = currentEpoch ? `E${currentEpoch.epochId}` : null;
@@ -159,7 +161,7 @@ export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, u
                             <ChevronDown size={8} />
                         </span>
                     </div>
-                    <span className="font-mono text-xs font-bold text-[#C9A84C] leading-none whitespace-nowrap">
+                    <span className={cn("font-mono text-xs font-bold leading-none whitespace-nowrap", isDemoMode ? "text-amber-400" : "text-[#C9A84C]")}>
                         {displayBalance}
                     </span>
                 </div>

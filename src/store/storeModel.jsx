@@ -853,10 +853,18 @@ export const useStore = create((set, get) => ({
 
     updateSettings: async (newSettings) => {
         try {
-            set(state => ({
-                settings: { ...state.settings, ...newSettings }
-            }));
-            return true;
+            const { apiPatch } = await import("../lib/api");
+            const currentSettings = get().settings || {};
+            const mergedSettings = { ...currentSettings, ...newSettings };
+            
+            // Persist to backend
+            const result = await apiPatch("/api/user/profile", { settings: mergedSettings });
+            
+            if (result && !result.error) {
+                set({ settings: mergedSettings });
+                return true;
+            }
+            return false;
         } catch (err) {
             console.error('Failed to update settings:', err);
             return false;

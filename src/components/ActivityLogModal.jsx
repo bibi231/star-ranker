@@ -117,8 +117,11 @@ export function ActivityLogModal({ isOpen, onClose }) {
                                                     </span>
                                                 </div>
                                                 {act.amount > 0 && (
-                                                    <div className="text-[10px] font-mono font-black text-emerald-400 italic">
-                                                        +{act.amount.toLocaleString()} Units
+                                                    <div className={cn(
+                                                        "text-[10px] font-mono font-black italic",
+                                                        act.metadata?.isDemo ? "text-amber-400" : "text-emerald-400"
+                                                    )}>
+                                                        {act.metadata?.isDemo ? '★' : '+'}{act.amount.toLocaleString()} Units
                                                     </div>
                                                 )}
                                             </div>

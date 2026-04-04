@@ -390,7 +390,7 @@ export function RankingTable() {
                                 <RankingRow 
                                     item={item}
                                     index={virtualRow.index}
-                                    currentVote={userVotes[item.id]}
+                                    currentVote={userVotes[item.docId]}
                                     isTracked={isTracked(item.docId)}
                                     totalScore={totalScore}
                                     formatValue={formatValue}
@@ -422,7 +422,7 @@ export function RankingTable() {
 function MobileItemCard({ item, index, isTracked, toggleWatchlist, totalScore }) {
     const navigate = useNavigate();
     const { vote, userVotes, openModal, user, formatValue } = useStore();
-    const currentVote = userVotes[item.id];
+    const currentVote = userVotes[item.docId];
 
     return (
         <div
@@ -475,7 +475,7 @@ function MobileItemCard({ item, index, isTracked, toggleWatchlist, totalScore })
                 </button>
                 <div className="flex flex-col gap-1 relative">
                     <button
-                        onClick={() => vote(item.id, 1)}
+                        onClick={() => vote(item.docId, 1)}
                         className={cn(
                             "min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg transition-colors",
                             currentVote === 'up' ? "bg-emerald-500 text-slate-950" : "bg-emerald-500/10 text-emerald-400 active:bg-emerald-500/30"
@@ -484,7 +484,7 @@ function MobileItemCard({ item, index, isTracked, toggleWatchlist, totalScore })
                         <ChevronUp size={20} strokeWidth={3} />
                     </button>
                     <button
-                        onClick={() => vote(item.id, -1)}
+                        onClick={() => vote(item.docId, -1)}
                         className={cn(
                             "min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg transition-colors",
                             currentVote === 'down' ? "bg-rose-500 text-white" : "bg-rose-500/10 text-rose-400 active:bg-rose-500/30"

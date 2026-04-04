@@ -27,7 +27,9 @@ import {
     BarChart2,
     RefreshCw,
     Swords,
-    Brain
+    Brain,
+    HelpCircle,
+    BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store/storeModel';
@@ -61,7 +63,8 @@ export function MainLayout() {
         isDepositOpen, setDepositOpen,
         isVotePackModalOpen, setVotePackModalOpen,
         isWithdrawalOpen, setWithdrawalOpen,
-        fetchUserProfile // Assuming this function exists in your store
+        fetchUserProfile,
+        isDemoMode, demoBalance, rates, currency
     } = useStore();
 
     const navigate = useNavigate();
@@ -147,6 +150,8 @@ export function MainLayout() {
 
                     <NavSection title="RESOURCES" compact={!isSidebarOpen}>
                         <NavItem to="/how-it-works" icon={Info} label="How it Works" compact={!isSidebarOpen} />
+                        <NavItem to="/faq" icon={HelpCircle} label="FAQ" compact={!isSidebarOpen} />
+                        <NavItem to="/api-docs" icon={BookOpen} label="API Documentation" compact={!isSidebarOpen} />
                         <NavItem to="/transparency" icon={ShieldCheck} label="Transparency" compact={!isSidebarOpen} />
                     </NavSection>
                 </div>
@@ -165,15 +170,22 @@ export function MainLayout() {
                                         >
                                             <RefreshCw size={10} />
                                         </button>
-                                        <span className="text-[10px] font-mono font-black text-emerald-400 italic">{formatValue(balance)}</span>
+                                        <span className="text-[10px] font-mono font-black text-emerald-400 italic">
+                                            {isDemoMode 
+                                                ? `★${(demoBalance * (rates[currency] || 1)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                                                : formatValue(balance)
+                                            }
+                                        </span>
                                     </div>
-                                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest bg-slate-900 px-1.5 py-0.5 rounded border border-white/5">Liquid Capital</span>
+                                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest bg-slate-900 px-1.5 py-0.5 rounded border border-white/5">
+                                        {isDemoMode ? 'Practice Credits' : 'Liquid Capital'}
+                                    </span>
                                 </div>
                                 <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
                                     <motion.div
                                         initial={{ width: 0 }}
-                                        animate={{ width: '65%' }}
-                                        className="h-full bg-emerald-500/50"
+                                        animate={{ width: isDemoMode ? '100%' : `${Math.min(100, (balance / 10000) * 100)}%` }}
+                                        className={cn("h-full", isDemoMode ? "bg-brand-accent/50" : "bg-emerald-500/50")}
                                     />
                                 </div>
                             </div>
@@ -282,6 +294,8 @@ export function MainLayout() {
 
                                 <NavSection title="RESOURCES">
                                     <NavItem to="/how-it-works" icon={Info} label="How it Works" onClick={() => setIsMobileMenuOpen(false)} />
+                                    <NavItem to="/faq" icon={HelpCircle} label="FAQ" onClick={() => setIsMobileMenuOpen(false)} />
+                                    <NavItem to="/api-docs" icon={BookOpen} label="API Documentation" onClick={() => setIsMobileMenuOpen(false)} />
                                     <NavItem to="/transparency" icon={ShieldCheck} label="Transparency" onClick={() => setIsMobileMenuOpen(false)} />
                                     <NavItem to="/history" icon={History} label="History" onClick={() => setIsMobileMenuOpen(false)} />
                                 </NavSection>
@@ -300,15 +314,17 @@ export function MainLayout() {
                                                     >
                                                         <RefreshCw size={10} />
                                                     </button>
-                                                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em]">Bankroll</span>
+                                                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em]">{isDemoMode ? 'PRACTICE' : 'Bankroll'}</span>
                                                 </div>
-                                                <span className="text-[10px] font-mono font-black text-emerald-400 italic">{formatValue(balance)}</span>
+                                                <span className="text-[10px] font-mono font-black text-emerald-400 italic">
+                                                    {isDemoMode ? `★${(demoBalance * (rates[currency] || 1)).toLocaleString()}` : formatValue(balance)}
+                                                </span>
                                             </div>
                                             <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
                                                 <motion.div 
                                                     initial={{ width: 0 }}
-                                                    animate={{ width: `${Math.min(100, (balance / 10000) * 100)}%` }}
-                                                    className="h-full bg-brand-accent shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                                                    animate={{ width: isDemoMode ? '100%' : `${Math.min(100, (balance / 10000) * 100)}%` }}
+                                                    className={cn("h-full shadow-[0_0_10px_rgba(16,185,129,0.5)]", isDemoMode ? "bg-amber-500" : "bg-brand-accent")}
                                                 />
                                             </div>
                                         </div>
@@ -441,11 +457,13 @@ export function MainLayout() {
                             <div className="flex items-center gap-2 lg:gap-3 pl-2 lg:pl-4 border-l border-white/5">
                                 <div className="hidden lg:block text-right text-[9px] font-black uppercase tracking-widest">
                                     <div className="text-slate-500">{user.displayName || 'Oracle'}</div>
-                                    <div className="text-emerald-400 italic">{formatValue(balance)}</div>
+                                    <div className={cn("italic", isDemoMode ? "text-amber-400" : "text-emerald-400")}>
+                                        {isDemoMode ? `★${demoBalance.toLocaleString()}` : formatValue(balance)}
+                                    </div>
                                 </div>
                                 {/* Compact balance for md — no name */}
-                                <span className="lg:hidden text-[10px] font-mono font-bold text-emerald-400 italic whitespace-nowrap">
-                                    {formatValue(balance)}
+                                <span className={cn("lg:hidden text-[10px] font-mono font-bold italic whitespace-nowrap", isDemoMode ? "text-amber-400" : "text-emerald-400")}>
+                                    {isDemoMode ? `★${demoBalance.toLocaleString()}` : formatValue(balance)}
                                 </span>
                                 <button
                                     onClick={() => navigate('/portfolio')}

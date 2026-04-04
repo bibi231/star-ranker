@@ -250,6 +250,22 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
                 isPlayMode: true, // Also mark as play mode for UI compatibility
             }).returning();
 
+            // Log to Market Activity for Practice Mode visibility
+            try {
+                await db.insert(marketActivity).values({
+                    type: "stake",
+                    userId,
+                    itemDocId,
+                    itemName,
+                    categorySlug,
+                    amount,
+                    description: `[PRACTICE] Oracle deployed influence on ${itemName} (Demo Stake)`,
+                    metadata: { betType, target, isDemo: true }
+                });
+            } catch (e) {
+                console.warn("[Staking] Demo market activity log failed:", e);
+            }
+
             return res.json({ 
                 success: true, 
                 stake: newDemoStake,

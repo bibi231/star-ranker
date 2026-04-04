@@ -36,7 +36,7 @@ import { DailyQuests } from '../components/DailyQuests';
 import { SystemStatus } from '../components/SystemStatus';
 
 export function UserDashboard() {
-    const { user, balance, playBalance, stakes, reputation, reputationHistory, fetchReputationHistory, tier, setDepositOpen, setWithdrawalOpen, formatValue, bindWallet, fetchStakes, fetchUserProfile } = useStore();
+    const { user, balance, demoBalance, isDemoMode, playBalance, stakes, reputation, reputationHistory, fetchReputationHistory, tier, setDepositOpen, setWithdrawalOpen, formatValue, bindWallet, fetchStakes, fetchUserProfile, rates, currency } = useStore();
     const [isExiting, setIsExiting] = useState(null);
     const [isActivityLogOpen, setActivityLogOpen] = useState(false);
     const [isReferralCopied, setReferralCopied] = useState(false);
@@ -119,7 +119,17 @@ export function UserDashboard() {
                 </div>
 
                 <div className="flex flex-wrap gap-4 md:gap-6 w-full lg:w-auto" data-tour="portfolio-stat">
-                    <StatCard label="Network Credits" value={formatValue(balance)} icon={<Wallet size={16} />} color="text-emerald-400" glow="emerald" onActionClick={() => setDepositOpen(true)} />
+                    <StatCard 
+                        label={isDemoMode ? "Practice Credits" : "Network Credits"} 
+                        value={isDemoMode 
+                            ? `★${(demoBalance * (rates[currency] || 1)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                            : formatValue(balance)
+                        } 
+                        icon={<Wallet size={16} />} 
+                        color={isDemoMode ? "text-amber-400" : "text-emerald-400"} 
+                        glow={isDemoMode ? "amber" : "emerald"} 
+                        onActionClick={() => setDepositOpen(true)} 
+                    />
                     <StatCard label="Oracle Rating" value={reputation.toLocaleString()} icon={<Star size={16} />} color="text-amber-500" glow="amber" />
                     <StatCard label="Identity Tier" value={tier} icon={<ShieldCheck size={16} />} color="text-brand-accent" glow="cyan" />
                 </div>

@@ -204,7 +204,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                                             : "border-white/5 text-slate-500 hover:text-white"
                                     )}
                                 >
-                                    {currency === 'NGN' ? '₦' : currency === 'EUR' ? '€' : '$'}{v >= 1000 ? `${v / 1000}K` : v}
+                                    {isDemoMode ? '★' : (currency === 'NGN' ? '₦' : currency === 'EUR' ? '€' : '$')}{v >= 1000 ? `${v / 1000}K` : v}
                                 </button>
                             ))}
                         </div>
@@ -361,15 +361,21 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                         </div>
                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest pt-2">
                             <span className="text-slate-500">Stake Amount</span>
-                            <span className="text-white">{isDemoMode ? `★${parseFloat(amount || 0).toLocaleString()}` : formatValue(useStore.getState().parseLocalToUSD(amount))}</span>
+                            <span className="text-white">
+                                {isDemoMode ? `★${parseFloat(amount || 0).toLocaleString()}` : formatValue(useStore.getState().parseLocalToUSD(amount))}
+                            </span>
                         </div>
                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                             <span className="text-rose-400">Platform Fee (5%)</span>
-                            <span className="text-rose-400">-{formatValue(useStore.getState().parseLocalToUSD(amount) * 0.05)}</span>
+                            <span className="text-rose-400">
+                                {isDemoMode ? `-★${(parseFloat(amount || 0) * 0.05).toFixed(2)}` : `-${formatValue(useStore.getState().parseLocalToUSD(amount) * 0.05)}`}
+                            </span>
                         </div>
                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                             <span className="text-slate-400">Net at Risk</span>
-                            <span className="text-emerald-400">{formatValue(useStore.getState().parseLocalToUSD(amount) * 0.95)}</span>
+                            <span className="text-emerald-400">
+                                {isDemoMode ? `★${(parseFloat(amount || 0) * 0.95).toFixed(2)}` : formatValue(useStore.getState().parseLocalToUSD(amount) * 0.95)}
+                            </span>
                         </div>
                         <div className="flex items-center gap-1.5 pt-2">
                             <Info size={10} className="text-amber-500/60 shrink-0" />
