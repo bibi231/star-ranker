@@ -118,7 +118,7 @@ export function UserDashboard() {
                     </p>
                 </div>
 
-                <div className="flex flex-wrap gap-4 md:gap-6 w-full lg:w-auto">
+                <div className="flex flex-wrap gap-4 md:gap-6 w-full lg:w-auto" data-tour="portfolio-stat">
                     <StatCard label="Network Credits" value={formatValue(balance)} icon={<Wallet size={16} />} color="text-emerald-400" glow="emerald" onActionClick={() => setDepositOpen(true)} />
                     <StatCard label="Oracle Rating" value={reputation.toLocaleString()} icon={<Star size={16} />} color="text-amber-500" glow="amber" />
                     <StatCard label="Identity Tier" value={tier} icon={<ShieldCheck size={16} />} color="text-brand-accent" glow="cyan" />

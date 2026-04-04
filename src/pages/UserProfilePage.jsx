@@ -17,21 +17,46 @@ export function UserProfilePage() {
     const { username } = useParams();
     const { user: currentUser } = useStore();
 
-    // Mock data for public profile
-    const profile = {
-        username: username || "Oracle_Alpha",
-        tier: "Elder Oracle",
-        reputation: 15400,
-        accuracy: "94.2%",
-        joinedDate: "Feb 2024",
-        bio: "Analyzing market sentiment across the crypto and tech sectors since the genesis block.",
-        badges: ["Early Adopter", "Top Predictor", "AVD Verified"],
-        recentActivity: [
-            { item: "Bitcoin", action: "voted up", time: "2h ago" },
-            { item: "Apple Vision Pro", action: "voted down", time: "5h ago" },
-            { item: "Solana", action: "staked $500", time: "1d ago" },
-        ]
-    };
+    const [profile, setProfile] = React.useState(null);
+    const [isLoading, setIsLoading] = React.useState(true);
+    const [error, setError] = React.useState(null);
+
+    React.useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const { apiGet } = await import('../lib/api');
+                const targetHandle = username || currentUser?.oracleHandle || currentUser?.displayName;
+                if (!targetHandle) {
+                     setError("No user specified");
+                     return;
+                }
+                const data = await apiGet(`/api/user/public/${targetHandle}`);
+                setProfile(data);
+            } catch (err) {
+                console.error("Error fetching public profile:", err);
+                setError("Oracle not found or data is classified.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchProfile();
+    }, [username, currentUser]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-brand-bg p-8 flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-brand-accent/20 border-t-brand-accent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
+    if (error || !profile) {
+        return (
+            <div className="min-h-screen bg-brand-bg p-8 flex items-center justify-center text-slate-400 font-bold">
+                {error || "Profile not found."}
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-brand-bg p-8">

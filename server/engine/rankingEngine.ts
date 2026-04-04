@@ -9,7 +9,7 @@
 import { db } from "../db/index";
 import { items, votes, epochSnapshots, priceAlerts, notifications } from "../db/schema";
 import { eq, or, isNull, and } from "drizzle-orm";
-import { calculateOdds } from "./oddsCalculator";
+import { calculateOdds, calculateMultipleOdds } from "./oddsCalculator";
 
 let firestoreDb: any = null;
 try {
@@ -116,6 +116,56 @@ export async function reifyRankings() {
 }
 
 /**
+ * Recalculate ranks specifically for a single category.
+ * Used for targeted updates when a vote occurs (crucial for serverless environments).
+ */
+export async function reifyCategoryRankings(slug: string) {
+    const now = Date.now();
+    const catItems = await db
+        .select()
+        .from(items)
+        .where(and(
+            eq(items.categorySlug, slug),
+            or(eq(items.status, "active"), isNull(items.status))
+        ));
+
+    if (catItems.length === 0) return;
+
+    // Apply basic momentum decay logic to this category
+    const updated = catItems.map(item => {
+        const lastCreated = item.createdAt?.getTime() || now - 60000;
+        const deltaT = (now - lastCreated) / 1000;
+        const currentMomentum = item.momentum ?? 0;
+        const decayedMomentum = currentMomentum * Math.exp(-GRAVITY * Math.min(deltaT, 3600)); // cap deltaT for safety
+        
+        return {
+            ...item,
+            momentum: parseFloat(decayedMomentum.toFixed(4)),
+        };
+    });
+
+    // Sort by score descending
+    updated.sort((a, b) => {
+        if ((b.score ?? 0) !== (a.score ?? 0)) return (b.score ?? 0) - (a.score ?? 0);
+        if ((b.momentum ?? 0) !== (a.momentum ?? 0)) return (b.momentum ?? 0) - (a.momentum ?? 0);
+        return a.id - b.id;
+    });
+
+    // Perform batch update
+    await db.transaction(async (tx) => {
+        for (let i = 0; i < updated.length; i++) {
+            const item = updated[i];
+            const newRank = i + 1;
+            if (item.rank !== newRank) {
+                await tx.update(items)
+                    .set({ rank: newRank, momentum: item.momentum })
+                    .where(eq(items.id, item.id));
+            }
+        }
+    });
+}
+
+/**
  * Sync updated rankings to Firestore for real-time listeners
  */
 async function syncRankingsToFirestore(allItems: typeof items.$inferSelect[]) {
@@ -125,8 +175,21 @@ async function syncRankingsToFirestore(allItems: typeof items.$inferSelect[]) {
         const batch = firestoreDb.batch();
         const currentEpochId = 1; // Get current epoch ID if needed
 
+        const docIds = allItems.map(i => i.docId);
+        
+        // Use the categories from items to filter (simplification: assume mostly single category per run or batch handles it)
+        // Groups items by category for accurate odds calc
+        const categories = [...new Set(allItems.map(i => i.categorySlug))];
+        const oddsLookup: Record<string, any> = {};
+        
+        for (const cat of categories) {
+            const catItems = allItems.filter(i => i.categorySlug === cat).map(i => i.docId);
+            const oddsObj = await calculateMultipleOdds(catItems, cat, currentEpochId);
+            Object.assign(oddsLookup, oddsObj);
+        }
+
         for (const item of allItems) {
-            const odds = await calculateOdds(item.id, item.categorySlug, currentEpochId);
+            const odds = oddsLookup[item.docId] || { impliedProbability: 50, multiplier: 2.0, riskLevel: 'medium' };
             const ref = firestoreDb.doc(`rankings/${item.categorySlug}/items/${item.id}`);
             batch.set(ref, {
                 rank: item.rank,
@@ -139,7 +202,6 @@ async function syncRankingsToFirestore(allItems: typeof items.$inferSelect[]) {
         }
 
         // Update category summary
-        const categories = [...new Set(allItems.map(i => i.categorySlug))];
         for (const categorySlug of categories) {
             const categoryItems = allItems.filter(i => i.categorySlug === categorySlug);
             const ref = firestoreDb.doc(`categories/${categorySlug}`);

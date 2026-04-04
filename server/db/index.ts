@@ -1,15 +1,15 @@
-import { Pool } from "@neondatabase/serverless";
+import { Pool, neonConfig } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import * as schema from "./schema";
 import { firstPostgresSqlstate, formatDbConnectError } from "../lib/formatDbError";
 
+import ws from "ws";
+neonConfig.webSocketConstructor = ws;
+
 const connectionString = process.env.DATABASE_URL?.trim() ?? "";
 
 const pool = new Pool({
-    // Placeholder only when unset so the process can boot; probePostgres() rejects before connect.
     connectionString: connectionString || "postgresql://_:_@127.0.0.1:65534/_",
-    connectionTimeoutMillis: 10000,
-    max: 20, // Limit connections to prevent overwhelming Neon free tier
 });
 
 export const db = drizzle(pool, { schema });
@@ -28,7 +28,7 @@ export async function probePostgres(): Promise<DbProbeResult> {
         await client.query("SELECT 1");
         client.release();
         return { ok: true };
-    } catch (err) {
+    } catch (err: any) {
         const detail = formatDbConnectError(err);
         const pgCode = firstPostgresSqlstate(err);
         return { ok: false, detail, pgCode };

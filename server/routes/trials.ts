@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db/index";
 import { oracleTrials, trialAttempts, items, dailyQuests } from "../db/schema";
-import { eq, and, sql, desc } from "drizzle-orm";
+import { eq, and, sql, desc, inArray } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 
 const router = Router();
@@ -22,24 +22,60 @@ router.get("/", async (req, res) => {
                 .orderBy(sql`RANDOM()`)
                 .limit(5);
 
-            if (randomItems.length < 5) return res.status(500).json({ error: "Insufficient items for trial" });
+            if (randomItems.length < 5) {
+                console.warn('[trials] Not enough active items for trial:', randomItems.length);
+                return res.status(503).json({ error: "Not enough items available for today's trial. Please try again later." });
+            }
 
-            [trial] = await db.insert(oracleTrials).values({
-                trialDate: today,
-                itemIds: randomItems.map(i => i.id)
-            }).returning();
+            try {
+                [trial] = await db.insert(oracleTrials).values({
+                    trialDate: today,
+                    itemIds: randomItems.map(i => i.id)
+                }).returning();
+                console.log('[trials] Generated new trial for', today, 'with items:', trial.itemIds);
+            } catch (insertErr: any) {
+                // Race condition: another request may have created it
+                if (insertErr.code === '23505') {
+                    [trial] = await db.select().from(oracleTrials).where(eq(oracleTrials.trialDate, today)).limit(1);
+                } else {
+                    throw insertErr;
+                }
+            }
         }
 
-        // 3. Fetch item details (without their ranks/scores to avoid cheating)
+        // 4. Fetch item details — ensure itemIds are always integers
+        const rawIds = trial.itemIds;
+        const safeItemIds: number[] = Array.isArray(rawIds) && rawIds.length > 0
+            ? rawIds.map((id: any) => typeof id === 'string' ? parseInt(id, 10) : id).filter((id: number) => !isNaN(id))
+            : [];
+
+        if (safeItemIds.length === 0) {
+            return res.json({ trialId: trial.id, items: [] });
+        }
+
         const trialItems = await db.select({ id: items.id, name: items.name, imageUrl: items.imageUrl })
             .from(items)
-            .where(sql`${items.id} IN ${sql.raw(`(${trial.itemIds?.toString()})`)}`);
+            .where(inArray(items.id, safeItemIds));
+
+        // 5. Enrich with fallback images if missing
+        const enrichedItems = trialItems.map(item => {
+            if (item.imageUrl) return item;
+            
+            // Simple deterministic placeholder based on name or generic category
+            const name = item.name || "Ascendant Item";
+            const seed = encodeURIComponent(name);
+            return {
+                ...item,
+                imageUrl: `https://api.dicebear.com/9.x/shapes/svg?seed=${seed}&backgroundColor=020617`
+            };
+        });
 
         // Randomize the order for the user
-        const shuffledItems = trialItems.sort(() => Math.random() - 0.5);
+        const shuffledItems = enrichedItems.sort(() => Math.random() - 0.5);
 
         res.json({ trialId: trial.id, items: shuffledItems });
     } catch (err: any) {
+        console.error("[trials] GET error:", err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -59,9 +95,10 @@ router.post("/submit", requireAuth, async (req: AuthRequest, res) => {
         if (existing) return res.status(400).json({ error: "Trial already completed for today" });
 
         // Fetch actual scores for these items
+        const safeGuessOrder = guessOrder && guessOrder.length > 0 ? guessOrder : [-1];
         const actualItems = await db.select({ id: items.id, score: items.score })
             .from(items)
-            .where(sql`${items.id} IN ${sql.raw(`(${guessOrder.toString()})`)}`);
+            .where(inArray(items.id, safeGuessOrder));
 
         // Map actual correct order
         const correctOrder = [...actualItems].sort((a, b) => (b.score || 0) - (a.score || 0)).map(i => i.id);
@@ -71,6 +108,16 @@ router.post("/submit", requireAuth, async (req: AuthRequest, res) => {
         guessOrder.forEach((id, idx) => {
             if (id === correctOrder[idx]) score += 20;
         });
+
+        // 2. Fetch all items belonging to these trials to populate the UI
+        const trialIds = [trialId];
+        const trialItems = await db.select().from(items).where(sql`${items.id} IN ${trialIds}`);
+
+        // 3. Enrich items with fallback images if missing
+        const enrichedItems = trialItems.map(item => ({
+            ...item,
+            imageUrl: item.imageUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${item.id}`
+        }));
 
         // Save attempt
         const [attempt] = await db.insert(trialAttempts).values({

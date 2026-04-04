@@ -101,24 +101,71 @@ export function SettingsPage() {
 
 function AccountSettings({ user, tier, bio: initialBio, onUpdate }) {
     const [localBio, setLocalBio] = useState(initialBio || "");
+    const [localHandle, setLocalHandle] = useState(user?.oracleHandle || user?.username || "");
+    const [handleError, setHandleError] = useState("");
+    const [handleAvailable, setHandleAvailable] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const [checkingHandle, setCheckingHandle] = useState(false);
 
     useEffect(() => {
         setLocalBio(initialBio || "");
     }, [initialBio]);
 
+    useEffect(() => {
+        setLocalHandle(user?.oracleHandle || user?.username || "");
+    }, [user?.oracleHandle, user?.username]);
+
+    // Debounced handle availability check
+    useEffect(() => {
+        const currentHandle = user?.oracleHandle || user?.username || "";
+        if (!localHandle || localHandle === currentHandle) {
+            setHandleError("");
+            setHandleAvailable(null);
+            return;
+        }
+
+        const handleRegex = /^[a-zA-Z0-9_]{3,20}$/;
+        if (!handleRegex.test(localHandle)) {
+            setHandleError("3-20 characters, letters, numbers & underscores only");
+            setHandleAvailable(false);
+            return;
+        }
+
+        setCheckingHandle(true);
+        const timer = setTimeout(async () => {
+            try {
+                const { apiGet } = await import('../lib/api');
+                const res = await apiGet(`/api/user/check-handle`, { handle: localHandle });
+                setHandleAvailable(res.available);
+                setHandleError(res.available ? "" : "This handle is already taken");
+            } catch {
+                setHandleError("");
+                setHandleAvailable(null);
+            }
+            setCheckingHandle(false);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [localHandle, user?.oracleHandle, user?.username]);
+
+    const currentHandle = user?.oracleHandle || user?.username || "";
+    const hasHandleChange = localHandle !== currentHandle;
+    const hasBioChange = localBio !== (initialBio || "");
+    const hasChanges = hasHandleChange || hasBioChange;
+
     const handleSave = async () => {
         setIsSaving(true);
-        const success = await onUpdate({ bio: localBio });
+        const updates = {};
+        if (hasBioChange) updates.bio = localBio;
+        if (hasHandleChange && handleAvailable) updates.oracleHandle = localHandle;
+
+        const success = await onUpdate(updates);
         if (success) {
             setIsSaved(true);
             setTimeout(() => setIsSaved(false), 3000);
         }
         setIsSaving(false);
     };
-
-    const hasChanges = localBio !== (initialBio || "");
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -127,8 +174,8 @@ function AccountSettings({ user, tier, bio: initialBio, onUpdate }) {
                 {hasChanges && (
                     <button
                         onClick={handleSave}
-                        disabled={isSaving}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-accent text-slate-950 text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-brand-accent/20"
+                        disabled={isSaving || (hasHandleChange && !handleAvailable)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-accent text-slate-950 text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-brand-accent/20 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         {isSaving ? <Loader2 size={14} className="animate-spin" /> : <><Save size={14} /> Save Profile</>}
                     </button>
@@ -141,7 +188,40 @@ function AccountSettings({ user, tier, bio: initialBio, onUpdate }) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputGroup label="Oracle Handle" value={user?.username} disabled />
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Oracle Handle</label>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={localHandle}
+                            onChange={(e) => setLocalHandle(e.target.value.trim())}
+                            placeholder="Choose your oracle name..."
+                            className={cn(
+                                "w-full bg-slate-900 border rounded-2xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-1 transition-all",
+                                handleError ? "border-rose-500/50 focus:ring-rose-500" :
+                                handleAvailable === true ? "border-emerald-500/50 focus:ring-emerald-500" :
+                                "border-slate-800 focus:ring-brand-accent"
+                            )}
+                            maxLength={20}
+                        />
+                        {checkingHandle && (
+                            <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-500" />
+                        )}
+                        {!checkingHandle && handleAvailable === true && hasHandleChange && (
+                            <Check size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500" />
+                        )}
+                    </div>
+                    {handleError && <p className="text-[9px] font-bold text-rose-400 uppercase">{handleError}</p>}
+                    {handleAvailable === true && hasHandleChange && <p className="text-[9px] font-bold text-emerald-400 uppercase">Handle available!</p>}
+                    <p className="text-[8px] text-slate-600 font-bold uppercase">
+                        {user.oracleHandleChangeWindowStart ? (
+                            `Last changed: ${new Date(user.oracleHandleChangeWindowStart).toLocaleDateString()}. Next change available in ${Math.max(0, 60 - Math.ceil((Date.now() - new Date(user.oracleHandleChangeWindowStart).getTime()) / (1000 * 60 * 60 * 24)))} days.`
+                        ) : (
+                            "You can change your oracle name once every 60 days."
+                        )}
+                    </p>
+                </div>
+
                 <InputGroup label="Registry Email" value={user?.email} disabled />
                 {isSuperAdminEmail(user?.email) && (
                     <div className="md:col-span-2">

@@ -304,8 +304,12 @@ export function MainLayout() {
                                                 </div>
                                                 <span className="text-[10px] font-mono font-black text-emerald-400 italic">{formatValue(balance)}</span>
                                             </div>
-                                            <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
-                                                <div className="h-full bg-emerald-500/50 w-2/3" />
+                                            <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
+                                                <motion.div 
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${Math.min(100, (balance / 10000) * 100)}%` }}
+                                                    className="h-full bg-brand-accent shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                                                />
                                             </div>
                                         </div>
                                         <button

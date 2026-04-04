@@ -41,7 +41,9 @@ interface CoinGeckoPrice {
 export async function updateCryptoPrices() {
     try {
         const ids = Object.values(SYMBOL_TO_COINGECKO).join(",");
-        const url = `${COINGECKO_API}/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`;
+
+        // Use /coins/markets which returns image URLs alongside price data
+        const url = `${COINGECKO_API}/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h`;
 
         // Create AbortController for timeout
         const controller = new AbortController();
@@ -59,8 +61,19 @@ export async function updateCryptoPrices() {
             return;
         }
 
-        const data: Record<string, CoinGeckoPrice> = await response.json();
-        console.log(`[CoinGecko] Fetched prices for ${Object.keys(data).length} coins`);
+        const coinsList: any[] = await response.json();
+        console.log(`[CoinGecko] Fetched data for ${coinsList.length} coins`);
+
+        // Build lookup by geckoId
+        const coinData: Record<string, { price: number; change24h: number; marketCap: number; image: string }> = {};
+        for (const coin of coinsList) {
+            coinData[coin.id] = {
+                price: coin.current_price || 0,
+                change24h: coin.price_change_percentage_24h || 0,
+                marketCap: coin.market_cap || 0,
+                image: coin.image || "",
+            };
+        }
 
         // Get all crypto items
         const cryptoItems = await db
@@ -70,35 +83,33 @@ export async function updateCryptoPrices() {
 
         for (const item of cryptoItems) {
             const geckoId = SYMBOL_TO_COINGECKO[item.symbol ?? ""];
-            if (!geckoId || !data[geckoId]) continue;
+            if (!geckoId || !coinData[geckoId]) continue;
 
-            const priceData = data[geckoId];
-            const priceUsd = priceData.usd;
-            const change24h = priceData.usd_24h_change || 0;
-            const marketCap = priceData.usd_market_cap || 0;
-
-            // Score = market cap rank influence + vote-based score
-            // We use log of market cap as a base score component
-            const marketCapScore = marketCap > 0 ? Math.floor(Math.log10(marketCap) * 1000) : 0;
-            const newVelocity = parseFloat(change24h.toFixed(2));
-            const newVolatility = parseFloat(Math.abs(change24h * 0.5).toFixed(2));
-
-            // Update item with real market data — blend with existing vote-based score
+            const coin = coinData[geckoId];
+            const marketCapScore = coin.marketCap > 0 ? Math.floor(Math.log10(coin.marketCap) * 1000) : 0;
+            const newVelocity = parseFloat(coin.change24h.toFixed(2));
+            const newVolatility = parseFloat(Math.abs(coin.change24h * 0.5).toFixed(2));
             const blendedScore = Math.floor((item.score ?? 0) * 0.3 + marketCapScore * 0.7);
 
-            await db.update(items).set({
+            const updateFields: any = {
                 score: blendedScore,
                 velocity: newVelocity,
                 volatility: Math.max(1, newVolatility),
-                // Store a trend data point
                 trend: [
                     ...((item.trend as number[] || []).slice(-14)),
-                    Math.floor(priceUsd)
+                    Math.floor(coin.price)
                 ],
-            }).where(eq(items.id, item.id));
+            };
+
+            // Populate imageUrl if missing
+            if (!item.imageUrl && coin.image) {
+                updateFields.imageUrl = coin.image;
+            }
+
+            await db.update(items).set(updateFields).where(eq(items.id, item.id));
         }
 
-        console.log(`[CoinGecko] Updated ${cryptoItems.length} crypto items with real prices`);
+        console.log(`[CoinGecko] Updated ${cryptoItems.length} crypto items with real prices + images`);
     } catch (error) {
         console.error("[CoinGecko] Price update failed:", error);
     }

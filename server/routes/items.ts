@@ -2,18 +2,26 @@ import { Router } from "express";
 import { db } from "../db/index";
 import { items, epochs, epochSnapshots } from "../db/schema";
 import { eq, desc, and, lte, gte } from "drizzle-orm";
-import { calculateOdds } from "../engine/oddsCalculator";
+import { calculateMultipleOdds } from "../engine/oddsCalculator";
 
 import { cacheGet, cacheSet } from "../services/cache";
 
 const router = Router();
 
 // GET /api/items?category=crypto — Fetch items by category slug with odds
+// When category is omitted, returns a lightweight list of all items (for battle modal, search, etc.)
 router.get("/", async (req, res) => {
     try {
         const category = req.query.category as string;
+
+        // No category → return lightweight list for dropdowns/modals
         if (!category) {
-            return res.status(400).json({ error: "category query param required" });
+            const allItems = await db
+                .select({ id: items.id, name: items.name, symbol: items.symbol, imageUrl: items.imageUrl, categorySlug: items.categorySlug })
+                .from(items)
+                .where(eq(items.status, 'active'))
+                .orderBy(desc(items.score));
+            return res.json(allItems);
         }
 
         const cacheKey = `items:${category}`;
@@ -41,20 +49,24 @@ router.get("/", async (req, res) => {
             .where(eq(items.categorySlug, category))
             .orderBy(desc(items.rank));
 
-        // Add odds to each item
-        const itemsWithOdds = await Promise.all(
-            result.map(async (item) => {
-                const odds = await calculateOdds(item.id, category, epochId);
-                return {
-                    ...item,
-                    odds,
-                };
-            })
-        );
+        // Use bulk odds calculation — wrapped in try/catch so items always return
+        let oddsMap: Record<string, any> = {};
+        try {
+            const docIds = result.map(i => i.docId);
+            oddsMap = await calculateMultipleOdds(docIds, category, epochId);
+        } catch (oddsErr) {
+            console.error('[items] Odds calculation failed, using neutral odds:', oddsErr);
+        }
+
+        const itemsWithOdds = result.map(item => ({
+            ...item,
+            odds: oddsMap[item.docId] || { impliedProbability: 50, multiplier: 2.0, riskLevel: 'medium' }
+        }));
 
         await cacheSet(cacheKey, itemsWithOdds, 30);
         res.json(itemsWithOdds);
     } catch (error: any) {
+        console.error('[items] GET error:', error);
         res.status(500).json({ error: error.message });
     }
 });

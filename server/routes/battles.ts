@@ -36,6 +36,7 @@ router.get("/", async (req, res) => {
 
         res.json(battles);
     } catch (err: any) {
+        console.error("Battles GET Error:", err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -77,6 +78,7 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
 
         res.json(result);
     } catch (err: any) {
+        console.error("Battles POST Error:", err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -118,6 +120,7 @@ router.post("/:id/vote", requireAuth, async (req: AuthRequest, res) => {
 
         res.json(updated);
     } catch (err: any) {
+        console.error("Battles VOTE Error:", err);
         res.status(500).json({ error: err.message });
     }
 });

@@ -129,6 +129,10 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
         // Invalidate cache for this category
         await cacheDel(`items:${categorySlug}`);
 
+        // Trigger on-demand rank update for this category (for serverless environments)
+        const { reifyCategoryRankings } = await import("../engine/rankingEngine");
+        reifyCategoryRankings(categorySlug).catch(err => console.error("[Votes] Background ranking update failed:", err));
+
         res.json({ success: true, newScore: updated[0]?.score ?? 0, powerVoteUsed: powerVoteDeducted, newPowerVotes });
     } catch (error: any) {
         console.error("Vote error:", error);

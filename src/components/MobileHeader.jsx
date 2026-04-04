@@ -4,9 +4,14 @@ import { useStore } from '../store/storeModel';
 import { NotificationsPanel } from './NotificationsPanel';
 import { cn } from '../lib/utils';
 
+import { AnimatePresence, motion } from 'framer-motion';
+
 function CompactEpochTracker() {
     const { currentEpoch, serverTimeOffset } = useStore();
     const [status, setStatus] = React.useState('stable');
+    const [timeLeftStr, setTimeLeftStr] = React.useState('');
+    const [showPopup, setShowPopup] = React.useState(false);
+    const popupRef = React.useRef(null);
 
     React.useEffect(() => {
         if (!currentEpoch) return;
@@ -14,6 +19,11 @@ function CompactEpochTracker() {
             const nowServer = Date.now() + serverTimeOffset;
             const remaining = Math.max(0, currentEpoch.endTime - nowServer);
             const secondsRemaining = remaining / 1000;
+            
+            const mins = Math.floor(secondsRemaining / 60);
+            const secs = Math.floor(secondsRemaining % 60);
+            setTimeLeftStr(`${mins}:${secs.toString().padStart(2, '0')}`);
+
             if (secondsRemaining <= 60) setStatus('locking');
             else if (secondsRemaining <= 300) setStatus('closing');
             else setStatus('stable');
@@ -21,29 +31,77 @@ function CompactEpochTracker() {
         return () => clearInterval(timer);
     }, [currentEpoch, serverTimeOffset]);
 
+    React.useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (popupRef.current && !popupRef.current.contains(event.target)) {
+                setShowPopup(false);
+            }
+        };
+        if (showPopup) document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showPopup]);
+
     if (!currentEpoch) return null;
 
+    let phaseDesc = "Market is open for staking and voting.";
+    if (status === "closing") phaseDesc = "Epoch closing soon. Finalize positions.";
+    if (status === "locking") phaseDesc = "Stakes locked. Preparing to settle.";
+
     return (
-        <div className={cn(
-            "hidden min-[400px]:flex items-center gap-1 px-2 py-1 rounded-lg shrink-0 mx-1 border transition-colors",
-            status === 'stable' && "bg-emerald-500/5 border-emerald-500/20",
-            status === 'closing' && "bg-amber-500/10 border-amber-500/30",
-            status === 'locking' && "bg-rose-500/20 border-rose-500/40 animate-pulse"
-        )}>
-            <div className={cn(
-                "w-1.5 h-1.5 rounded-full shrink-0",
-                status === 'stable' && "bg-emerald-500 animate-pulse",
-                status === 'closing' && "bg-amber-500 animate-pulse",
-                status === 'locking' && "bg-rose-500"
-            )} />
-            <span className={cn(
-                "text-[9px] font-black uppercase tracking-wider whitespace-nowrap",
-                status === 'stable' && "text-emerald-400",
-                status === 'closing' && "text-amber-400",
-                status === 'locking' && "text-rose-400"
-            )}>
-                {status === 'locking' ? 'LOCK' : `E${currentEpoch.epochId}`}
-            </span>
+        <div className="relative" ref={popupRef}>
+            <div 
+                className={cn(
+                    "hidden min-[400px]:flex items-center gap-1 px-2 py-1 rounded-lg shrink-0 mx-1 border cursor-pointer select-none transition-colors",
+                    status === 'stable' && "bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10",
+                    status === 'closing' && "bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20",
+                    status === 'locking' && "bg-rose-500/20 border-rose-500/40 animate-pulse hover:bg-rose-500/30"
+                )}
+                onClick={() => setShowPopup(p => !p)}
+            >
+                <div className={cn(
+                    "w-1.5 h-1.5 rounded-full shrink-0",
+                    status === 'stable' && "bg-emerald-500 animate-pulse",
+                    status === 'closing' && "bg-amber-500 animate-pulse",
+                    status === 'locking' && "bg-rose-500"
+                )} />
+                <span className={cn(
+                    "text-[9px] font-black uppercase tracking-wider whitespace-nowrap",
+                    status === 'stable' && "text-emerald-400",
+                    status === 'closing' && "text-amber-400",
+                    status === 'locking' && "text-rose-400"
+                )}>
+                    {status === 'locking' ? 'LOCK' : `E${currentEpoch.epochId}`}
+                </span>
+            </div>
+
+            <AnimatePresence>
+                {showPopup && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full lg:left-1/2 lg:-translate-x-1/2 left-0 mt-2 w-56 z-50 p-4 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl flex flex-col gap-2"
+                    >
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                Epoch #{currentEpoch.epochId}
+                            </span>
+                            <span className={cn(
+                                "text-xs font-mono font-bold",
+                                status === 'stable' && "text-emerald-400",
+                                status === 'closing' && "text-amber-400",
+                                status === 'locking' && "text-rose-400"
+                            )}>
+                                {timeLeftStr}
+                            </span>
+                        </div>
+                        <p className="text-[10px] font-medium text-slate-300 leading-snug">
+                            {phaseDesc}
+                        </p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

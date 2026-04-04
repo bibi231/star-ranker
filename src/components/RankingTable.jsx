@@ -5,8 +5,6 @@ import { cn } from '../lib/utils';
 import { useStore } from '../store/storeModel';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { db } from '../firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
 import { useWatchlist } from '../hooks/useWatchlist';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -161,7 +159,7 @@ export function RankingTable() {
     const parentRef = useRef();
     const navigate = useNavigate();
     const {
-        getFilteredItems,
+        items,
         vote,
         userVotes,
         openModal,
@@ -177,7 +175,6 @@ export function RankingTable() {
     } = useStore();
 
     const isMobile = useIsMobile();
-    const items = getFilteredItems();
     const { isTracked, toggleWatchlist } = useWatchlist();
 
     const totalScore = useMemo(() => 
@@ -192,44 +189,7 @@ export function RankingTable() {
     });
 
     useEffect(() => {
-        if (!currentCategorySlug) return;
-        
-        const colRef = collection(db, `rankings/${currentCategorySlug}/items`);
-        const unsubscribe = onSnapshot(colRef, (snapshot) => {
-            if (snapshot.empty) return;
-            
-            const updates = {};
-            snapshot.docs.forEach(doc => {
-                updates[doc.id] = doc.data();
-            });
-            
-            useStore.setState(state => {
-                if (!state.items || state.items.length === 0) return state;
-
-                const newItems = state.items.map(item => {
-                    const next = updates[item.id];
-                    if (next) {
-                        return { 
-                            ...item, 
-                            rank: next.rank ?? item.rank,
-                            momentum: next.momentum ?? item.momentum,
-                            velocity: next.velocity ?? item.velocity,
-                            score: next.score ?? item.score,
-                            trend: next.trend ?? item.trend,
-                            rankChange: next.rankChange ?? item.rankChange
-                        };
-                    }
-                    return item;
-                });
-                
-                newItems.sort((a, b) => (a.isSponsored && !b.isSponsored) ? -1 : ((a.rank || 0) - (b.rank || 0)));
-                return { items: newItems };
-            });
-        }, (err) => {
-            console.error("Firebase onSnapshot error:", err);
-        });
-
-        return () => unsubscribe();
+        // Now handled by store polling
     }, [currentCategorySlug]);
 
     if (isSyncing && items.length === 0) {
@@ -295,10 +255,10 @@ export function RankingTable() {
                     </div>
                 )}
 
-                {/* Mobile Virtual List Container */}
                 <div 
                     ref={parentRef}
                     className="flex flex-col overflow-y-auto h-[65vh] custom-scrollbar"
+                    data-tour="ranking-table"
                 >
                     <div
                         style={{
@@ -543,6 +503,7 @@ function MobileItemCard({ item, index, isTracked, toggleWatchlist, totalScore })
             {/* Stake CTA */}
             <button
                 onClick={(e) => { e.stopPropagation(); openModal('stake', item); }}
+                data-tour={index === 0 ? "stake-button" : undefined}
                 className="min-h-[44px] px-4 rounded-xl premium-btn-cyan text-[10px] tracking-widest flex-shrink-0 flex items-center shadow-lg"
             >
                 STAKE

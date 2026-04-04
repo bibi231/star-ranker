@@ -30,6 +30,19 @@ export function SettingsSystem() {
     const [displayName, setDisplayName] = useState(user?.displayName || '');
     const [handleStatus, setHandleStatus] = useState(null); // 'checking', 'available', 'taken'
 
+    // Persistent Settings State
+    const { settings: storeSettings, updateSettings } = useStore();
+    const [localSettings, setLocalSettings] = useState(storeSettings || {});
+
+    // Sync local settings if store updates (e.g. on mount/load)
+    React.useEffect(() => {
+        if (storeSettings) setLocalSettings(storeSettings);
+    }, [storeSettings]);
+
+    const updateLocalSetting = (key, value) => {
+        setLocalSettings(prev => ({ ...prev, [key]: value }));
+    };
+
     const tabs = [
         { id: 'identity', label: 'Identity', icon: <User size={16} /> },
         { id: 'security', label: 'Security', icon: <Shield size={16} /> },
@@ -63,8 +76,9 @@ export function SettingsSystem() {
                     toast.success("Profile updated successfully!");
                 }
             } else {
-                // Dummy save for other tabs
-                await new Promise(r => setTimeout(r, 500));
+                // Save settings for other tabs
+                await updateSettings(localSettings);
+                toast.success("Settings synchronized with Oracle Core!");
             }
         } catch (error) {
             console.error("Save failed:", error);
@@ -128,9 +142,24 @@ export function SettingsSystem() {
                                 setHandleStatus={setHandleStatus}
                             />
                         )}
-                        {activeTab === 'security' && <SecurityTab />}
-                        {activeTab === 'privacy' && <PrivacyTab />}
-                        {activeTab === 'notifications' && <NotificationTab />}
+                        {activeTab === 'security' && (
+                            <SecurityTab 
+                                settings={localSettings} 
+                                onUpdate={updateLocalSetting} 
+                            />
+                        )}
+                        {activeTab === 'privacy' && (
+                            <PrivacyTab 
+                                settings={localSettings} 
+                                onUpdate={updateLocalSetting} 
+                            />
+                        )}
+                        {activeTab === 'notifications' && (
+                            <NotificationTab 
+                                settings={localSettings} 
+                                onUpdate={updateLocalSetting} 
+                            />
+                        )}
                         {activeTab === 'api' && <ApiTab />}
                     </motion.div>
                 </AnimatePresence>
@@ -231,7 +260,7 @@ function IdentityTab({ user, oracleHandle, setOracleHandle, displayName, setDisp
     );
 }
 
-function SecurityTab() {
+function SecurityTab({ settings, onUpdate }) {
     return (
         <div className="space-y-6">
             <header>
@@ -243,19 +272,21 @@ function SecurityTab() {
                 <ToggleRow
                     title="Two-Factor Authentication"
                     desc="Required for stakes over $1,000."
-                    active={true}
+                    active={!!settings?.tfaEnabled}
+                    onChange={(val) => onUpdate('tfaEnabled', val)}
                 />
                 <ToggleRow
                     title="Hardware Key Protection"
                     desc="Enable Yubikey support for admin actions."
-                    active={false}
+                    active={!!settings?.hardwareKey}
+                    onChange={(val) => onUpdate('hardwareKey', val)}
                 />
             </div>
 
-            <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 flex items-start gap-3">
-                <ShieldAlert className="text-rose-500 shrink-0" size={20} />
+            <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-3">
+                <ShieldAlert className="text-indigo-500 shrink-0" size={20} />
                 <div>
-                    <h4 className="text-xs font-black text-rose-500 uppercase">Critical Activity Alerts</h4>
+                    <h4 className="text-xs font-black text-indigo-500 uppercase">Critical Activity Alerts</h4>
                     <p className="text-[10px] text-slate-500 leading-tight">We will notify your backup email if a stake exceeding 50% of your bankroll is placed.</p>
                 </div>
             </div>
@@ -263,7 +294,7 @@ function SecurityTab() {
     );
 }
 
-function PrivacyTab() {
+function PrivacyTab({ settings, onUpdate }) {
     return (
         <div className="space-y-6">
             <header>
@@ -275,24 +306,27 @@ function PrivacyTab() {
                 <ToggleRow
                     title="Public Portfolio"
                     desc="Allow others to see your active staking positions."
-                    active={true}
+                    active={settings?.publicPortfolio !== false} // Default true
+                    onChange={(val) => onUpdate('publicPortfolio', val)}
                 />
                 <ToggleRow
                     title="Anonymous Voting"
                     desc="Hide your username in the 'Recent Activity' feed."
-                    active={false}
+                    active={!!settings?.anonymousVoting}
+                    onChange={(val) => onUpdate('anonymousVoting', val)}
                 />
                 <ToggleRow
                     title="Data Integrity Opt-out"
                     desc="Prevent your voting patterns from informing the Global Sentiment chart."
-                    active={false}
+                    active={!!settings?.dataOptOut}
+                    onChange={(val) => onUpdate('dataOptOut', val)}
                 />
             </div>
         </div>
     );
 }
 
-function NotificationTab() {
+function NotificationTab({ settings, onUpdate }) {
     return (
         <div className="space-y-6">
             <header>
@@ -305,17 +339,41 @@ function NotificationTab() {
                     <div>
                         <h4 className="text-xs font-black text-slate-200 uppercase mb-2">Stake Settlements</h4>
                         <div className="space-y-2">
-                            <CheckboxRow label="Direct Messages" checked={true} />
-                            <CheckboxRow label="In-App Toast" checked={true} />
-                            <CheckboxRow label="Push Notifications" checked={false} />
+                            <CheckboxRow 
+                                label="Direct Messages" 
+                                checked={settings?.notifSettlementDM !== false} 
+                                onChange={(val) => onUpdate('notifSettlementDM', val)}
+                            />
+                            <CheckboxRow 
+                                label="In-App Toast" 
+                                checked={settings?.notifSettlementToast !== false}
+                                onChange={(val) => onUpdate('notifSettlementToast', val)}
+                            />
+                            <CheckboxRow 
+                                label="Push Notifications" 
+                                checked={!!settings?.notifSettlementPush}
+                                onChange={(val) => onUpdate('notifSettlementPush', val)}
+                            />
                         </div>
                     </div>
                     <div>
                         <h4 className="text-xs font-black text-slate-200 uppercase mb-2">Market Reification</h4>
                         <div className="space-y-2">
-                            <CheckboxRow label="Rank Shifts > 5" checked={true} />
-                            <CheckboxRow label="New Category Gen" checked={false} />
-                            <CheckboxRow label="Admin Broadcasts" checked={true} />
+                            <CheckboxRow 
+                                label="Rank Shifts > 5" 
+                                checked={settings?.notifRankShift !== false}
+                                onChange={(val) => onUpdate('notifRankShift', val)}
+                            />
+                            <CheckboxRow 
+                                label="New Category Gen" 
+                                checked={!!settings?.notifNewCategory}
+                                onChange={(val) => onUpdate('notifNewCategory', val)}
+                            />
+                            <CheckboxRow 
+                                label="Admin Broadcasts" 
+                                checked={settings?.notifAdmin !== false}
+                                onChange={(val) => onUpdate('notifAdmin', val)}
+                            />
                         </div>
                     </div>
                 </div>
@@ -378,8 +436,7 @@ function ProviderRow({ icon, label, connected, username }) {
     );
 }
 
-function ToggleRow({ title, desc, active }) {
-    const [enabled, setEnabled] = useState(active);
+function ToggleRow({ title, desc, active, onChange }) {
     return (
         <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900 border border-slate-800">
             <div>
@@ -387,31 +444,30 @@ function ToggleRow({ title, desc, active }) {
                 <p className="text-[10px] text-slate-500">{desc}</p>
             </div>
             <button
-                onClick={() => setEnabled(!enabled)}
+                onClick={() => onChange(!active)}
                 className={cn(
                     "w-10 h-5 rounded-full relative transition-colors p-1",
-                    enabled ? "bg-emerald-500" : "bg-slate-700"
+                    active ? "bg-brand-accent text-slate-950" : "bg-slate-700"
                 )}
             >
                 <div className={cn(
                     "w-3 h-3 bg-white rounded-full transition-all",
-                    enabled ? "translate-x-5" : "translate-x-0"
+                    active ? "translate-x-5" : "translate-x-0"
                 )} />
             </button>
         </div>
     );
 }
 
-function CheckboxRow({ label, checked }) {
-    const [val, setVal] = useState(checked);
+function CheckboxRow({ label, checked, onChange }) {
     return (
         <label className="flex items-center gap-2 cursor-pointer group">
             <div className={cn(
                 "w-4 h-4 rounded border transition-all flex items-center justify-center",
-                val ? "bg-brand-accent border-brand-accent" : "border-slate-700 group-hover:border-slate-500"
+                checked ? "bg-brand-accent border-brand-accent" : "border-slate-700 group-hover:border-slate-500"
             )}>
-                {val && <div className="w-2 h-2 bg-slate-950 rounded-sm" />}
-                <input type="checkbox" className="hidden" onChange={() => setVal(!val)} checked={val} />
+                {checked && <div className="w-2 h-2 bg-slate-950 rounded-sm" />}
+                <input type="checkbox" className="hidden" onChange={() => onChange(!checked)} checked={checked} />
             </div>
             <span className="text-[10px] font-bold text-slate-400 group-hover:text-slate-200 transition-colors uppercase">{label}</span>
         </label>

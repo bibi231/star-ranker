@@ -36,7 +36,31 @@ export const useStore = create((set, get) => ({
     hasCompletedTour: false,
     demoStats: { stakesPlaced: 0, winsCount: 0, totalEarned: 0, winRate: 0 },
     showDemoConversion: false,
-    setDemoMode: (val) => set({ isDemoMode: val }),
+    setDemoMode: async (val) => {
+        set({ isDemoMode: val });
+        // Persist to backend if logged in
+        if (get().user) {
+            try {
+                await apiPost('/api/user/profile', { isDemoMode: val }, { method: 'PATCH' });
+            } catch (e) {
+                console.error("Failed to persist demo mode:", e);
+            }
+        }
+    },
+    updateSettings: async (newSettings) => {
+        const currentSettings = get().settings;
+        const merged = { ...currentSettings, ...newSettings };
+        set({ settings: merged });
+        if (get().user) {
+            try {
+                await apiPost('/api/user/profile', { settings: merged }, { method: 'PATCH' });
+            } catch (e) {
+                console.error("Failed to persist settings:", e);
+                set({ settings: currentSettings }); // Rollback
+                throw e;
+            }
+        }
+    },
     setShowDemoConversion: (val) => set({ showDemoConversion: val }),
 
     // Currency System
@@ -232,50 +256,54 @@ export const useStore = create((set, get) => ({
     },
 
     setCategoryItems: async (slug) => {
+        const { syncInterval } = get();
+        if (syncInterval) clearInterval(syncInterval);
+        
         set({ currentCategorySlug: slug, isSyncing: true });
-        try {
-            const [apiItems, apiSponsors] = await Promise.all([
-                apiGet("/api/items", { category: slug }),
-                apiGet("/api/sponsorships/active", { category: slug }).catch(() => [])
-            ]);
+        
+        const fetchItems = async () => {
+            try {
+                const [apiItems, apiSponsors] = await Promise.all([
+                    apiGet("/api/items", { category: slug }),
+                    apiGet("/api/sponsorships/active", { category: slug }).catch(() => [])
+                ]);
 
-            if (apiItems && Array.isArray(apiItems)) {
-                let formattedItems = apiItems.map(item => {
-                    const sponsor = apiSponsors.find(s => s.itemId === item.docId);
-                    return {
-                        id: item.id, // Numeric PK
-                        docId: item.docId, // String Identifier
-                        name: item.name,
-                        symbol: item.symbol,
-                        score: item.score || 0,
-                        velocity: item.velocity || 0,
-                        totalVotes: item.totalVotes || 0,
-                        trend: item.trend || Array.from({ length: 15 }, () => Math.random() * 100),
-                        imageUrl: item.imageUrl,
-                        rank: item.rank || 1,
-                        isSponsored: !!sponsor,
-                    };
-                });
-                formattedItems.sort((a, b) => (a.isSponsored && !b.isSponsored) ? -1 : (a.rank - b.rank));
-
-                // Fetch user votes for this category if logged in
-                const { user } = get();
-                if (user) {
-                    get().fetchUserVotes(slug);
+                if (apiItems && Array.isArray(apiItems)) {
+                    let formattedItems = apiItems.map(item => {
+                        const sponsor = apiSponsors.find(s => s.itemId === item.docId);
+                        return {
+                            id: item.id,
+                            docId: item.docId,
+                            name: item.name,
+                            symbol: item.symbol,
+                            score: item.score || 0,
+                            rank: item.rank,
+                            velocity: item.velocity || 0,
+                            momentum: item.momentum || 0,
+                            trend: item.trend || [],
+                            imageUrl: item.imageUrl,
+                            isDampened: item.isDampened,
+                            isSponsored: !!sponsor,
+                            sponsorLabel: sponsor?.label,
+                            totalVotes: item.totalVotes || 0
+                        };
+                    });
+                    
+                    // Client-side Sort: Always respect rank first
+                    formattedItems.sort((a, b) => (a.isSponsored && !b.isSponsored) ? -1 : ((a.rank || 0) - (b.rank || 0)));
+                    set({ items: formattedItems, isSyncing: false, lastRefresh: Date.now() });
                 }
-
-                set({ items: formattedItems, isSyncing: false });
-            } else {
-                set({ items: [], isSyncing: false });
+            } catch (err) {
+                console.error("Sync error:", err);
+                set({ isSyncing: false });
             }
-        } catch (err) {
-            console.error("API fetch failed:", err.message);
-            toast.error(`Could not load market items: ${err.message}`, {
-                id: "fetch-items-fail",
-                duration: 5000,
-            });
-            set({ items: [], isSyncing: false });
-        }
+        };
+
+        await fetchItems();
+        
+        // Start 30s background sync
+        const interval = setInterval(fetchItems, 30000);
+        set({ syncInterval: interval });
     },
 
     fetchMovers: async (categoryId, type) => {
@@ -494,12 +522,11 @@ export const useStore = create((set, get) => ({
     },
 
     vote: async (itemId, direction) => {
-        const { user, currentCategorySlug, userVotes } = get();
+        const { user, currentCategorySlug, userVotes, items } = get();
         if (!user) return;
 
         const previousVotes = { ...userVotes };
         const newVotes = { ...userVotes };
-
         const currentVote = userVotes[itemId];
         let finalDirection = direction;
 
@@ -510,7 +537,23 @@ export const useStore = create((set, get) => ({
         else if (finalDirection === -1) newVotes[itemId] = 'down';
         else delete newVotes[itemId];
 
+        // Optimistic UI Update
         set({ userVotes: newVotes });
+
+        // Optimistic Item Update
+        const previousItems = [...items];
+        const updatedItems = items.map(item => {
+            if (item.docId === itemId) {
+                const prevDir = currentVote === 'up' ? 1 : currentVote === 'down' ? -1 : 0;
+                const scoreDelta = finalDirection - prevDir;
+                return { ...item, score: (item.score || 0) + scoreDelta };
+            }
+            return item;
+        });
+        
+        // Re-sort based on score (simulating real-time rank change)
+        updatedItems.sort((a, b) => (b.score || 0) - (a.score || 0));
+        set({ items: updatedItems });
 
         try {
             const response = await apiPost("/api/votes", {
@@ -519,15 +562,61 @@ export const useStore = create((set, get) => ({
                 categorySlug: currentCategorySlug,
                 usePowerVote: get().usePowerVote
             });
+            
             if (response?.newPowerVotes !== undefined) {
                 set(state => ({
                     user: { ...state.user, powerVotes: response.newPowerVotes }
                 }));
             }
+            
+            // Re-sync after a short delay to get final server-calculated rank
+            setTimeout(() => get().refreshCurrentCategory(), 1000);
             get().fetchUserProfile();
         } catch (error) {
             console.error("Vote error:", error);
-            set({ userVotes: previousVotes });
+            set({ userVotes: previousVotes, items: previousItems });
+            toast.error("Network synchronization failed");
+        }
+    },
+
+    refreshCurrentCategory: async () => {
+        const { currentCategorySlug } = get();
+        if (!currentCategorySlug) return;
+        
+        try {
+            const [apiItems, apiSponsors] = await Promise.all([
+                apiGet("/api/items", { category: currentCategorySlug }),
+                apiGet("/api/sponsorships/active", { category: currentCategorySlug }).catch(() => [])
+            ]);
+
+            if (apiItems && Array.isArray(apiItems)) {
+                let formattedItems = apiItems.map(item => {
+                    const sponsor = apiSponsors.find(s => s.itemId === item.docId);
+                    return {
+                        id: item.id,
+                        docId: item.docId,
+                        name: item.name,
+                        symbol: item.symbol,
+                        score: item.score || 0,
+                        rank: item.rank,
+                        velocity: item.velocity || 0,
+                        momentum: item.momentum || 0,
+                        trend: item.trend || [],
+                        imageUrl: item.imageUrl,
+                        isDampened: item.isDampened,
+                        isSponsored: !!sponsor,
+                        sponsorLabel: sponsor?.label,
+                        totalVotes: item.totalVotes || 0
+                    };
+                });
+                
+                // Final server-side sort
+                formattedItems.sort((a, b) => (a.isSponsored && !b.isSponsored) ? -1 : ((a.rank || 0) - (b.rank || 0)));
+                set({ items: formattedItems, lastRefresh: Date.now(), isSyncing: false });
+            }
+        } catch (err) {
+            console.error("Refresh failed:", err);
+            set({ isSyncing: false });
         }
     },
 

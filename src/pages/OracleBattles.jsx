@@ -69,7 +69,7 @@ export function OracleBattles() {
                 {[
                     { label: "Active Duels", value: battles.length, icon: Swords, color: "text-brand-accent" },
                     { label: "Total Votes Cast", value: battles.reduce((acc, b) => acc + (b.totalVotesA || 0) + (b.totalVotesB || 0), 0), icon: Users, color: "text-emerald-400" },
-                    { label: "Reputation Burned", value: "84,000", icon: Trophy, color: "text-amber-400" },
+                    { label: "Reputation Burned", value: (battles.length * 100).toLocaleString(), icon: Trophy, color: "text-amber-400" },
                 ].map((stat, i) => (stat && (
                     <div key={i} className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 flex items-center gap-6">
                         <div className={`p-4 rounded-xl bg-slate-800 ${stat.color}`}>

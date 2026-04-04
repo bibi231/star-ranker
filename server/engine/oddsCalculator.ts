@@ -1,15 +1,10 @@
-/**
- * Odds Calculator — Calculate implied probability and payout multiplier
- * Based on stake distribution within an epoch and category
- */
-
 import { db } from "../db/index";
 import { stakes } from "../db/schema";
 import { eq, and } from "drizzle-orm";
 
 export interface OddsResult {
   impliedProbability: number;  // 0-100 integer
-  multiplier: number;          // e.g. 4.3 — rounded to 1 decimal
+  multiplier: number;          // e.g. 4.3 - rounded to 1 decimal
   riskLevel: 'low' | 'medium' | 'high';
 }
 
@@ -18,32 +13,47 @@ const MIN_MULTIPLIER = 1.1;
 const MAX_MULTIPLIER = 50;
 
 /**
- * Calculate odds for a specific item in a category during an epoch
+ * Calculates raw odds metrics statically.
+ */
+function computeOdds(totalOnItem: number, totalInCategory: number): OddsResult {
+    if (totalInCategory === 0 || totalOnItem === 0) {
+      return { impliedProbability: 50, multiplier: 2.0, riskLevel: 'medium' };
+    }
+
+    let impliedProbability = Math.round((totalOnItem / totalInCategory) * 100);
+    impliedProbability = Math.round(impliedProbability * (1 - PLATFORM_RAKE_RATE));
+    impliedProbability = Math.max(1, Math.min(99, impliedProbability));
+
+    let multiplier = 1 / (impliedProbability / 100);
+    multiplier = Math.max(MIN_MULTIPLIER, Math.min(MAX_MULTIPLIER, multiplier));
+    multiplier = Math.round(multiplier * 10) / 10;
+
+    let riskLevel: 'low' | 'medium' | 'high';
+    if (impliedProbability > 60) riskLevel = 'low';
+    else if (impliedProbability >= 30) riskLevel = 'medium';
+    else riskLevel = 'high';
+
+    return { impliedProbability, multiplier, riskLevel };
+}
+
+/**
+ * Helper to fall back to neutral odds.
+ */
+function neutralOdds(): OddsResult {
+    return { impliedProbability: 50, multiplier: 2.0, riskLevel: 'medium' };
+}
+
+/**
+ * Calculate odds for a single item.
  */
 export async function calculateOdds(
-  itemId: number,
+  itemDocId: string,
   categorySlug: string,
   epochId: number
 ): Promise<OddsResult> {
   try {
-    // Get total staked on this item in this epoch
-    const itemStakes = await db
-      .select()
-      .from(stakes)
-      .where(
-        and(
-          eq(stakes.itemDocId, itemId.toString()),
-          eq(stakes.categorySlug, categorySlug),
-          eq(stakes.epochId, epochId),
-          eq(stakes.status, 'active')
-        )
-      );
-
-    const totalOnItem = itemStakes.reduce((sum, s) => sum + (s.amount || 0), 0);
-
-    // Get total staked in entire category in this epoch
-    const categoryStakes = await db
-      .select()
+    const allStakes = await db
+      .select({ itemDocId: stakes.itemDocId, amount: stakes.amount })
       .from(stakes)
       .where(
         and(
@@ -53,76 +63,67 @@ export async function calculateOdds(
         )
       );
 
-    const totalInCategory = categoryStakes.reduce((sum, s) => sum + (s.amount || 0), 0);
+    let totalInCategory = 0;
+    let totalOnItem = 0;
 
-    // Prevent division by zero
-    if (totalInCategory === 0) {
-      return {
-        impliedProbability: 50,
-        multiplier: 2.0,
-        riskLevel: 'medium',
-      };
+    for (const stake of allStakes) {
+      totalInCategory += (stake.amount || 0);
+      if (stake.itemDocId === itemDocId) {
+          totalOnItem += (stake.amount || 0);
+      }
     }
 
-    // Calculate implied probability
-    // Raw probability = (staked on item / total staked in category)
-    let impliedProbability = Math.round((totalOnItem / totalInCategory) * 100);
-
-    // Apply platform rake margin: multiply by (1 - 0.05) = 0.95
-    impliedProbability = Math.round(impliedProbability * (1 - PLATFORM_RAKE_RATE));
-
-    // Clamp to 1-99 (impossible to have 0% or 100% probability in a market)
-    impliedProbability = Math.max(1, Math.min(99, impliedProbability));
-
-    // Calculate multiplier: 1 / (probability / 100)
-    let multiplier = 1 / (impliedProbability / 100);
-
-    // Apply min/max caps
-    multiplier = Math.max(MIN_MULTIPLIER, Math.min(MAX_MULTIPLIER, multiplier));
-
-    // Round to 1 decimal place
-    multiplier = Math.round(multiplier * 10) / 10;
-
-    // Determine risk level
-    let riskLevel: 'low' | 'medium' | 'high';
-    if (impliedProbability > 60) {
-      riskLevel = 'low';
-    } else if (impliedProbability >= 30) {
-      riskLevel = 'medium';
-    } else {
-      riskLevel = 'high';
-    }
-
-    return {
-      impliedProbability,
-      multiplier,
-      riskLevel,
-    };
+    return computeOdds(totalOnItem, totalInCategory);
   } catch (error) {
     console.error('[oddsCalculator] Error calculating odds:', error);
-    // Return neutral odds on error
-    return {
-      impliedProbability: 50,
-      multiplier: 2.0,
-      riskLevel: 'medium',
-    };
+    return neutralOdds();
   }
 }
 
 /**
- * Batch calculate odds for multiple items
+ * Bulk calculate odds for multiple item IDs efficiently.
  */
 export async function calculateMultipleOdds(
-  itemIds: (string | number)[],
+  itemDocIds: string[],
   categorySlug: string,
   epochId: number
-): Promise<Record<string | number, OddsResult>> {
-  const results: Record<string | number, OddsResult> = {};
+): Promise<Record<string, OddsResult>> {
+  try {
+    const allStakes = await db
+      .select({ itemDocId: stakes.itemDocId, amount: stakes.amount })
+      .from(stakes)
+      .where(
+        and(
+          eq(stakes.categorySlug, categorySlug),
+          eq(stakes.epochId, epochId),
+          eq(stakes.status, 'active')
+        )
+      );
 
-  for (const itemId of itemIds) {
-    const numId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
-    results[itemId] = await calculateOdds(numId, categorySlug, epochId);
+    const stakesByItem: Record<string, number> = {};
+    let totalInCategory = 0;
+
+    for (const stake of allStakes) {
+      const amount = stake.amount || 0;
+      totalInCategory += amount;
+      
+      if (!stakesByItem[stake.itemDocId]) {
+          stakesByItem[stake.itemDocId] = 0;
+      }
+      stakesByItem[stake.itemDocId] += amount;
+    }
+
+    const results: Record<string, OddsResult> = {};
+    for (const id of itemDocIds) {
+      results[id] = computeOdds(stakesByItem[id] || 0, totalInCategory);
+    }
+    
+    return results;
+
+  } catch (error) {
+    console.error('[oddsCalculator] Bulk calculation failed:', error);
+    const fallback: Record<string, OddsResult> = {};
+    for (const id of itemDocIds) fallback[id] = neutralOdds();
+    return fallback;
   }
-
-  return results;
 }

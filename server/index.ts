@@ -96,7 +96,37 @@ app.use(express.json({
         req.rawBody = buf;
     }
 }));
-app.use(geoMiddleware);
+// Global Error Logging — Stabilizing backend with explicit diagnostics
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error(`[CRITICAL] ${req.method} ${req.url}:`, err);
+    
+    // Attempt to extract the SQL that failed if it's a DB error
+    if (err.query) {
+        console.error(`[SQL FAIL] Query: ${err.query}`);
+        console.error(`[SQL FAIL] Params: ${JSON.stringify(err.params)}`);
+    }
+
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    res.status(500).json({ 
+        error: "Internal Server Error", 
+        message: err.message,
+        path: req.url 
+    });
+});
+
+// Enhanced Debug Logging for 500 Errors
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error(`[ERROR] ${req.method} ${req.url}:`, err);
+    if (res.headersSent) return next(err);
+    res.status(500).json({ 
+        error: "Internal Server Error", 
+        message: err.message, 
+        path: req.url 
+    });
+});
 
 // Rate Limiting — Production Hardening
 const globalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 2000, message: { error: "Too many requests" } });
@@ -481,19 +511,9 @@ async function startApi(): Promise<void> {
     const probe = await probePostgresWithRetry(5, 2500);
     if (!probe.ok) {
         console.error("[DB] Cannot connect to Postgres after retries:", probe.detail);
-        if (probe.pgCode === "28P01") {
-            console.error(
-                `[DB] Auth failed (28P01): password in DATABASE_URL does not match Neon.\n` +
-                    `  → Neon Dashboard → your project → Connection string → copy the full URI.\n` +
-                    `  → Render → Environment → DATABASE_URL → paste and Save, then Manual Deploy.\n` +
-                    `  (Use the string Neon gives you; special characters in the password are already URL-encoded.)`
-            );
-        }
         if (isProductionDeploy() && !allowNoDb) {
-            console.error("[DB] Refusing to start background workers without a working database. Exiting.");
             process.exit(1);
         }
-        console.warn("[DB] Continuing anyway (dev or ALLOW_START_WITHOUT_DB=1). API routes that need the DB will fail.");
     }
 
     const dbReady = probe.ok;
@@ -504,41 +524,44 @@ async function startApi(): Promise<void> {
     app.listen(PORT, "0.0.0.0", () => {
         console.log(`\n⚡ Star Ranker API running on port ${PORT} (0.0.0.0)\n`);
 
-        // Background engines need Postgres (same as before when DATABASE_URL was correct)
+        // Background engines need Postgres
         if (dbReady) {
             startEpochScheduler();   // Auto-rolls epochs every 30 min
             startRankingEngine();    // Reifies rankings every 60s
             startCryptoFeed();       // Real crypto prices every 5 min
             startZeitgeistWorker();  // Discover trending markets
-        } else {
-            console.warn(
-                "[DB] Skipping epoch scheduler, ranking engine, CoinGecko, and Zeitgeist until DATABASE_URL works."
-            );
         }
 
-        // ── Render.com keep-alive (prevents free-tier cold starts) ──────────────
-        // Render spins down after 15 min of inactivity. This self-ping every
-        // 14 min keeps the server warm. Only runs in production when RENDER_URL is set.
-        // Example: RENDER_URL=https://star-ranker-api.onrender.com
         const RENDER_URL = process.env.RENDER_URL;
         if (RENDER_URL) {
-            const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
+            const PING_INTERVAL_MS = 14 * 60 * 1000;
             setInterval(async () => {
                 try {
                     const res = await fetch(`${RENDER_URL}/api/health`);
-                    if (res.ok) {
-                        console.log(`[keep-alive] pinged ${RENDER_URL}/api/health ✓`);
-                    }
+                    if (res.ok) console.log(`[keep-alive] pinged ${RENDER_URL}/api/health ✓`);
                 } catch (err) {
                     console.warn(`[keep-alive] ping failed:`, err);
                 }
             }, PING_INTERVAL_MS);
-            console.log(`[keep-alive] Self-ping active every 14 min → ${RENDER_URL}/api/health`);
         }
     });
 }
 
-void startApi().catch((err) => {
-    console.error("[startup] Fatal error:", err);
-    process.exit(1);
+// Export for Vercel Serverless
+export default app;
+
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    void startApi().catch((err) => {
+        console.error("[startup] Fatal error:", err);
+        process.exit(1);
+    });
+}
+
+// Protect the server from terminating unconditionally
+process.on('uncaughtException', (err) => {
+    console.error('[CRITICAL] Uncaught Exception intercepted:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('[CRITICAL] Unhandled Rejection intercepted at:', promise, 'reason:', reason);
 });

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store/storeModel';
 import { apiPost } from '../../lib/api';
-import { ChevronRight, ChevronLeft, X, Sparkles, Target, Zap, MousePointer2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, X, Sparkles, Target, Zap, MousePointer2, Briefcase } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const TOUR_STEPS = [
     {
@@ -37,11 +38,20 @@ const TOUR_STEPS = [
         icon: <MousePointer2 className="text-cyan-400" />,
         position: 'left',
         requireAction: 'stake-placed'
+    },
+    {
+        id: 'portfolio',
+        target: 'portfolio-stat',
+        title: 'Your Command Center',
+        content: 'Track your Network Credits, Oracle Rating, and Identity Tier here. Your progress is real-time.',
+        icon: <Briefcase className="text-emerald-400" />,
+        position: 'bottom'
     }
 ];
 
 export const OnboardingTour = () => {
     const { user, isDemoMode, hasCompletedTour } = useStore();
+    const navigate = useNavigate();
     const [currentStepIndex, setCurrentStepIndex] = useState(-1);
     const [targetRect, setTargetRect] = useState(null);
     const [isVisible, setIsVisible] = useState(false);
@@ -71,16 +81,32 @@ export const OnboardingTour = () => {
         
         if (element) {
             setTargetRect(element.getBoundingClientRect());
+        } else {
+            setTargetRect(null); // Clear stale rect when element disappears
         }
     }, [currentStepIndex]);
 
+    // Auto-skip steps whose target element doesn't exist in the DOM
     useEffect(() => {
         if (currentStepIndex < 0 || currentStepIndex >= TOUR_STEPS.length) return;
         const step = TOUR_STEPS[currentStepIndex];
-        const element = document.querySelector(`[data-tour="${step.target}"]`);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+
+        // Give the DOM a moment to render, then check
+        const timer = setTimeout(() => {
+            const element = document.querySelector(`[data-tour="${step.target}"]`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                // Element not found — skip to next step (or finish tour)
+                console.warn(`[Tour] Skipping step "${step.id}" — target "${step.target}" not found`);
+                if (currentStepIndex + 1 < TOUR_STEPS.length) {
+                    setCurrentStepIndex(prev => prev + 1);
+                } else {
+                    handleSkip();
+                }
+            }
+        }, 300);
+        return () => clearTimeout(timer);
     }, [currentStepIndex]);
 
     useEffect(() => {
@@ -108,8 +134,17 @@ export const OnboardingTour = () => {
     }, [currentStepIndex]);
 
     const handleNext = async () => {
-        if (currentStepIndex < TOUR_STEPS.length - 1) {
-            setCurrentStepIndex(prev => prev + 1);
+        const nextIndex = currentStepIndex + 1;
+        if (nextIndex < TOUR_STEPS.length) {
+            // Logic to navigate if the next step is on a different page
+            const nextStep = TOUR_STEPS[nextIndex];
+            if (nextStep.id === 'portfolio' && window.location.pathname !== '/portfolio') {
+                navigate('/portfolio');
+                // Wait for navigation and next element to appear
+                setTimeout(() => setCurrentStepIndex(nextIndex), 500);
+            } else {
+                setCurrentStepIndex(nextIndex);
+            }
         } else {
             setIsVisible(false);
             localStorage.setItem('sr_tour_completed', 'true');
@@ -133,33 +168,51 @@ export const OnboardingTour = () => {
         if (!target) return { left: '50%', top: '50%', x: '-50%', y: '-50%' };
 
         const { left, top, right, bottom, width, height } = target;
-        const padding = 20;
+        const padding = 16;
         const popupWidth = 320;
         const popupHeight = 180;
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
 
+        // On mobile, position the popup above or below the target based on available space
+        if (windowWidth < 768) {
+            if (!target) {
+                return { left: '50%', top: 'auto', bottom: '80px', x: '-50%', y: 0 };
+            }
+            const spaceBelow = windowHeight - bottom;
+            const spaceAbove = top;
+            const popupW = Math.min(popupWidth, windowWidth - 32);
+
+            if (spaceBelow > 220) {
+                // Place below target
+                return { left: '50%', top: bottom + 12, x: '-50%', y: 0 };
+            } else if (spaceAbove > 220) {
+                // Place above target
+                return { left: '50%', top: top - popupHeight - 12, x: '-50%', y: 0 };
+            }
+            // Fallback: bottom of screen above the mobile nav
+            return { left: '50%', top: 'auto', bottom: '80px', x: '-50%', y: 0 };
+        }
+
         let x = left;
         let y = top;
-        let xPercent = 0;
-        let yPercent = 0;
 
-        // Base positioning
+        // Base positioning based on center of target
         switch (position) {
             case 'bottom':
                 x = left + width / 2 - popupWidth / 2;
-                y = bottom + padding / 2;
+                y = bottom + padding;
                 break;
             case 'top':
                 x = left + width / 2 - popupWidth / 2;
-                y = top - popupHeight - padding / 2;
+                y = top - popupHeight - padding;
                 break;
             case 'left':
-                x = left - popupWidth - padding / 2;
+                x = left - popupWidth - padding;
                 y = top + height / 2 - popupHeight / 2;
                 break;
             case 'right':
-                x = right + padding / 2;
+                x = right + padding;
                 y = top + height / 2 - popupHeight / 2;
                 break;
             default:
@@ -167,20 +220,9 @@ export const OnboardingTour = () => {
                 y = windowHeight / 2 - popupHeight / 2;
         }
 
-        // Clamp to viewport
+        // Final safety clamping
         x = Math.max(padding, Math.min(x, windowWidth - popupWidth - padding));
         y = Math.max(padding, Math.min(y, windowHeight - popupHeight - padding));
-
-        // On very small mobile, just center it at bottom
-        if (windowWidth < 480) {
-            return {
-                left: '50%',
-                bottom: 20,
-                top: 'auto',
-                x: '-50%',
-                y: 0
-            };
-        }
 
         return { left: x, top: y, x: 0, y: 0 };
     }, []);
@@ -204,16 +246,26 @@ export const OnboardingTour = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-black/60 pointer-events-auto"
+                    className="absolute inset-0 bg-black/70 pointer-events-auto"
                     style={{
+                        WebkitClipPath: targetRect ? `polygon(
+                            0% 0%, 0% 100%, 
+                            ${targetRect.left - 4}px 100%, 
+                            ${targetRect.left - 4}px ${targetRect.top - 4}px, 
+                            ${targetRect.right + 4}px ${targetRect.top - 4}px, 
+                            ${targetRect.right + 4}px ${targetRect.bottom + 4}px, 
+                            ${targetRect.left - 4}px ${targetRect.bottom + 4}px, 
+                            ${targetRect.left - 4}px 100%, 
+                            100% 100%, 100% 0%
+                        )` : 'none',
                         clipPath: targetRect ? `polygon(
                             0% 0%, 0% 100%, 
-                            ${targetRect.left}px 100%, 
-                            ${targetRect.left}px ${targetRect.top}px, 
-                            ${targetRect.right}px ${targetRect.top}px, 
-                            ${targetRect.right}px ${targetRect.bottom}px, 
-                            ${targetRect.left}px ${targetRect.bottom}px, 
-                            ${targetRect.left}px 100%, 
+                            ${targetRect.left - 4}px 100%, 
+                            ${targetRect.left - 4}px ${targetRect.top - 4}px, 
+                            ${targetRect.right + 4}px ${targetRect.top - 4}px, 
+                            ${targetRect.right + 4}px ${targetRect.bottom + 4}px, 
+                            ${targetRect.left - 4}px ${targetRect.bottom + 4}px, 
+                            ${targetRect.left - 4}px 100%, 
                             100% 100%, 100% 0%
                         )` : 'none'
                     }}

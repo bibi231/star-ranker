@@ -23,7 +23,8 @@ function resolveApiUrl() {
         const h = window.location.hostname;
         if (h === "localhost" || h === "127.0.0.1") return "http://localhost:3001";
     }
-    return "https://star-ranker.onrender.com";
+    // Relative path for same-domain proxy (Vercel)
+    return "";
 }
 
 export const API_URL = resolveApiUrl();
