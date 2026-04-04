@@ -9,6 +9,20 @@
   --color-danger: #ef4444;
   --color-warning: #f59e0b;
 
+  /* Bloomberg Terminal Palette */
+  --color-terminal-green: #00FF88;
+  --color-terminal-red: #FF3366;
+  --color-terminal-amber: #FFB800;
+  --color-terminal-cyan: #00D4FF;
+  --color-terminal-dim: #334155;
+
+  /* Tier Colors */
+  --color-tier-bronze: #CD7F32;
+  --color-tier-silver: #C0C0C0;
+  --color-tier-gold: #C9A84C;
+  --color-tier-platinum: #E5E4E2;
+  --color-tier-diamond: #B9F2FF;
+
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 

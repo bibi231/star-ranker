@@ -19,6 +19,7 @@ import { apiGet, apiPost } from '../lib/api';
 import { RankingTable } from '../components/RankingTable';
 import { LiveTicker } from '../components/LiveTicker';
 import { MarketComments } from '../components/MarketComments';
+import { SignalIntelligence } from '../components/SignalIntelligence';
 import toast from 'react-hot-toast';
 
 export function MarketDetailPage() {
@@ -129,6 +130,9 @@ export function MarketDetailPage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Signal Intelligence Card */}
+                    <SignalIntelligence item={market} />
 
                     <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
                         <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">

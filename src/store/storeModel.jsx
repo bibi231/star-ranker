@@ -522,8 +522,7 @@ export const useStore = create((set, get) => ({
     },
 
     vote: async (itemId, direction) => {
-        const { user, currentCategorySlug, userVotes, items } = get();
-        if (!user) return;
+        const { currentCategorySlug, userVotes, items } = get();
 
         const previousVotes = { ...userVotes };
         const newVotes = { ...userVotes };

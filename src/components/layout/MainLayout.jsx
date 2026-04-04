@@ -49,6 +49,7 @@ import { Footer } from './Footer';
 import { DemoModeToggle } from '../DemoModeToggle';
 import { OnboardingTour } from '../onboarding/OnboardingTour';
 import { DemoConversionModal } from '../DemoConversionModal';
+import { TierBadge } from '../TierBadge';
 
 export function MainLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -165,12 +166,12 @@ export function MainLayout() {
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => fetchUserProfile()}
-                                            className="p-1 hover:bg-white/5 rounded transition-colors text-slate-500 hover:text-[#C9A84C]"
+                                            className="p-1 hover:bg-white/5 rounded transition-colors text-slate-500 hover:text-brand-accent"
                                             title="Sync Ledger"
                                         >
                                             <RefreshCw size={10} />
                                         </button>
-                                        <span className="text-[10px] font-mono font-black text-emerald-400 italic">
+                                        <span className={cn("text-[10px] font-mono font-black italic", isDemoMode ? "text-amber-400" : "text-emerald-400")}>
                                             {isDemoMode 
                                                 ? `★${(demoBalance * (rates[currency] || 1)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
                                                 : formatValue(balance)
@@ -185,28 +186,36 @@ export function MainLayout() {
                                     <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: isDemoMode ? `${Math.min(100, (demoBalance / 50000) * 100)}%` : `${Math.min(100, (balance / 10000) * 100)}%` }}
-                                        className={cn("h-full shadow-[0_0_10px_rgba(245,158,11,0.5)]", "bg-amber-500")}
+                                        className={cn(
+                                            "h-full transition-all duration-500",
+                                            isDemoMode 
+                                                ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" 
+                                                : "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                                        )}
                                     />
                                 </div>
                             </div>
 
                             <button
                                 onClick={() => setDepositOpen(true)}
-                                className="w-full py-3 rounded-xl premium-btn-gold text-[10px] tracking-[0.15em] flex items-center justify-center gap-2"
+                                className={cn(
+                                    "w-full py-3 rounded-xl text-[10px] tracking-[0.15em] flex items-center justify-center gap-2 font-black uppercase transition-all active:scale-[0.98]",
+                                    isDemoMode ? "premium-btn-gold" : "bg-emerald-500 text-slate-950 border border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:bg-emerald-400"
+                                )}
                             >
-                                <PlusSquare size={14} strokeWidth={3} /> Fund Wallet
+                                <PlusSquare size={14} strokeWidth={3} /> {isDemoMode ? "Reset Practice Balance" : "Fund Real Wallet"}
                             </button>
                             <button
                                 onClick={() => setWithdrawalOpen(true)}
-                                className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 font-black text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
+                                className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-slate-400 font-black text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
                             >
-                                <Wallet size={14} /> Withdraw
+                                <Wallet size={14} /> Withdraw Profit
                             </button>
                             <button
                                 onClick={() => setVotePackModalOpen(true)}
-                                className="w-full py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 font-black text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-2 hover:bg-amber-500/20 transition-all"
+                                className="w-full py-3 rounded-xl bg-brand-accent/10 border border-brand-accent/20 text-brand-accent font-black text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-2 hover:bg-brand-accent/20 transition-all font-mono"
                             >
-                                <Zap size={14} className="fill-amber-500" /> Get Power Votes
+                                <Zap size={14} className="fill-brand-accent" /> Acquire Influence
                             </button>
                         </>
                     )}
@@ -456,7 +465,10 @@ export function MainLayout() {
                         {user && (
                             <div className="flex items-center gap-2 lg:gap-3 pl-2 lg:pl-4 border-l border-white/5">
                                 <div className="hidden lg:block text-right text-[9px] font-black uppercase tracking-widest">
-                                    <div className="text-slate-500">{user.displayName || 'Oracle'}</div>
+                                    <div className="flex items-center gap-2 justify-end">
+                                        <span className="text-slate-500">{user.displayName || 'Oracle'}</span>
+                                        <TierBadge tier={tier || 'bronze'} size="sm" showLabel={false} />
+                                    </div>
                                     <div className={cn("italic", isDemoMode ? "text-amber-400" : "text-emerald-400")}>
                                         {isDemoMode ? `★${demoBalance.toLocaleString()}` : formatValue(balance)}
                                     </div>

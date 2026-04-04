@@ -34,6 +34,8 @@ import { PortfolioWidget } from '../components/PortfolioWidget';
 import { ActivityLogModal } from '../components/ActivityLogModal';
 import { DailyQuests } from '../components/DailyQuests';
 import { SystemStatus } from '../components/SystemStatus';
+import { TierBadge, TierProgress } from '../components/TierBadge';
+import { ActivityFeed } from '../components/ActivityFeed';
 
 export function UserDashboard() {
     const { user, balance, demoBalance, isDemoMode, playBalance, stakes, reputation, reputationHistory, fetchReputationHistory, tier, setDepositOpen, setWithdrawalOpen, formatValue, bindWallet, fetchStakes, fetchUserProfile, rates, currency } = useStore();
@@ -131,7 +133,15 @@ export function UserDashboard() {
                         onActionClick={() => setDepositOpen(true)} 
                     />
                     <StatCard label="Oracle Rating" value={reputation.toLocaleString()} icon={<Star size={16} />} color="text-amber-500" glow="amber" />
-                    <StatCard label="Identity Tier" value={tier} icon={<ShieldCheck size={16} />} color="text-brand-accent" glow="cyan" />
+                    <div className="flex-1 min-w-[160px] max-w-[280px]">
+                        <div className="glass-card rounded-2xl p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Identity Tier</span>
+                                <TierBadge tier={tier} size="sm" />
+                            </div>
+                            <TierProgress reputation={reputation} currentTier={tier} />
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -296,6 +306,9 @@ export function UserDashboard() {
                 <div className="space-y-8 md:space-y-12">
                      <SystemStatus />
                      <DailyQuests />
+
+                    {/* Live Activity Feed */}
+                    <ActivityFeed limit={10} />
 
                     {/* Oracle Watchlist */}
                     <SectionBox title="Intelligence Monitor" icon={<Bookmark size={16} />}>

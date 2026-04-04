@@ -2,17 +2,30 @@ import { Router } from "express";
 import { db } from "../db/index.js";
 import { votes, items, users, marketActivity } from "../db/schema.js";
 import { eq, and, sql } from "drizzle-orm";
-import { requireAuth, AuthRequest } from "../middleware/auth.js";
+import { requireAuth, optionalAuth, AuthRequest } from "../middleware/auth.js";
 import { checkAndAwardAchievements } from "../services/achievements.js";
 import { cacheDel } from "../services/cache.js";
+import crypto from "crypto";
 
 const router = Router();
 
-// POST /api/votes — Cast vote (toggle)
-router.post("/", requireAuth, async (req: AuthRequest, res) => {
+/**
+ * Generate a stable anonymous fingerprint from IP address.
+ * This allows unsigned-in users to vote (and toggle) without auth.
+ */
+function getAnonFingerprint(req: AuthRequest): string {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
+        || req.socket.remoteAddress
+        || 'unknown';
+    return 'anon_' + crypto.createHash('sha256').update(ip + '_sr_salt').digest('hex').slice(0, 16);
+}
+
+// POST /api/votes — Cast vote (toggle). Works for both auth'd and anonymous users.
+router.post("/", optionalAuth, async (req: AuthRequest, res) => {
     try {
         const { itemDocId, direction, categorySlug, usePowerVote } = req.body;
-        const userId = req.uid!;
+        const userId = req.uid || getAnonFingerprint(req);
+        const isAuthenticated = !!req.uid;
 
         if (!itemDocId || direction === undefined || !categorySlug) {
             return res.status(400).json({ error: "itemDocId, direction, categorySlug required" });
@@ -33,7 +46,8 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
         let scoreDelta = direction - previousDirection;
         let powerVoteDeducted = false;
 
-        if (usePowerVote && direction !== 0) {
+        // Power votes are auth-only
+        if (isAuthenticated && usePowerVote && direction !== 0) {
             const userRec = await db.query.users.findFirst({
                 where: eq(users.firebaseUid, userId)
             });
@@ -98,8 +112,8 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
                     itemDocId,
                     itemName: displayName,
                     categorySlug,
-                    description: `Oracle deployed influence on ${displayName}`,
-                    metadata: { direction, usePowerVote: powerVoteDeducted }
+                    description: `${isAuthenticated ? 'Oracle' : 'Anonymous signal'} deployed influence on ${displayName}`,
+                    metadata: { direction, usePowerVote: powerVoteDeducted, anonymous: !isAuthenticated }
                 });
             } catch (e) {
                 console.warn("[Voting] Market activity log failed:", e);
@@ -123,8 +137,10 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
             newPowerVotes = updatedUser[0]?.powerVotes ?? 0;
         }
 
-        // Check for achievements asynchronously
-        checkAndAwardAchievements(userId).catch(err => console.error("[Votes] Achievement check failed:", err));
+        // Check for achievements asynchronously (auth'd users only)
+        if (isAuthenticated) {
+            checkAndAwardAchievements(userId).catch(err => console.error("[Votes] Achievement check failed:", err));
+        }
 
         // Invalidate cache for this category
         await cacheDel(`items:${categorySlug}`);
@@ -133,7 +149,7 @@ router.post("/", requireAuth, async (req: AuthRequest, res) => {
         const { reifyCategoryRankings } = await import("../engine/rankingEngine");
         reifyCategoryRankings(categorySlug).catch(err => console.error("[Votes] Background ranking update failed:", err));
 
-        res.json({ success: true, newScore: updated[0]?.score ?? 0, powerVoteUsed: powerVoteDeducted, newPowerVotes });
+        res.json({ success: true, newScore: updated[0]?.score ?? 0, powerVoteUsed: powerVoteDeducted, newPowerVotes, anonymous: !isAuthenticated });
     } catch (error: any) {
         console.error("Vote error:", error);
         res.status(500).json({ error: error.message });
