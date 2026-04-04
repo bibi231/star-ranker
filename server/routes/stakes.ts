@@ -16,6 +16,7 @@ const stakeSchema = z.object({
     betType: z.enum(["exact", "range", "directional"]),
     quotedEpoch: z.number().int().optional(), // For stale quote rejection
     isPlayMode: z.boolean().optional().default(false),
+    isDemo: z.boolean().optional().default(false),
 });
 
 const router = Router();
@@ -184,7 +185,7 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
             console.error("[STAKE_POST] Validation failed:", parsed.error.flatten().fieldErrors);
             return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten().fieldErrors });
         }
-        const { itemDocId, amount, target, categorySlug, itemName, betType, quotedEpoch, isPlayMode } = parsed.data;
+        const { itemDocId, amount, target, categorySlug, itemName, betType, quotedEpoch, isPlayMode, isDemo: isDemoReq } = parsed.data;
         const userId = req.uid!;
 
         // ===== PLATFORM FEE CONFIG =====
@@ -207,7 +208,7 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
         const netStake = amount - platformFee - referralFee; // Amount that enters the risk pool
 
         // Fetched user earlier, now check for demo mode
-        const isDemo = user.isDemoMode === true || req.body.isDemo === true;
+        const isDemo = user.isDemoMode === true || isDemoReq === true;
 
         if (isDemo) {
             // Demo mode handling — bypass real-money logic
@@ -233,6 +234,10 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
                 })
                 .where(eq(users.firebaseUid, userId));
             
+            // Fetch item for actual rank
+            const itemResult = await db.select().from(items).where(eq(items.docId, itemDocId)).limit(1);
+            const currentRank = itemResult[0]?.rank || 50;
+
             // Insert stake marked as demo
             const [newDemoStake] = await db.insert(stakes).values({
                 userId,
@@ -243,11 +248,11 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
                 platformFee,
                 target: target as any,
                 betType,
-                initialRank: 50, // Fallback rank for demo
+                initialRank: currentRank, 
                 status: 'active',
                 epochId: demoEpoch.epochNumber,
                 isDemo: true,
-                isPlayMode: true, // Also mark as play mode for UI compatibility
+                isPlayMode: true, 
             }).returning();
 
             // Log to Market Activity for Practice Mode visibility

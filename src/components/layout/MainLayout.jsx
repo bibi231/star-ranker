@@ -326,7 +326,7 @@ export function MainLayout() {
                                                     <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em]">{isDemoMode ? 'PRACTICE' : 'Bankroll'}</span>
                                                 </div>
                                                 <span className="text-[10px] font-mono font-black text-emerald-400 italic">
-                                                    {isDemoMode ? `★${(demoBalance * (rates[currency] || 1)).toLocaleString()}` : formatValue(balance)}
+                                                    {isDemoMode ? `★${(demoBalance * (rates[currency] || 1)).toLocaleString()}` : (currency === 'USD' ? `★${formatValue(balance).replace('$', '')}` : formatValue(balance))}
                                                 </span>
                                             </div>
                                             <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
@@ -341,19 +341,19 @@ export function MainLayout() {
                                             onClick={() => { setDepositOpen(true); setIsMobileMenuOpen(false); }}
                                             className="w-full py-4 rounded-2xl premium-btn-gold text-xs tracking-widest flex items-center justify-center gap-3 shadow-lg"
                                         >
-                                            <PlusSquare size={18} strokeWidth={3} /> Fund Wallet
+                                            <PlusSquare size={18} strokeWidth={3} /> {isDemoMode ? 'Reset Practice Balance' : 'Fund Wallet'}
                                         </button>
                                         <button
                                             onClick={() => { setWithdrawalOpen(true); setIsMobileMenuOpen(false); }}
                                             className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-slate-300 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3"
                                         >
-                                            <Wallet size={18} /> Withdraw
+                                            <Wallet size={18} /> {isDemoMode ? 'Withdraw Profit' : 'Withdraw'}
                                         </button>
                                         <button
                                             onClick={() => { setVotePackModalOpen(true); setIsMobileMenuOpen(false); }}
                                             className="w-full py-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3"
                                         >
-                                            <Zap size={18} className="fill-amber-500" /> Get Power Votes
+                                            <Zap size={18} className="fill-amber-500" /> {isDemoMode ? 'Acquire Influence' : 'Get Power Votes'}
                                         </button>
                                     </>
                                 )}
@@ -470,12 +470,12 @@ export function MainLayout() {
                                         <TierBadge tier={tier || 'bronze'} size="sm" showLabel={false} />
                                     </div>
                                     <div className={cn("italic", isDemoMode ? "text-amber-400" : "text-emerald-400")}>
-                                        {isDemoMode ? `★${demoBalance.toLocaleString()}` : formatValue(balance)}
+                                        {isDemoMode ? `★${demoBalance.toLocaleString()}` : (currency === 'USD' ? `★${formatValue(balance).replace('$', '')}` : formatValue(balance))}
                                     </div>
                                 </div>
                                 {/* Compact balance for md — no name */}
                                 <span className={cn("lg:hidden text-[10px] font-mono font-bold italic whitespace-nowrap", isDemoMode ? "text-amber-400" : "text-emerald-400")}>
-                                    {isDemoMode ? `★${demoBalance.toLocaleString()}` : formatValue(balance)}
+                                    {isDemoMode ? `★${demoBalance.toLocaleString()}` : (currency === 'USD' ? `★${formatValue(balance).replace('$', '')}` : formatValue(balance))}
                                 </span>
                                 <button
                                     onClick={() => navigate('/portfolio')}

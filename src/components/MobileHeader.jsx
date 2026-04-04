@@ -111,7 +111,7 @@ export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, u
 
     const displayBalance = isDemoMode 
         ? `★${demoBalance.toLocaleString()}` 
-        : (typeof formatValue === 'function' ? formatValue(balance) : `$${balance.toLocaleString()}`);
+        : (typeof formatValue === 'function' ? (currency === 'USD' ? `★${formatValue(balance).replace('$', '')}` : formatValue(balance)) : `$${balance.toLocaleString()}`);
 
     // Compact epoch display — just the countdown, no labels
     const epochLabel = currentEpoch ? `E${currentEpoch.epochId}` : null;
