@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { db } from "./db/index";
-import { items, categories } from "./db/schema";
+import { db } from "./db/index.js";
+import { items, categories } from "./db/schema.js";
 import { count, eq } from "drizzle-orm";
 
 async function checkData() {

@@ -3,8 +3,8 @@
  */
 
 import { Router } from "express";
-import { db } from "../db/index";
-import { users, stakes } from "../db/schema";
+import { db } from "../db/index.js";
+import { users, stakes } from "../db/schema.js";
 import { desc, eq, sql, count, or, isNull } from "drizzle-orm";
 
 const router = Router();

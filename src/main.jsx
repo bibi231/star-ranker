@@ -13,6 +13,13 @@ if (import.meta.env.VITE_SENTRY_DSN) {
   });
 }
 
+// Global crash protection — prevent unhandled promise rejections from killing the app
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+  // Don't let Firebase auth failures or API errors crash the app
+  event.preventDefault();
+});
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Web3Provider>

@@ -91,6 +91,8 @@ export const stakes = pgTable("stakes", {
     index("stakes_user_idx").on(table.userId),
     index("stakes_user_status_idx").on(table.userId, table.status),
     index("stakes_epoch_idx").on(table.epochId),
+    index("stakes_item_idx").on(table.itemDocId),
+    index("stakes_settled_idx").on(table.isSettled),
 ]);
 
 // ===== EPOCHS =====
@@ -144,7 +146,9 @@ export const users = pgTable("users", {
     balance: real("balance").default(0), // Starting real balance
     playBalance: real("play_balance").default(10000), // Starting free-play balance
     reputation: integer("reputation").default(100),
-    tier: text("tier").default("Initiate"), // Initiate, Peer, Sage, Oracle
+    tier: text("tier").default("bronze"), // bronze, silver, gold, platinum, diamond
+    voteWeight: integer("vote_weight").default(1),
+    maxStakePerEpoch: integer("max_stake_per_epoch").default(5000),
     powerVotes: integer("power_votes").default(0),
     referralCode: text("referral_code").unique(),
     referredBy: text("referred_by"),
@@ -255,6 +259,7 @@ export const marketActivity = pgTable("market_activity", {
 }, (table) => [
     index("market_activity_type_idx").on(table.type),
     index("market_activity_created_idx").on(table.createdAt),
+    index("market_activity_type_time_idx").on(table.type, table.createdAt),
 ]);
 
 // ===== WITHDRAWALS =====
@@ -409,3 +414,10 @@ export const seasonLeaderboard = pgTable('season_leaderboard', {
 }, (table) => [
     uniqueIndex('season_leaderboard_user_season_idx').on(table.userId, table.seasonId)
 ]);
+
+// ===== SYSTEM SETTINGS (Killswitch, Feature Flags) =====
+export const systemSettings = pgTable('system_settings', {
+    key: varchar('key', { length: 50 }).primaryKey(),
+    value: text('value').notNull(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+});

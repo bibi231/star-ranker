@@ -4,11 +4,11 @@
  */
 
 import { Router } from 'express';
-import { db } from '../db/index';
-import { users, stakes, transactions } from '../db/schema';
+import { db } from '../db/index.js';
+import { users, stakes, transactions } from '../db/schema.js';
 import { eq, and, desc, lte, gte } from 'drizzle-orm';
-import { requireAuth } from '../middleware/auth';
-import { calculateOdds } from '../engine/oddsCalculator';
+import { requireAuth } from '../middleware/auth.js';
+import { calculateOdds } from '../engine/oddsCalculator.js';
 
 const router = Router();
 

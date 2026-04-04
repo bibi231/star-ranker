@@ -3,10 +3,10 @@
  */
 
 import { Router } from "express";
-import { db } from "../db/index";
-import { users } from "../db/schema";
+import { db } from "../db/index.js";
+import { users } from "../db/schema.js";
 import { eq } from "drizzle-orm";
-import { requireAuth, AuthRequest } from "../middleware/auth";
+import { requireAuth, AuthRequest } from "../middleware/auth.js";
 import { z } from "zod";
 
 const router = Router();

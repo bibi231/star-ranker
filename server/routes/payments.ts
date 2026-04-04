@@ -7,15 +7,15 @@
  */
 
 import { Router } from "express";
-import { db } from "../db/index";
-import { users, transactions, marketActivity, withdrawals, notifications } from "../db/schema";
+import { db } from "../db/index.js";
+import { users, transactions, marketActivity, withdrawals, notifications } from "../db/schema.js";
 import { eq, sql } from "drizzle-orm";
-import { requireAuth, AuthRequest } from "../middleware/auth";
+import { requireAuth, AuthRequest } from "../middleware/auth.js";
 import { z } from "zod";
 import crypto from "crypto";
-import { getRates } from "../services/currencyRate";
-import { checkAndAwardAchievements } from "../services/achievements";
-import { handleFirstDepositBonus } from "../services/depositBonus";
+import { getRates } from "../services/currencyRate.js";
+import { checkAndAwardAchievements } from "../services/achievements.js";
+import { handleFirstDepositBonus } from "../services/depositBonus.js";
 
 const router = Router();
 

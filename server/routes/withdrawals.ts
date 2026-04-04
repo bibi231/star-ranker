@@ -3,9 +3,9 @@
  */
 
 import { Router, Response } from "express";
-import { requireAuth, AuthRequest } from "../middleware/auth";
-import { db } from "../db/index";
-import { users, withdrawals, transactions, notifications } from "../db/schema";
+import { requireAuth, AuthRequest } from "../middleware/auth.js";
+import { db } from "../db/index.js";
+import { users, withdrawals, transactions, notifications } from "../db/schema.js";
 import { eq, sql } from "drizzle-orm";
 
 const router = Router();

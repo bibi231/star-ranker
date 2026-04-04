@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { db } from "../db/index";
-import { users, stakes, transactions, marketActivity } from "../db/schema";
+import { db } from "../db/index.js";
+import { users, stakes, transactions, marketActivity } from "../db/schema.js";
 import { eq, sql } from "drizzle-orm";
 
 async function resetLedger() {

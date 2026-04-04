@@ -1,14 +1,14 @@
 import { Router } from "express";
-import { db } from "../db/index";
-import { categories, items, marketMeta, users, stakes, marketActivity, transactions, adminConfig } from "../db/schema";
-import { requireAuth, AuthRequest } from "../middleware/auth";
+import { db } from "../db/index.js";
+import { categories, items, marketMeta, users, stakes, marketActivity, transactions, adminConfig } from "../db/schema.js";
+import { requireAuth, AuthRequest } from "../middleware/auth.js";
 import { eq, sql, count, desc } from "drizzle-orm";
-import { settleBets } from "../engine/settlement";
-import { sendEmail, templates } from "../lib/email";
-import { reifyRankings } from "../engine/rankingEngine";
-import { formatDbConnectError } from "../lib/formatDbError";
-import { runFullSeed } from "../lib/runFullSeed";
-import { isSuperAdminEmail } from "../lib/superAdmins";
+import { settleBets } from "../engine/settlement.js";
+import { sendEmail, templates } from "../lib/email.js";
+import { reifyRankings } from "../engine/rankingEngine.js";
+import { formatDbConnectError } from "../lib/formatDbError.js";
+import { runFullSeed } from "../lib/runFullSeed.js";
+import { isSuperAdminEmail } from "../lib/superAdmins.js";
 
 const router = Router();
 

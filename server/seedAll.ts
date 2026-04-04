@@ -2,7 +2,7 @@
  * Direct database seed script — run with: npx tsx server/seedAll.ts
  */
 import "dotenv/config";
-import { runFullSeed } from "./lib/runFullSeed";
+import { runFullSeed } from "./lib/runFullSeed.js";
 
 async function main() {
     console.log("🌱 Seeding Star Ranker database...\n");

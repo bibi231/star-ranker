@@ -1,6 +1,6 @@
 import admin from "firebase-admin";
 import { Request, Response, NextFunction } from "express";
-import { updateDailyStreak } from "../services/achievements";
+import { updateDailyStreak } from "../services/achievements.js";
 
 /**
  * Firebase Admin — verifyIdToken needs real credentials on Render / non-GCP hosts.

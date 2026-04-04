@@ -1,21 +1,33 @@
 /**
  * Epoch Scheduler — Auto-rolls epochs and triggers settlement.
  * 
+ * HARDENED: Includes concurrent execution guard to prevent double-settlement.
  * Checks every 30 seconds if the active epoch has ended.
- * When it does: creates a new epoch and settles expired stakes.
+ * When it does: snapshots opening ranks for the new epoch, settles the old one.
  */
 
-import { db } from "../db/index";
-import { epochs, marketActivity } from "../db/schema";
+import { db } from "../db/index.js";
+import { epochs, marketActivity } from "../db/schema.js";
 import { eq, desc } from "drizzle-orm";
-import { settleBets } from "./settlement";
-import { reifyRankings, createEpochSnapshot } from "./rankingEngine";
+import { settleBets } from "./settlement.js";
+import { reifyRankings, createEpochSnapshot, snapshotOpeningRanks } from "./rankingEngine.js";
 
 const CHECK_INTERVAL = 30_000;  // Check every 30 seconds
 const EPOCH_DURATION = 30 * 60 * 1000; // 30 minutes
 
+// ===== CONCURRENT EXECUTION GUARD =====
+// Prevents double-settlement if the scheduler fires twice under heavy load
+let settlementInProgress = false;
+
 export async function checkAndRollEpoch() {
+    if (settlementInProgress) {
+        console.warn('[Epoch] Settlement already in progress — skipping cycle');
+        return;
+    }
+
     try {
+        settlementInProgress = true;
+
         const activeEpochs = await db
             .select()
             .from(epochs)
@@ -44,7 +56,7 @@ export async function checkAndRollEpoch() {
                 .where(eq(epochs.id, current.id));
 
             try {
-                // Capture final rankings for this epoch
+                // Capture CLOSING rankings for this epoch
                 await createEpochSnapshot(current.epochNumber);
 
                 // Settle stakes from expired epoch
@@ -54,16 +66,20 @@ export async function checkAndRollEpoch() {
                 await reifyRankings();
 
                 // Create new epoch
-                await createNewEpoch(current.epochNumber + 1);
+                const nextEpochNum = current.epochNumber + 1;
+                await createNewEpoch(nextEpochNum);
+
+                // Snapshot OPENING ranks for the new epoch
+                await snapshotOpeningRanks(nextEpochNum);
 
                 // Log transition
                 await db.insert(marketActivity).values({
                     type: "epoch_roll",
-                    description: `Epoch #${current.epochNumber} closed. Sequence advanced to #${current.epochNumber + 1}.`,
-                    metadata: { oldEpoch: current.epochNumber, newEpoch: current.epochNumber + 1 }
+                    description: `Epoch #${current.epochNumber} closed. Sequence advanced to #${nextEpochNum}.`,
+                    metadata: { oldEpoch: current.epochNumber, newEpoch: nextEpochNum }
                 });
 
-                console.log(`[Epoch] Rolled to epoch ${current.epochNumber + 1}`);
+                console.log(`[Epoch] Rolled to epoch ${nextEpochNum}`);
             } catch (err) {
                 console.error(`[Epoch] Failed during rollover operations for #${current.epochNumber}:`, err);
                 // System will retry on next check since no "active" epoch exists now
@@ -71,6 +87,8 @@ export async function checkAndRollEpoch() {
         }
     } catch (error) {
         console.error("[Epoch] Rollover check failed:", error);
+    } finally {
+        settlementInProgress = false;
     }
 }
 

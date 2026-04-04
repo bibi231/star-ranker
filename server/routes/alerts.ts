@@ -1,8 +1,8 @@
 import { Router, Response } from "express";
-import { db } from "../db";
-import { priceAlerts, items } from "../db/schema";
+import { db } from "../db.js";
+import { priceAlerts, items } from "../db/schema.js";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, AuthRequest } from "../middleware/auth";
+import { requireAuth, AuthRequest } from "../middleware/auth.js";
 import { z } from "zod";
 
 const router = Router();

@@ -1,5 +1,5 @@
-import { db } from "../db/index";
-import { stakes } from "../db/schema";
+import { db } from "../db/index.js";
+import { stakes } from "../db/schema.js";
 import { eq, and } from "drizzle-orm";
 
 export interface OddsResult {

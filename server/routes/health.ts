@@ -3,9 +3,9 @@
  */
 
 import { Router } from "express";
-import { db } from "../db/index";
+import { db } from "../db/index.js";
 import { sql } from "drizzle-orm";
-import { cacheGet, cacheSet } from "../services/cache";
+import { cacheGet, cacheSet } from "../services/cache.js";
 
 const router = Router();
 

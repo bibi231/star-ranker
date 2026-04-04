@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { db } from '../db/index';
-import { users } from '../db/schema';
+import { db } from '../db/index.js';
+import { users } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
-import { requireAuth } from '../middleware/auth';
-import { getDemoStats, activateRealMode } from '../services/demoMode';
+import { requireAuth } from '../middleware/auth.js';
+import { getDemoStats, activateRealMode } from '../services/demoMode.js';
 
 const router = Router();
 

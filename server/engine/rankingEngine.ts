@@ -1,15 +1,17 @@
 /**
- * Momentum-Weighted Ranking Engine (MWR)
- * Ported from Cloud Functions to Express + Neon Postgres.
+ * Momentum-Weighted Ranking Engine (MWR) — Production Hardened
  * 
- * Runs on a 60-second interval. Applies entropy decay to all items,
- * recalculates ranks, and persists to Postgres.
+ * Signal Score = (upVotes - downVotes) + (totalStaked * velocityFactor)
+ * AVD: Automated Velocity Detection — caps rank changes at MAX_RANK_DELTA per cycle
+ * 
+ * Runs on a 60-second interval (or via /api/sync cron).
+ * Applies entropy decay, recalculates ranks, and persists to Postgres + Firestore.
  */
 
-import { db } from "../db/index";
-import { items, votes, epochSnapshots, priceAlerts, notifications } from "../db/schema";
-import { eq, or, isNull, and } from "drizzle-orm";
-import { calculateOdds, calculateMultipleOdds } from "./oddsCalculator";
+import { db } from "../db/index.js";
+import { items, votes, epochSnapshots, priceAlerts, notifications, stakes, marketMeta } from "../db/schema.js";
+import { eq, or, isNull, and, sql } from "drizzle-orm";
+import { calculateOdds, calculateMultipleOdds } from "./oddsCalculator.js";
 
 let firestoreDb: any = null;
 try {
@@ -19,14 +21,43 @@ try {
     console.warn('[MWR] Firebase Firestore not available');
 }
 
-const GRAVITY = 0.05;   // Decay constant
-const VISCOSITY = 1.0;  // Resistance to movement
-const REIFY_INTERVAL = 60_000; // 60 seconds
+const GRAVITY = 0.05;           // Decay constant
+const REIFY_INTERVAL = 60_000;  // 60 seconds
 const SNAPSHOT_CHUNK = 20;
+const VELOCITY_FACTOR = 0.001;  // Prevents whales from dominating pure vote counts
+const MAX_RANK_DELTA = 5;       // AVD: max positions an item can jump per cycle
+const MAX_SCORE_DELTA = 50;     // AVD: max signal score change per cycle
+
+/**
+ * Calculate Signal Score using the manifest formula:
+ *   Signal Score = (upVotes - downVotes) + (totalStaked * velocityFactor)
+ * 
+ * With AVD (Automated Velocity Detection) capping:
+ *   If score would change by more than MAX_SCORE_DELTA, cap it and log suppression.
+ */
+function calculateSignalScore(
+    item: { score: number | null; totalVotes: number | null; docId: string; categorySlug: string },
+    totalStakedOnItem: number,
+    previousScore: number
+): number {
+    const voteBalance = item.score ?? 0;  // score already tracks net votes
+    const stakingInfluence = totalStakedOnItem * VELOCITY_FACTOR;
+    const rawScore = voteBalance + stakingInfluence;
+
+    // AVD: cap velocity to prevent manipulation
+    const delta = rawScore - previousScore;
+    if (Math.abs(delta) > MAX_SCORE_DELTA) {
+        const cappedScore = previousScore + Math.sign(delta) * MAX_SCORE_DELTA;
+        console.warn(`[AVD] Suppressed ${item.docId}: delta ${delta.toFixed(1)} capped to ±${MAX_SCORE_DELTA}`);
+        return cappedScore;
+    }
+
+    return rawScore;
+}
 
 /**
  * Apply entropy decay to all items and recalculate ranks.
- * Called periodically by the scheduler.
+ * Called periodically by the scheduler or /api/sync cron.
  */
 export async function reifyRankings() {
     const now = Date.now();
@@ -38,6 +69,21 @@ export async function reifyRankings() {
         .from(items)
         .where(or(eq(items.status, "active"), isNull(items.status)));
 
+    if (allItems.length === 0) {
+        console.log("[MWR] No items to reify.");
+        return;
+    }
+
+    // Fetch total staked per item from market_meta for staking influence
+    const allMeta = await db.select().from(marketMeta);
+    const itemExposureMap: Record<string, number> = {};
+    for (const meta of allMeta) {
+        const exposure = (meta.itemExposure as Record<string, number>) || {};
+        for (const [docId, amount] of Object.entries(exposure)) {
+            itemExposureMap[docId] = (itemExposureMap[docId] || 0) + (amount || 0);
+        }
+    }
+
     // Group by category
     const byCategory: Record<string, typeof allItems> = {};
     for (const item of allItems) {
@@ -47,36 +93,55 @@ export async function reifyRankings() {
 
     // Process each category
     for (const [slug, categoryItems] of Object.entries(byCategory)) {
-        // Apply momentum decay
+        // Apply momentum decay + signal score calculation
         const updated = categoryItems.map(item => {
             const lastUpdated = item.createdAt?.getTime() || now - 60000;
-            const deltaT = (now - lastUpdated) / 1000;
+            const deltaT = Math.min((now - lastUpdated) / 1000, 3600); // Cap at 1 hour for safety
             const currentMomentum = item.momentum ?? 0;
             const decayedMomentum = currentMomentum * Math.exp(-GRAVITY * deltaT);
-            const newVelocity = (decayedMomentum - currentMomentum) / (deltaT || 1);
+            const newVelocity = deltaT > 0 ? (decayedMomentum - currentMomentum) / deltaT : 0;
+
+            // Calculate Signal Score with AVD
+            const stakedOnItem = itemExposureMap[item.docId] || 0;
+            const previousScore = item.score ?? 0;
+            const signalScore = calculateSignalScore(item, stakedOnItem, previousScore);
 
             return {
                 ...item,
+                score: Math.round(signalScore),
                 momentum: parseFloat(decayedMomentum.toFixed(4)),
                 velocity: parseFloat(newVelocity.toFixed(4)),
             };
         });
 
-        // Sort by score descending, then momentum descending, then id for consistency
+        // Sort by signal score descending, then momentum, then id for consistency
         updated.sort((a, b) => {
             if ((b.score ?? 0) !== (a.score ?? 0)) return (b.score ?? 0) - (a.score ?? 0);
             if ((b.momentum ?? 0) !== (a.momentum ?? 0)) return (b.momentum ?? 0) - (a.momentum ?? 0);
             return a.id - b.id;
         });
 
-        // Prepare updates for batching
-        const updates = updated.map((item, i) => ({
-            id: item.id,
-            rank: i + 1,
-            momentum: item.momentum,
-            velocity: item.velocity,
-            score: item.score, // Ensure score is synced
-        }));
+        // Prepare updates with AVD rank capping
+        const updates = updated.map((item, i) => {
+            const desiredRank = i + 1;
+            const previousRank = item.rank ?? desiredRank;
+            const rankDelta = desiredRank - previousRank;
+
+            // AVD: cap rank change per cycle
+            let newRank = desiredRank;
+            if (Math.abs(rankDelta) > MAX_RANK_DELTA) {
+                newRank = previousRank + Math.sign(rankDelta) * MAX_RANK_DELTA;
+                console.warn(`[AVD] Rank capped for ${item.docId}: wanted ${desiredRank}, capped to ${newRank} (from ${previousRank})`);
+            }
+
+            return {
+                id: item.id,
+                rank: Math.max(1, newRank), // Never go below rank 1
+                momentum: item.momentum,
+                velocity: item.velocity,
+                score: item.score,
+            };
+        });
 
         // Perform batch update for all items in the category
         if (updates.length > 0) {
@@ -136,7 +201,7 @@ export async function reifyCategoryRankings(slug: string) {
         const lastCreated = item.createdAt?.getTime() || now - 60000;
         const deltaT = (now - lastCreated) / 1000;
         const currentMomentum = item.momentum ?? 0;
-        const decayedMomentum = currentMomentum * Math.exp(-GRAVITY * Math.min(deltaT, 3600)); // cap deltaT for safety
+        const decayedMomentum = currentMomentum * Math.exp(-GRAVITY * Math.min(deltaT, 3600));
         
         return {
             ...item,
@@ -151,12 +216,21 @@ export async function reifyCategoryRankings(slug: string) {
         return a.id - b.id;
     });
 
-    // Perform batch update
+    // Perform batch update with AVD rank capping
     await db.transaction(async (tx) => {
         for (let i = 0; i < updated.length; i++) {
             const item = updated[i];
-            const newRank = i + 1;
-            if (item.rank !== newRank) {
+            const desiredRank = i + 1;
+            const previousRank = item.rank ?? desiredRank;
+            const rankDelta = desiredRank - previousRank;
+
+            let newRank = desiredRank;
+            if (Math.abs(rankDelta) > MAX_RANK_DELTA) {
+                newRank = previousRank + Math.sign(rankDelta) * MAX_RANK_DELTA;
+            }
+            newRank = Math.max(1, newRank);
+
+            if (item.rank !== newRank || item.momentum !== updated[i].momentum) {
                 await tx.update(items)
                     .set({ rank: newRank, momentum: item.momentum })
                     .where(eq(items.id, item.id));
@@ -166,19 +240,52 @@ export async function reifyCategoryRankings(slug: string) {
 }
 
 /**
+ * Snapshot all items' current ranks as "opening ranks" for a new epoch.
+ * This is what Directional stakes compare against at settlement.
+ */
+export async function snapshotOpeningRanks(epochId: number) {
+    console.log(`[Snapshot] Capturing opening ranks for epoch #${epochId}...`);
+
+    const allItems = await db
+        .select()
+        .from(items)
+        .where(or(eq(items.status, "active"), isNull(items.status)));
+
+    if (allItems.length === 0) {
+        console.warn("[Snapshot] No items found to snapshot opening ranks.");
+        return;
+    }
+
+    const snapshots = allItems.map(item => ({
+        epochId,
+        itemId: item.docId,
+        categorySlug: item.categorySlug,
+        rank: item.rank || 0,
+        score: item.score || 0,
+        velocity: item.velocity || 0,
+        openingRank: item.rank || 0,
+        closingRank: null as number | null,  // Will be filled at epoch close
+        rankChange: null as number | null,
+    }));
+
+    for (let start = 0; start < snapshots.length; start += SNAPSHOT_CHUNK) {
+        const chunk = snapshots.slice(start, start + SNAPSHOT_CHUNK);
+        await db.insert(epochSnapshots).values(chunk).onConflictDoNothing();
+    }
+
+    console.log(`[Snapshot] Saved ${snapshots.length} opening rank records for epoch #${epochId}`);
+}
+
+/**
  * Sync updated rankings to Firestore for real-time listeners
  */
 async function syncRankingsToFirestore(allItems: typeof items.$inferSelect[]) {
-    if (!firestoreDb) return; // Firestore not available
+    if (!firestoreDb) return;
 
     try {
         const batch = firestoreDb.batch();
-        const currentEpochId = 1; // Get current epoch ID if needed
+        const currentEpochId = 1;
 
-        const docIds = allItems.map(i => i.docId);
-        
-        // Use the categories from items to filter (simplification: assume mostly single category per run or batch handles it)
-        // Groups items by category for accurate odds calc
         const categories = [...new Set(allItems.map(i => i.categorySlug))];
         const oddsLookup: Record<string, any> = {};
         
@@ -201,7 +308,6 @@ async function syncRankingsToFirestore(allItems: typeof items.$inferSelect[]) {
             }, { merge: true });
         }
 
-        // Update category summary
         for (const categorySlug of categories) {
             const categoryItems = allItems.filter(i => i.categorySlug === categorySlug);
             const ref = firestoreDb.doc(`categories/${categorySlug}`);
@@ -215,7 +321,6 @@ async function syncRankingsToFirestore(allItems: typeof items.$inferSelect[]) {
         console.log(`[MWR] Synced ${allItems.length} items to Firestore`);
     } catch (err: any) {
         console.error('[MWR] Firestore sync failed:', err.message);
-        // Never crash rankingEngine because of Firestore failure
     }
 }
 
@@ -247,7 +352,6 @@ async function checkPriceAlerts(updatedItems: typeof items.$inferSelect[]) {
 
             if (isTriggered) {
                 await db.transaction(async (tx) => {
-                    // Mark as triggered and inactive (one-shot alert)
                     await tx.update(priceAlerts).set({
                         active: false,
                         triggered: true
@@ -269,13 +373,12 @@ async function checkPriceAlerts(updatedItems: typeof items.$inferSelect[]) {
 }
 
 /**
- * Capture an immutable snapshot of current rankings for an epoch.
- * Computes rank_change by comparing with the previous epoch's snapshot.
+ * Capture an immutable snapshot of current rankings for an epoch (at close).
+ * Computes rank_change by comparing with the opening snapshot.
  */
 export async function createEpochSnapshot(epochId: number) {
-    console.log(`[Snapshot] Capturing state for epoch #${epochId}...`);
+    console.log(`[Snapshot] Capturing closing state for epoch #${epochId}...`);
 
-    // Some legacy rows have NULL status; include them so snapshots are never empty.
     const allItems = await db
         .select()
         .from(items)
@@ -286,43 +389,79 @@ export async function createEpochSnapshot(epochId: number) {
         return;
     }
 
-    // Fetch previous epoch's snapshots to compute rank_change (prev_rank - current_rank; negative = moved up)
-    const prevSnapshots = await db
-        .select({ itemId: epochSnapshots.itemId, categorySlug: epochSnapshots.categorySlug, rank: epochSnapshots.rank })
+    // Fetch opening snapshot for this epoch to compute rank_change
+    const openingSnapshots = await db
+        .select({ itemId: epochSnapshots.itemId, openingRank: epochSnapshots.openingRank })
         .from(epochSnapshots)
-        .where(eq(epochSnapshots.epochId, epochId - 1));
+        .where(eq(epochSnapshots.epochId, epochId));
 
-    const prevByKey = new Map<string, number>();
-    for (const s of prevSnapshots) {
-        prevByKey.set(`${s.categorySlug}:${s.itemId}`, s.rank ?? 0);
+    const openingByItem = new Map<string, number>();
+    for (const s of openingSnapshots) {
+        if (s.openingRank != null) {
+            openingByItem.set(s.itemId, s.openingRank);
+        }
     }
 
-    const snapshots = allItems.map(item => {
-        const currentRank = item.rank || 0;
-        const prevRank = prevByKey.get(`${item.categorySlug}:${item.docId}`);
-        const rankChange = prevRank != null ? prevRank - currentRank : null; // negative = gained (moved up)
-        return {
-            epochId,
-            itemId: item.docId,
-            categorySlug: item.categorySlug,
-            rank: currentRank,
-            score: item.score || 0,
-            velocity: item.velocity || 0,
-            openingRank: prevRank ?? null,
-            closingRank: currentRank,
-            rankChange,
-        };
-    });
+    // If opening snapshots exist, update them with closing data
+    if (openingSnapshots.length > 0) {
+        for (const item of allItems) {
+            const currentRank = item.rank || 0;
+            const openingRank = openingByItem.get(item.docId);
+            const rankChange = openingRank != null ? openingRank - currentRank : null;
 
-    for (let start = 0; start < snapshots.length; start += SNAPSHOT_CHUNK) {
-        const chunk = snapshots.slice(start, start + SNAPSHOT_CHUNK);
-        await db.insert(epochSnapshots).values(chunk);
+            await db.update(epochSnapshots)
+                .set({
+                    closingRank: currentRank,
+                    rankChange,
+                    score: item.score || 0,
+                    velocity: item.velocity || 0,
+                })
+                .where(and(
+                    eq(epochSnapshots.epochId, epochId),
+                    eq(epochSnapshots.itemId, item.docId)
+                ));
+        }
+        console.log(`[Snapshot] Updated ${allItems.length} closing ranks for epoch #${epochId}`);
+    } else {
+        // Fallback: no opening snapshot exists, create full snapshot
+        const prevSnapshots = await db
+            .select({ itemId: epochSnapshots.itemId, categorySlug: epochSnapshots.categorySlug, rank: epochSnapshots.rank })
+            .from(epochSnapshots)
+            .where(eq(epochSnapshots.epochId, epochId - 1));
+
+        const prevByKey = new Map<string, number>();
+        for (const s of prevSnapshots) {
+            prevByKey.set(`${s.categorySlug}:${s.itemId}`, s.rank ?? 0);
+        }
+
+        const snapshots = allItems.map(item => {
+            const currentRank = item.rank || 0;
+            const prevRank = prevByKey.get(`${item.categorySlug}:${item.docId}`);
+            const rankChange = prevRank != null ? prevRank - currentRank : null;
+            return {
+                epochId,
+                itemId: item.docId,
+                categorySlug: item.categorySlug,
+                rank: currentRank,
+                score: item.score || 0,
+                velocity: item.velocity || 0,
+                openingRank: prevRank ?? null,
+                closingRank: currentRank,
+                rankChange,
+            };
+        });
+
+        for (let start = 0; start < snapshots.length; start += SNAPSHOT_CHUNK) {
+            const chunk = snapshots.slice(start, start + SNAPSHOT_CHUNK);
+            await db.insert(epochSnapshots).values(chunk);
+        }
+        console.log(`[Snapshot] Saved ${snapshots.length} full snapshot records for epoch #${epochId}`);
     }
-    console.log(`[Snapshot] Saved ${snapshots.length} item records for epoch #${epochId}`);
 }
 
 /**
  * Start the ranking engine scheduler.
+ * Only starts intervals on long-running servers (Render), NOT on Vercel serverless.
  */
 export function startRankingEngine() {
     console.log(`⚡ Ranking engine started (every ${REIFY_INTERVAL / 1000}s)`);

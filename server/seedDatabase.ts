@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { db } from "./db/index";
-import { categories, items, epochs, marketMeta } from "./db/schema";
+import { db } from "./db/index.js";
+import { categories, items, epochs, marketMeta } from "./db/schema.js";
 
 async function seed() {
     console.log("🌱 Starting direct database seed...");

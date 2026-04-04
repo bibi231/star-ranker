@@ -9,12 +9,12 @@
  * 5. Any leftover pool goes to platform as additional revenue
  */
 
-import { db } from "../db/index";
-import { stakes, items, users, notifications, transactions, platformRevenue, marketActivity, epochSnapshots } from "../db/schema";
+import { db } from "../db/index.js";
+import { stakes, items, users, notifications, transactions, platformRevenue, marketActivity, epochSnapshots } from "../db/schema.js";
 import { eq, and, sql } from "drizzle-orm";
-import { sendEmail, templates } from "../lib/email";
-import { checkAndAwardAchievements } from "../services/achievements";
-import { cacheDelPattern } from "../services/cache";
+import { sendEmail, templates } from "../lib/email.js";
+import { checkAndAwardAchievements } from "../services/achievements.js";
+import { cacheDelPattern } from "../services/cache.js";
 
 export async function settleBets(epochId?: number) {
     if (epochId) {

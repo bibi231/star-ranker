@@ -2,7 +2,7 @@ import "dotenv/config";
 import { Pool } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { sql, eq } from "drizzle-orm";
-import { users, transactions, marketActivity } from "../db/schema";
+import { users, transactions, marketActivity } from "../db/schema.js";
 
 async function rescue() {
     const connectionString = process.env.DATABASE_URL;

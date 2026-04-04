@@ -184,8 +184,8 @@ export function MainLayout() {
                                 <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
                                     <motion.div
                                         initial={{ width: 0 }}
-                                        animate={{ width: isDemoMode ? '100%' : `${Math.min(100, (balance / 10000) * 100)}%` }}
-                                        className={cn("h-full", isDemoMode ? "bg-brand-accent/50" : "bg-emerald-500/50")}
+                                        animate={{ width: isDemoMode ? `${Math.min(100, (demoBalance / 50000) * 100)}%` : `${Math.min(100, (balance / 10000) * 100)}%` }}
+                                        className={cn("h-full shadow-[0_0_10px_rgba(245,158,11,0.5)]", "bg-amber-500")}
                                     />
                                 </div>
                             </div>
@@ -323,8 +323,8 @@ export function MainLayout() {
                                             <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
                                                 <motion.div 
                                                     initial={{ width: 0 }}
-                                                    animate={{ width: isDemoMode ? '100%' : `${Math.min(100, (balance / 10000) * 100)}%` }}
-                                                    className={cn("h-full shadow-[0_0_10px_rgba(16,185,129,0.5)]", isDemoMode ? "bg-amber-500" : "bg-brand-accent")}
+                                                    animate={{ width: isDemoMode ? `${Math.min(100, (demoBalance / 50000) * 100)}%` : `${Math.min(100, (balance / 10000) * 100)}%` }}
+                                                    className={cn("h-full shadow-[0_0_10px_rgba(245,158,11,0.5)]", "bg-amber-500")}
                                                 />
                                             </div>
                                         </div>

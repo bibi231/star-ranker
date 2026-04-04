@@ -5,8 +5,8 @@
  */
 
 import { Router } from 'express';
-import { db } from '../db/index';
-import { items, users } from '../db/schema';
+import { db } from '../db/index.js';
+import { items, users } from '../db/schema.js';
 import { ilike, desc } from 'drizzle-orm';
 
 const router = Router();

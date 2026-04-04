@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { db } from "./db/index";
-import { votePacks } from "./db/schema";
+import { db } from "./db/index.js";
+import { votePacks } from "./db/schema.js";
 
 async function checkPacks() {
     const packs = await db.select().from(votePacks);

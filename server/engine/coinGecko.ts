@@ -5,8 +5,8 @@
  * Updates the "crypto" category items with real market data.
  */
 
-import { db } from "../db/index";
-import { items } from "../db/schema";
+import { db } from "../db/index.js";
+import { items } from "../db/schema.js";
 import { eq, and } from "drizzle-orm";
 
 const COINGECKO_API = "https://api.coingecko.com/api/v3";

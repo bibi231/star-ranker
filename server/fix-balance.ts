@@ -1,8 +1,8 @@
 import { config } from "dotenv";
 config({ path: ".env.vercel.prod" });
 
-import { db } from "./db/index";
-import { users } from "./db/schema";
+import { db } from "./db/index.js";
+import { users } from "./db/schema.js";
 import { eq } from "drizzle-orm";
 
 async function fix() {

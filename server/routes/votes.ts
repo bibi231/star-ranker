@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { db } from "../db/index";
-import { votes, items, users, marketActivity } from "../db/schema";
+import { db } from "../db/index.js";
+import { votes, items, users, marketActivity } from "../db/schema.js";
 import { eq, and, sql } from "drizzle-orm";
-import { requireAuth, AuthRequest } from "../middleware/auth";
-import { checkAndAwardAchievements } from "../services/achievements";
-import { cacheDel } from "../services/cache";
+import { requireAuth, AuthRequest } from "../middleware/auth.js";
+import { checkAndAwardAchievements } from "../services/achievements.js";
+import { cacheDel } from "../services/cache.js";
 
 const router = Router();
 

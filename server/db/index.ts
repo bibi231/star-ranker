@@ -1,7 +1,7 @@
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
-import * as schema from "./schema";
-import { firstPostgresSqlstate, formatDbConnectError } from "../lib/formatDbError";
+import * as schema from "./schema.js";
+import { firstPostgresSqlstate, formatDbConnectError } from "../lib/formatDbError.js";
 
 import ws from "ws";
 neonConfig.webSocketConstructor = ws;

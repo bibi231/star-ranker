@@ -1,5 +1,5 @@
-import { db } from '../db/index';
-import { users, achievements, stakes, notifications, transactions } from '../db/schema';
+import { db } from '../db/index.js';
+import { users, achievements, stakes, notifications, transactions } from '../db/schema.js';
 import { eq, and, desc, sql } from 'drizzle-orm';
 
 export const ACHIEVEMENT_DEFS: Record<string, { icon: string; title: string; desc: string }> = {

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { getRates } from "../services/currencyRate";
+import { getRates } from "../services/currencyRate.js";
 
 const router = Router();
 

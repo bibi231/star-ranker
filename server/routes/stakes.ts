@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { db } from "../db/index";
-import { stakes, items, epochs, marketMeta, users, transactions, notifications, marketActivity, adminConfig } from "../db/schema";
+import { db } from "../db/index.js";
+import { stakes, items, epochs, marketMeta, users, transactions, notifications, marketActivity, adminConfig } from "../db/schema.js";
 import { eq, and, sql } from "drizzle-orm";
-import { requireAuth, AuthRequest } from "../middleware/auth";
-import { requireStakeAccess } from "../middleware/geo";
+import { requireAuth, AuthRequest } from "../middleware/auth.js";
+import { requireStakeAccess } from "../middleware/geo.js";
 import { z } from "zod";
-import { cacheDel } from "../services/cache";
+import { cacheDel } from "../services/cache.js";
 
 const stakeSchema = z.object({
     itemDocId: z.string().min(1).max(200),

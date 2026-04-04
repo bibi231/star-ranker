@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { db } from "../db/index";
-import { epochs, epochSnapshots, items } from "../db/schema";
+import { db } from "../db/index.js";
+import { epochs, epochSnapshots, items } from "../db/schema.js";
 import { eq, desc, and, count, max } from "drizzle-orm";
-import { createEpochSnapshot } from "../engine/rankingEngine";
+import { createEpochSnapshot } from "../engine/rankingEngine.js";
 
 const router = Router();
 

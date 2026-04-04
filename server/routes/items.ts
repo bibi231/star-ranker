@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { db } from "../db/index";
-import { items, epochs, epochSnapshots } from "../db/schema";
+import { db } from "../db/index.js";
+import { items, epochs, epochSnapshots } from "../db/schema.js";
 import { eq, desc, and, lte, gte } from "drizzle-orm";
-import { calculateMultipleOdds } from "../engine/oddsCalculator";
+import { calculateMultipleOdds } from "../engine/oddsCalculator.js";
 
-import { cacheGet, cacheSet } from "../services/cache";
+import { cacheGet, cacheSet } from "../services/cache.js";
 
 const router = Router();
 

@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { users, stakes, notifications } from '../db/schema';
+import { db } from '../db.js';
+import { users, stakes, notifications } from '../db/schema.js';
 import { eq, and } from 'drizzle-orm';
 
 export const DEMO_STARTING_BALANCE = 50000; // 50,000 play credits

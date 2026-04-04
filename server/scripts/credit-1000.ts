@@ -3,8 +3,8 @@
  * Run: npx tsx server/scripts/credit-1000.ts
  */
 import "dotenv/config";
-import { db } from "../db/index";
-import { users } from "../db/schema";
+import { db } from "../db/index.js";
+import { users } from "../db/schema.js";
 import { eq, sql } from "drizzle-orm";
 
 const ADMIN_EMAIL = "peterjohn2343@gmail.com";

@@ -14,37 +14,38 @@ import express from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 
-import categoriesRouter from "./routes/categories";
-import itemsRouter from "./routes/items";
-import votesRouter from "./routes/votes";
-import stakesRouter from "./routes/stakes";
-import epochsRouter from "./routes/epochs";
-import adminRouter from "./routes/admin";
-import leaderboardRouter from "./routes/leaderboard";
-import paymentsRouter from "./routes/payments";
-import withdrawalsRouter from "./routes/withdrawals";
-import authRouter from "./routes/auth";
-import notificationRouter from "./routes/notifications";
-import votePacksRouter from "./routes/votePacks";
-import sponsorshipsRouter from "./routes/sponsorships";
-import activityRouter from "./routes/activity";
-import marketIntelligenceRouter from "./routes/marketIntelligence";
-import watchlistRouter from "./routes/watchlist";
-import alertsRouter from "./routes/alerts";
-import commentsRouter from "./routes/comments";
-import battlesRouter from "./routes/battles";
-import questsRouter from "./routes/quests";
-import trialsRouter from "./routes/trials";
-import seasonsRouter from "./routes/seasons";
-import systemStatusRouter from "./routes/systemStatus";
-import demoRouter from "./routes/demo";
+import categoriesRouter from "./routes/categories.js";
+import itemsRouter from "./routes/items.js";
+import votesRouter from "./routes/votes.js";
+import stakesRouter from "./routes/stakes.js";
+import epochsRouter from "./routes/epochs.js";
+import adminRouter from "./routes/admin.js";
+import leaderboardRouter from "./routes/leaderboard.js";
+import paymentsRouter from "./routes/payments.js";
+import withdrawalsRouter from "./routes/withdrawals.js";
+import authRouter from "./routes/auth.js";
+import notificationRouter from "./routes/notifications.js";
+import votePacksRouter from "./routes/votePacks.js";
+import sponsorshipsRouter from "./routes/sponsorships.js";
+import activityRouter from "./routes/activity.js";
+import marketIntelligenceRouter from "./routes/marketIntelligence.js";
+import watchlistRouter from "./routes/watchlist.js";
+import alertsRouter from "./routes/alerts.js";
+import commentsRouter from "./routes/comments.js";
+import battlesRouter from "./routes/battles.js";
+import questsRouter from "./routes/quests.js";
+import trialsRouter from "./routes/trials.js";
+import seasonsRouter from "./routes/seasons.js";
+import systemStatusRouter from "./routes/systemStatus.js";
+import demoRouter from "./routes/demo.js";
+import syncRouter from "./routes/sync.js";
 
-import { startRankingEngine } from "./engine/rankingEngine";
-import { startEpochScheduler } from "./engine/epochScheduler";
-import { startCryptoFeed } from "./engine/coinGecko";
-import { startZeitgeistWorker } from "./engine/zeitgeist";
+import { startRankingEngine } from "./engine/rankingEngine.js";
+import { startEpochScheduler } from "./engine/epochScheduler.js";
+import { startCryptoFeed } from "./engine/coinGecko.js";
+import { startZeitgeistWorker } from "./engine/zeitgeist.js";
 
-import { geoMiddleware } from "./middleware/geo";
+import { geoBlock } from "./middleware/geo.js";
 
 const app = express();
 const PORT = parseInt(process.env.PORT || "3001");
@@ -137,15 +138,32 @@ const adminLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, message: { 
 
 app.use(globalLimiter);
 
-import usersRouter from "./routes/users";
-import currencyRouter from "./routes/currency";
-import publicStatsRouter from "./routes/publicStats";
-import publicMarketsRouter from "./routes/publicMarkets";
-import publicWinsRouter from "./routes/publicWins";
-import publicLeaderboardRouter from "./routes/publicLeaderboard";
-import portfolioRouter from "./routes/portfolio";
-import healthRouter from "./routes/health";
-import searchRouter from "./routes/search";
+// Response time audit — log slow endpoints in development
+if (process.env.NODE_ENV !== 'production') {
+    app.use((req, res, next) => {
+        const start = Date.now();
+        res.on('finish', () => {
+            const ms = Date.now() - start;
+            if (ms > 500) {
+                console.warn(`[SLOW] ${req.method} ${req.path} took ${ms}ms`);
+            }
+        });
+        next();
+    });
+}
+
+// Global geo-blocking (blocks CU, IR, KP, SY, RU from all routes)
+app.use(geoBlock);
+
+import usersRouter from "./routes/users.js";
+import currencyRouter from "./routes/currency.js";
+import publicStatsRouter from "./routes/publicStats.js";
+import publicMarketsRouter from "./routes/publicMarkets.js";
+import publicWinsRouter from "./routes/publicWins.js";
+import publicLeaderboardRouter from "./routes/publicLeaderboard.js";
+import portfolioRouter from "./routes/portfolio.js";
+import healthRouter from "./routes/health.js";
+import searchRouter from "./routes/search.js";
 
 // Public routes (no auth, aggressive caching)
 app.use("/api/health", healthRouter);
@@ -183,6 +201,7 @@ app.use("/api/trials", trialsRouter);
 app.use("/api/seasons", seasonsRouter);
 app.use("/api/system/status", systemStatusRouter);
 app.use("/api/demo", demoRouter);
+app.use("/api/sync", syncRouter);
 app.use("/api/user", usersRouter);
 app.use("/api/currency", currencyRouter);
 app.use("/api/oracle-trial", trialsRouter);
@@ -195,13 +214,13 @@ if (process.env.SENTRY_DSN && (Sentry as any).Handlers) {
 
 import { sql } from "drizzle-orm";
 
-import { formatDbConnectError } from "./lib/formatDbError";
-import { db, probePostgres, probePostgresWithRetry } from "./db/index";
-import { bootstrapFreshSchema } from "./db/bootstrapFreshSchema";
+import { formatDbConnectError } from "./lib/formatDbError.js";
+import { db, probePostgres, probePostgresWithRetry } from "./db/index.js";
+import { bootstrapFreshSchema } from "./db/bootstrapFreshSchema.js";
 
-import { categories, items as itemsTable, epochs, marketMeta } from "./db/schema";
-import { CATEGORIES, getCuratedSeedItems } from "./data/seedData";
-import { runFullSeed } from "./lib/runFullSeed";
+import { categories, items as itemsTable, epochs, marketMeta } from "./db/schema.js";
+import { CATEGORIES, getCuratedSeedItems } from "./data/seedData.js";
+import { runFullSeed } from "./lib/runFullSeed.js";
 
 // Health check (no DB — safe for Render keep-alive)
 app.get("/api/health", (_req, res) => {
@@ -398,6 +417,29 @@ async function ensureSchemaPatches(): Promise<void> {
         await run("epoch_snapshots.rank_change", `ALTER TABLE epoch_snapshots ADD COLUMN IF NOT EXISTS rank_change INTEGER`);
 
         await run("users.bio", `ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`);
+        await run("users.vote_weight", `ALTER TABLE users ADD COLUMN IF NOT EXISTS vote_weight INTEGER DEFAULT 1`);
+        await run("users.max_stake_per_epoch", `ALTER TABLE users ADD COLUMN IF NOT EXISTS max_stake_per_epoch INTEGER DEFAULT 5000`);
+
+        // System settings table for killswitch + feature flags
+        await run("system_settings table", `
+            CREATE TABLE IF NOT EXISTS system_settings (
+                key VARCHAR(50) PRIMARY KEY,
+                value TEXT NOT NULL,
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
+        // Ensure killswitch row exists
+        await run("system_settings.killswitch", `
+            INSERT INTO system_settings (key, value) VALUES ('killswitch_active', 'false')
+            ON CONFLICT (key) DO NOTHING
+        `);
+
+        // Add missing indexes for performance at scale
+        await run("stakes_item_idx", `CREATE INDEX IF NOT EXISTS stakes_item_idx ON stakes (item_doc_id)`);
+        await run("stakes_settled_idx", `CREATE INDEX IF NOT EXISTS stakes_settled_idx ON stakes (is_settled)`);
+        await run("market_activity_type_time_idx", `CREATE INDEX IF NOT EXISTS market_activity_type_time_idx ON market_activity (type, created_at)`);
+
 
         // feature: social layer
         await run("market_comments table", `

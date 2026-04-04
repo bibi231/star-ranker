@@ -1,7 +1,7 @@
-import { db } from '../db/index';
-import { users, notifications, transactions } from '../db/schema';
+import { db } from '../db/index.js';
+import { users, notifications, transactions } from '../db/schema.js';
 import { eq, sql } from 'drizzle-orm';
-import { getRates } from './currencyRate';
+import { getRates } from './currencyRate.js';
 
 export async function handleFirstDepositBonus(userId: string, amountNgn: number, tx: any) {
   const userResult = await tx.select().from(users).where(eq(users.firebaseUid, userId)).limit(1).for('update');

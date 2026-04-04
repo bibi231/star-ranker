@@ -1,4 +1,4 @@
-import { db } from "../db/index";
+import { db } from "../db/index.js";
 import fs from "fs";
 import path from "path";
 import { sql } from "drizzle-orm";

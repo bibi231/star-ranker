@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { sendEmail } from "./lib/email";
+import { sendEmail } from "./lib/email.js";
 
 async function testEmail() {
     console.log("Testing SMTP configuration...");

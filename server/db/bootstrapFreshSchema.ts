@@ -3,8 +3,8 @@
  * Runs on API boot so a brand-new Neon project works without drizzle-kit push.
  */
 import { sql } from "drizzle-orm";
-import { formatDbConnectError } from "../lib/formatDbError";
-import { db } from "./index";
+import { formatDbConnectError } from "../lib/formatDbError.js";
+import { db } from "./index.js";
 
 const statements: string[] = [
     `CREATE TABLE IF NOT EXISTS admin_config (

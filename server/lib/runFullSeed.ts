@@ -3,10 +3,10 @@
  * Used by CLI (seedAll.ts), HTTP /api/seed-database, and POST /api/admin/seed.
  */
 import { inArray, sql } from "drizzle-orm";
-import { bootstrapFreshSchema } from "../db/bootstrapFreshSchema";
-import { db } from "../db/index";
-import { categories, items, epochs, marketMeta } from "../db/schema";
-import { CATEGORIES, SEED_ITEMS, getCuratedSeedItems } from "../data/seedData";
+import { bootstrapFreshSchema } from "../db/bootstrapFreshSchema.js";
+import { db } from "../db/index.js";
+import { categories, items, epochs, marketMeta } from "../db/schema.js";
+import { CATEGORIES, SEED_ITEMS, getCuratedSeedItems } from "../data/seedData.js";
 
 // Keep chunks small to avoid oversized INSERT statements on serverless Postgres gateways.
 const ITEM_CHUNK = 20;
