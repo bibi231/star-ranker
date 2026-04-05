@@ -3,7 +3,7 @@ import { db } from "../db/index.js";
 import { items, epochs, epochSnapshots } from "../db/schema.js";
 import { eq, desc, and, lte, gte } from "drizzle-orm";
 import { calculateMultipleOdds } from "../engine/oddsCalculator.js";
-
+import { MetadataService } from "../services/metadataService.js";
 import { cacheGet, cacheSet } from "../services/cache.js";
 
 const router = Router();
@@ -208,6 +208,17 @@ router.get("/:itemId/probability-history", async (req, res) => {
         res.json(result);
     } catch (error: any) {
         console.error('[probability-history] Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/items/refresh-metadata — Trigger automated image fetching for missing items
+router.post("/refresh-metadata", async (req, res) => {
+    try {
+        const metadataService = MetadataService.getInstance();
+        metadataService.refreshAllMissingMetadata(); // Fire and forget in background
+        res.json({ message: "Metadata refresh started in background" });
+    } catch (error: any) {
         res.status(500).json({ error: error.message });
     }
 });

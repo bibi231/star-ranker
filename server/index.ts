@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { sql } from "drizzle-orm";
+import { MetadataService } from "./services/metadataService.js";
 
 // Routes
 import categoriesRouter from "./routes/categories.js";
@@ -65,6 +66,10 @@ if (process.env.SENTRY_DSN) {
         tracesSampleRate: 0.1,
     });
 }
+
+// Start metadata refresher
+const metadataService = MetadataService.getInstance();
+metadataService.refreshAllMissingMetadata().catch(err => console.error('[MetadataService] Initial refresh failed:', err));
 
 // Middleware — allow localhost, explicit env list, and common production hosts
 const extraOrigins = (process.env.CORS_ORIGINS || "")

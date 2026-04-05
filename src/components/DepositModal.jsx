@@ -253,28 +253,30 @@ export function DepositModal({ isOpen, onClose }) {
                                                         />
                                                     </div>
                                                 </div>
+                                                                                   <div className="flex gap-2 w-full pt-1">
+                                                    {[1000, 2500, 5000, 10000].map(v => (
+                                                        <button
+                                                            key={v}
+                                                            onClick={() => setAmountNGN(String(v))}
+                                                            className={cn(
+                                                                "flex-1 py-1 rounded-xl text-[10px] font-black uppercase border transition-all touch-target",
+                                                                parseInt(amountNGN) === v
+                                                                    ? "border-amber-500 text-amber-500 bg-amber-500/10"
+                                                                    : "border-white/5 text-slate-500 hover:text-white"
+                                                            )}
+                                                        >
+                                                            ₦{v >= 1000 ? `${v / 1000}K` : v}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </>
-                                        )}            <div className="flex gap-2 w-full pt-1">
-                                                {[1000, 2500, 5000, 10000].map(v => (
-                                                    <button
-                                                        key={v}
-                                                        onClick={() => setAmountNGN(String(v))}
-                                                        className={cn(
-                                                            "flex-1 py-1 rounded-xl text-[10px] font-black uppercase border transition-all touch-target",
-                                                            parseInt(amountNGN) === v
-                                                                ? "border-amber-500 text-amber-500 bg-amber-500/10"
-                                                                : "border-white/5 text-slate-500 hover:text-white"
-                                                        )}
-                                                    >
-                                                        ₦{v >= 1000 ? `${v / 1000}K` : v}
-                                                    </button>
-                                                ))}
+                                        )}
+                                        {!isDemoMode && (
+                                            <div className="pt-2 text-center text-[10px] font-bold text-slate-500 uppercase flex items-center justify-center gap-1.5">
+                                                <Info size={12} className="text-slate-600 shrink-0" />
+                                                Est. Yield: ≈ <span className="text-emerald-400">${usdEquivalent.toFixed(2)} USD</span>
                                             </div>
-                                        </div>
-                                        <div className="pt-2 text-center text-[10px] font-bold text-slate-500 uppercase flex items-center justify-center gap-1.5">
-                                            <Info size={12} className="text-slate-600 shrink-0" />
-                                            Est. Yield: ≈ <span className="text-emerald-400">${usdEquivalent.toFixed(2)} USD</span>
-                                        </div>
+                                        )}
                                         {error && (
                                             <div className="flex gap-3 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20">
                                                 <AlertTriangle size={16} className="text-rose-500 shrink-0 mt-0.5" />

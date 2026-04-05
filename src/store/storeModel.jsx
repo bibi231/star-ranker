@@ -314,10 +314,7 @@ export const useStore = create((set, get) => ({
         };
 
         await fetchItems();
-        
-        // Start 30s background sync
-        const interval = setInterval(fetchItems, 30000);
-        set({ syncInterval: interval });
+        get().startBackgroundSync();
     },
 
     fetchMovers: async (categoryId, type) => {
@@ -379,22 +376,52 @@ export const useStore = create((set, get) => ({
                 set({ user, emailVerified: user.emailVerified || isGoogle, isAuthLoading: false });
                 await get().fetchUserProfile();
 
-                const { currentCategorySlug, syncInterval } = get();
+                const { currentCategorySlug } = get();
                 get().fetchUserVotes(currentCategorySlug);
-
-                if (!syncInterval) {
-                    const interval = setInterval(() => {
-                        console.log("[Sync] Background refresh triggered");
-                        get().fetchUserProfile();
-                    }, 60000);
-                    set({ syncInterval: interval });
-                }
+                get().startBackgroundSync();
             } else {
-                const { syncInterval } = get();
-                if (syncInterval) clearInterval(syncInterval);
+                get().stopBackgroundSync();
                 set({ user: null, isAuthLoading: false, balance: 0, playBalance: 0, reputation: 0, tier: "Newbie", bio: "", userVotes: {}, syncInterval: null });
             }
         });
+    },
+
+    startBackgroundSync: () => {
+        if (get().syncInterval) return;
+        
+        const interval = setInterval(async () => {
+            const { user, isDemoMode, currentCategorySlug, fetchUserProfile, setCategoryItems } = get();
+            console.log("[Sync] Pulse triggered");
+            
+            // Priority 1: User Profile (every pulse)
+            if (user) await fetchUserProfile();
+            
+            // Priority 2: Market Data (if on category)
+            if (currentCategorySlug) {
+                // We reuse the existing fetch logic but without starting a new interval
+                const fetchItems = async () => {
+                    try {
+                        const data = await apiGet(`/api/items/category/${currentCategorySlug}`);
+                        if (data?.items) set({ items: data.items, lastRefresh: Date.now() });
+                    } catch (e) { console.error("[Sync] Items failed", e); }
+                };
+                await fetchItems();
+            }
+            
+            // Priority 3: Crypto (if applicable)
+            if (get().updateCryptoPrices) await get().updateCryptoPrices();
+            
+        }, 30000);
+        
+        set({ syncInterval: interval });
+    },
+
+    stopBackgroundSync: () => {
+        const { syncInterval } = get();
+        if (syncInterval) {
+            clearInterval(syncInterval);
+            set({ syncInterval: null });
+        }
     },
 
     fetchCurrentEpoch: async () => {
