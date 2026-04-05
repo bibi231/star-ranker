@@ -172,10 +172,7 @@ export function MainLayout() {
                                             <RefreshCw size={10} />
                                         </button>
                                         <span className={cn("text-[10px] font-mono font-black italic", isDemoMode ? "text-amber-400" : "text-emerald-400")}>
-                                            {isDemoMode 
-                                                ? `★${(demoBalance * (rates[currency] || 1)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
-                                                : formatValue(balance)
-                                            }
+                                            {isDemoMode ? formatValue(demoBalance) : formatValue(balance)}
                                         </span>
                                     </div>
                                     <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest bg-slate-900 px-1.5 py-0.5 rounded border border-white/5">
@@ -209,13 +206,13 @@ export function MainLayout() {
                                 onClick={() => setWithdrawalOpen(true)}
                                 className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-slate-400 font-black text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
                             >
-                                <Wallet size={14} /> Withdraw Profit
+                                <Wallet size={14} /> {isDemoMode ? "Withdraw Profit" : "Withdraw"}
                             </button>
                             <button
                                 onClick={() => setVotePackModalOpen(true)}
                                 className="w-full py-3 rounded-xl bg-brand-accent/10 border border-brand-accent/20 text-brand-accent font-black text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-2 hover:bg-brand-accent/20 transition-all font-mono"
                             >
-                                <Zap size={14} className="fill-brand-accent" /> Acquire Influence
+                                <Zap size={14} className="fill-brand-accent" /> {isDemoMode ? "Acquire Influence" : "Get Power Votes"}
                             </button>
                         </>
                     )}

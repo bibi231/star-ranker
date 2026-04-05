@@ -12,7 +12,7 @@ const FLUTTERWAVE_PUBLIC_KEY = import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY || ''
 const MIN_AMOUNT_NGN = 1000;
 
 export function DepositModal({ isOpen, onClose }) {
-    const { user, balance, formatValue, setBalance } = useStore();
+    const { user, balance, formatValue, setBalance, isDemoMode, demoBalance, resetDemoBalance } = useStore();
     const [amountNGN, setAmountNGN] = useState('5000');
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState('');
@@ -159,11 +159,10 @@ export function DepositModal({ isOpen, onClose }) {
                                 <div className="w-12 h-1.5 rounded-full bg-white/20" />
                             </div>
                             <div className="px-6 pt-4 flex justify-between items-center">
-                                <div className="flex items-center gap-3">
-                                    <div className="text-amber-500">
+                                <div className="flex items-center gap-3">                                    <div className="text-amber-500">
                                         <Wallet size={24} />
                                     </div>
-                                    <h2 className="text-xl font-black text-white uppercase tracking-tighter">Deposit</h2>
+                                    <h2 className="text-xl font-black text-white uppercase tracking-tighter">{isDemoMode ? 'Practice Funds' : 'Deposit'}</h2>
                                 </div>
                                 <button onClick={onClose} className="p-2 text-slate-500 hover:text-white bg-white/5 rounded-full touch-target">
                                     <X size={18} />
@@ -175,62 +174,87 @@ export function DepositModal({ isOpen, onClose }) {
                                         <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto">
                                             <ArrowUpRight size={32} className="text-emerald-500" />
                                         </div>
-                                        <h3 className="text-2xl font-black text-white">Deposit Confirmed</h3>
+                                        <h3 className="text-2xl font-black text-white">{isDemoMode ? 'Credits Replenished' : 'Deposit Confirmed'}</h3>
                                         <div className="space-y-2 text-sm">
-                                            <p className="text-slate-400">₦{success.amountNGN?.toLocaleString()} → <span className="text-emerald-400 font-bold">${success.credits?.toFixed(2)}</span> credited</p>
-                                            <p className="text-slate-500">New Balance: <span className="text-white font-bold">{formatValue(success.newBalance)}</span></p>
+                                            {isDemoMode ? (
+                                                <p className="text-slate-400">Balance reset to <span className="text-amber-400 font-bold">★50,000.00</span></p>
+                                            ) : (
+                                                <>
+                                                    <p className="text-slate-400">₦{success.amountNGN?.toLocaleString()} → <span className="text-emerald-400 font-bold">${success.credits?.toFixed(2)}</span> credited</p>
+                                                    <p className="text-slate-500">New Balance: <span className="text-white font-bold">{formatValue(success.newBalance)}</span></p>
+                                                </>
+                                            )}
                                         </div>
-                                        <button onClick={handleReset} className="mt-4 px-8 py-3 premium-btn-cyan rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full md:w-auto touch-target">
+                                        <button onClick={() => { handleReset(); onClose(); }} className="mt-4 px-8 py-3 premium-btn-cyan rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full md:w-auto touch-target">
                                             Done
                                         </button>
                                     </div>
                                 ) : (
                                     <>
                                         <div className="p-4 rounded-2xl bg-slate-950 border border-white/5">
-                                            <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Current Balance</div>
-                                            <div className="text-2xl font-mono font-black text-white">{formatValue(balance)}</div>
+                                            <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{isDemoMode ? 'Current Practice Balance' : 'Current Balance'}</div>
+                                            <div className="text-2xl font-mono font-black text-white">{isDemoMode ? `★${demoBalance.toLocaleString()}` : formatValue(balance)}</div>
                                         </div>
-                                        <WalletFundingContext />
-                                        <div className="space-y-2">
-                                            <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Payment gateway</div>
-                                            <div className="flex gap-2 p-1 bg-slate-950 border border-white/5 rounded-2xl">
-                                                {[
-                                                    { id: 'paystack', label: 'Paystack' },
-                                                    { id: 'flutterwave', label: 'Flutterwave' },
-                                                ].map((p) => (
-                                                    <button
-                                                        key={p.id}
-                                                        type="button"
-                                                        onClick={() => { setPaymentProvider(p.id); setError(''); }}
-                                                        className={cn(
-                                                            'flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
-                                                            paymentProvider === p.id
-                                                                ? 'bg-amber-500/20 text-amber-500 border border-amber-500/40'
-                                                                : 'text-slate-500 hover:text-slate-300 border border-transparent'
-                                                        )}
-                                                    >
-                                                        {p.label}
-                                                    </button>
-                                                ))}
+
+                                        {isDemoMode ? (
+                                            <div className="p-6 rounded-3xl bg-amber-500/5 border border-amber-500/10 space-y-4">
+                                                <div className="flex items-start gap-4">
+                                                    <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500 shrink-0">
+                                                        <Info size={24} />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <h4 className="text-sm font-black text-white uppercase">Unlimited Practice</h4>
+                                                        <p className="text-[10px] text-slate-500 font-bold uppercase leading-relaxed">
+                                                            Run out of credits? No problem. Replenishing will reset your practice balance to ★50,000 so you can keep honing your predictions.
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
-                                                <CreditCard size={12} className="text-emerald-500" /> Deposit Amount (NGN)
-                                            </label>
-                                            <div className="relative">
-                                                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-lg font-black">₦</span>
-                                                <input
-                                                    type="number"
-                                                    inputMode="numeric"
-                                                    value={amountNGN}
-                                                    onChange={(e) => { setAmountNGN(e.target.value); setError(''); }}
-                                                    placeholder="5000"
-                                                    min={MIN_AMOUNT_NGN}
-                                                    className="w-full bg-slate-950 border border-white/5 rounded-2xl pl-10 pr-4 py-4 text-xl font-mono font-black text-white focus:outline-none focus:border-emerald-500/50 transition-all touch-target"
-                                                />
-                                            </div>
-                                            <div className="flex gap-2 w-full pt-1">
+                                        ) : (
+                                            <>
+                                                <WalletFundingContext />
+                                                <div className="space-y-2">
+                                                    <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Payment gateway</div>
+                                                    <div className="flex gap-2 p-1 bg-slate-950 border border-white/5 rounded-2xl">
+                                                        {[
+                                                            { id: 'paystack', label: 'Paystack' },
+                                                            { id: 'flutterwave', label: 'Flutterwave' },
+                                                        ].map((p) => (
+                                                            <button
+                                                                key={p.id}
+                                                                type="button"
+                                                                onClick={() => { setPaymentProvider(p.id); setError(''); }}
+                                                                className={cn(
+                                                                    'flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
+                                                                    paymentProvider === p.id
+                                                                        ? 'bg-amber-500/20 text-amber-500 border border-amber-500/40'
+                                                                        : 'text-slate-500 hover:text-slate-300 border border-transparent'
+                                                                )}
+                                                            >
+                                                                {p.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
+                                                        <CreditCard size={12} className="text-emerald-500" /> Deposit Amount (NGN)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-lg font-black">₦</span>
+                                                        <input
+                                                            type="number"
+                                                            inputMode="numeric"
+                                                            value={amountNGN}
+                                                            onChange={(e) => { setAmountNGN(e.target.value); setError(''); }}
+                                                            placeholder="5000"
+                                                            min={MIN_AMOUNT_NGN}
+                                                            className="w-full bg-slate-950 border border-white/5 rounded-2xl pl-10 pr-4 py-4 text-xl font-mono font-black text-white focus:outline-none focus:border-emerald-500/50 transition-all touch-target"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}            <div className="flex gap-2 w-full pt-1">
                                                 {[1000, 2500, 5000, 10000].map(v => (
                                                     <button
                                                         key={v}
@@ -258,11 +282,11 @@ export function DepositModal({ isOpen, onClose }) {
                                             </div>
                                         )}
                                         <button
-                                            onClick={handleDeposit}
-                                            disabled={isProcessing || !amountNGN || parseInt(amountNGN) < MIN_AMOUNT_NGN}
+                                            onClick={isDemoMode ? () => { resetDemoBalance(); setSuccess({ credits: 50000 }); } : handleDeposit}
+                                            disabled={isProcessing || (!isDemoMode && (!amountNGN || parseInt(amountNGN) < MIN_AMOUNT_NGN))}
                                             className={cn(
                                                 "w-full min-h-[56px] py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 mt-4",
-                                                isProcessing || parseInt(amountNGN) < MIN_AMOUNT_NGN
+                                                !isDemoMode && (isProcessing || parseInt(amountNGN) < MIN_AMOUNT_NGN)
                                                     ? "bg-slate-800 text-slate-600 cursor-not-allowed"
                                                     : "premium-btn-gold"
                                             )}
@@ -272,7 +296,7 @@ export function DepositModal({ isOpen, onClose }) {
                                                     <Wallet size={18} />
                                                 </motion.div>
                                             ) : (
-                                                <>Fund Wallet</>
+                                                <>{isDemoMode ? 'Replenish Practice Credits' : 'Fund Wallet'}</>
                                             )}
                                         </button>
                                         {paymentProvider === 'paystack' && !PAYSTACK_PUBLIC_KEY && (
@@ -313,8 +337,8 @@ export function DepositModal({ isOpen, onClose }) {
                                         <Wallet size={22} />
                                     </div>
                                     <div>
-                                        <h2 className="text-lg font-black text-white uppercase tracking-tighter">Fund Wallet</h2>
-                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Paystack Deposit</p>
+                                        <h2 className="text-lg font-black text-white uppercase tracking-tighter">{isDemoMode ? 'Practice Funds' : 'Fund Wallet'}</h2>
+                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{isDemoMode ? 'Replenish Credits' : 'Paystack Deposit'}</p>
                                     </div>
                                 </div>
                                 <button onClick={onClose} className="p-2 text-slate-500 hover:text-white transition-colors bg-white/5 rounded-full touch-target">
@@ -327,12 +351,18 @@ export function DepositModal({ isOpen, onClose }) {
                                         <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto">
                                             <ArrowUpRight size={32} className="text-emerald-500" />
                                         </div>
-                                        <h3 className="text-2xl font-black text-white">Deposit Confirmed</h3>
+                                        <h3 className="text-2xl font-black text-white italic">{isDemoMode ? 'Credits Replenished' : 'Deposit Confirmed'}</h3>
                                         <div className="space-y-2 text-sm">
-                                            <p className="text-slate-400">₦{success.amountNGN?.toLocaleString()} → <span className="text-emerald-400 font-bold">${success.credits?.toFixed(2)}</span> credited</p>
-                                            <p className="text-slate-500">New Balance: <span className="text-white font-bold">{formatValue(success.newBalance)}</span></p>
+                                            {isDemoMode ? (
+                                                <p className="text-slate-400">Practice balance reset to <span className="text-amber-400 font-bold">★50,000.00</span></p>
+                                            ) : (
+                                                <>
+                                                    <p className="text-slate-400">₦{success.amountNGN?.toLocaleString()} → <span className="text-emerald-400 font-bold">${success.credits?.toFixed(2)}</span> credited</p>
+                                                    <p className="text-slate-500">New Balance: <span className="text-white font-bold">{formatValue(success.newBalance)}</span></p>
+                                                </>
+                                            )}
                                         </div>
-                                        <button onClick={handleReset} className="mt-4 px-8 py-3 premium-btn-cyan rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full md:w-auto touch-target">
+                                        <button onClick={() => { handleReset(); onClose(); }} className="mt-4 px-8 py-3 premium-btn-cyan rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full md:w-auto touch-target">
                                             Done
                                         </button>
                                     </div>
@@ -410,11 +440,11 @@ export function DepositModal({ isOpen, onClose }) {
                                             </div>
                                         )}
                                         <button
-                                            onClick={handleDeposit}
-                                            disabled={isProcessing || !amountNGN || parseInt(amountNGN) < MIN_AMOUNT_NGN}
+                                            onClick={isDemoMode ? () => { resetDemoBalance(); setSuccess({ credits: 50000 }); } : handleDeposit}
+                                            disabled={isProcessing || (!isDemoMode && (!amountNGN || parseInt(amountNGN) < MIN_AMOUNT_NGN))}
                                             className={cn(
                                                 "w-full min-h-[56px] py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 mt-4",
-                                                isProcessing || parseInt(amountNGN) < MIN_AMOUNT_NGN
+                                                !isDemoMode && (isProcessing || parseInt(amountNGN) < MIN_AMOUNT_NGN)
                                                     ? "bg-slate-800 text-slate-600 cursor-not-allowed"
                                                     : "premium-btn-gold"
                                             )}
@@ -424,7 +454,7 @@ export function DepositModal({ isOpen, onClose }) {
                                                     <Wallet size={18} />
                                                 </motion.div>
                                             ) : (
-                                                <>Fund Wallet</>
+                                                <>{isDemoMode ? 'Replenish Practice Credits' : 'Fund Wallet'}</>
                                             )}
                                         </button>
                                         {paymentProvider === 'paystack' && !PAYSTACK_PUBLIC_KEY && (

@@ -109,9 +109,7 @@ function CompactEpochTracker() {
 export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, unreadCount, isNotifOpen, setNotifOpen }) {
     const { balance = 0, demoBalance = 0, isDemoMode, formatValue, currency, currentEpoch } = useStore();
 
-    const displayBalance = isDemoMode 
-        ? `★${demoBalance.toLocaleString()}` 
-        : (typeof formatValue === 'function' ? (currency === 'USD' ? `★${formatValue(balance).replace('$', '')}` : formatValue(balance)) : `$${balance.toLocaleString()}`);
+    const displayBalance = isDemoMode ? formatValue(demoBalance) : formatValue(balance);
 
     // Compact epoch display — just the countdown, no labels
     const epochLabel = currentEpoch ? `E${currentEpoch.epochId}` : null;
@@ -169,7 +167,7 @@ export default function MobileHeader({ onMenuClick, onFundClick, onNotifClick, u
                 <button
                     onClick={onFundClick}
                     className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 transition-all active:scale-95 shrink-0"
-                    title="Fund Wallet"
+                    title={isDemoMode ? "Reset Practice Balance" : "Fund Real Wallet"}
                 >
                     <PlusCircle size={16} />
                 </button>

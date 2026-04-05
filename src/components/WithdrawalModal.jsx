@@ -8,7 +8,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { WalletFundingContext } from './WalletFundingContext';
 
 export function WithdrawalModal({ isOpen, onClose }) {
-    const { user, balance, formatValue, fetchUserProfile } = useStore();
+    const { user, balance, formatValue, fetchUserProfile, isDemoMode, demoBalance } = useStore();
     const [step, setStep] = useState(1);
     const [amount, setAmount] = useState('');
     const [banks, setBanks] = useState([]);
@@ -86,6 +86,15 @@ export function WithdrawalModal({ isOpen, onClose }) {
     }, [accountNumber, selectedBank]);
 
     const handleSubmit = async () => {
+        if (isDemoMode) {
+            setSubmitting(true);
+            setTimeout(() => {
+                setSuccess(true);
+                useStore.setState({ demoBalance: demoBalance - parseFloat(amount) });
+                setSubmitting(false);
+            }, 1000);
+            return;
+        }
         setSubmitting(true);
         setError('');
         try {
@@ -111,8 +120,9 @@ export function WithdrawalModal({ isOpen, onClose }) {
 
     const numAmount = parseFloat(amount) || 0;
     const rate = useStore.getState().rates[useStore.getState().currency] || 1;
-    const balanceLocal = balance * rate;
-    const minBalanceLocal = 1.0 * rate;
+    const currentBalance = isDemoMode ? demoBalance : balance;
+    const balanceLocal = currentBalance * rate;
+    const minBalanceLocal = (isDemoMode ? 0 : 1.0) * rate;
     const isAmountValid = numAmount >= 100 && (balanceLocal - numAmount) >= minBalanceLocal;
 
     if (!isOpen) return null;
@@ -162,8 +172,8 @@ export function WithdrawalModal({ isOpen, onClose }) {
                     )}
 
                     <ModalHeader
-                        title={success ? 'Confirmed' : 'Withdraw'}
-                        sub={success ? 'Funds Transferred' : `Step ${step} of 3`}
+                        title={success ? (isDemoMode ? 'Simulated' : 'Confirmed') : (isDemoMode ? 'Withdraw Profit' : 'Withdraw')}
+                        sub={success ? (isDemoMode ? 'Practice Redemption Complete' : 'Funds Transferred') : `Step ${step} of 3`}
                     />
 
                     <div className="p-6 md:p-8 space-y-6">
@@ -172,10 +182,10 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                 <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto">
                                     <CheckCircle2 size={32} className="text-emerald-500" />
                                 </div>
-                                <h3 className="text-2xl font-black text-white italic">Withdrawal Initiated</h3>
+                                <h3 className="text-2xl font-black text-white italic">{isDemoMode ? 'Redemption Complete' : 'Withdrawal Initiated'}</h3>
                                 <div className="space-y-2 text-sm">
                                     <p className="text-slate-400">₦{numAmount.toLocaleString()} → <span className="text-white font-bold">{accountName}</span></p>
-                                    <p className="text-slate-500">Processing ETA: 24 Hours</p>
+                                    <p className="text-slate-500">{isDemoMode ? 'This was a practice simulation' : 'Processing ETA: 24 Hours'}</p>
                                 </div>
                                 <button onClick={onClose} className="mt-4 px-8 py-3 premium-btn-gold rounded-2xl font-black uppercase text-xs tracking-widest min-h-[48px] w-full touch-target hover:bg-white transition-all">
                                     Done
@@ -186,15 +196,15 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                 {step === 1 && (
                                     <div className="space-y-6">
                                         <div className="p-4 rounded-2xl bg-black/40 border border-white/5">
-                                            <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Available Capital</div>
-                                            <div className="text-2xl font-mono font-black text-white">{formatValue(balance)}</div>
+                                            <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{isDemoMode ? 'Practice Balance' : 'Available Capital'}</div>
+                                            <div className="text-2xl font-mono font-black text-white italic">{isDemoMode ? `★${demoBalance.toLocaleString()}` : formatValue(balance)}</div>
                                         </div>
 
                                         <WalletFundingContext />
 
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
-                                                <ArrowUpRight size={12} className="text-amber-500" /> Redemption Amount (NGN)
+                                                <ArrowUpRight size={12} className="text-amber-500" /> {isDemoMode ? 'Practice Redemption (NGN Equivalent)' : 'Redemption Amount (NGN)'}
                                             </label>
                                             <div className="relative">
                                                 <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-lg font-black">₦</span>
@@ -226,7 +236,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
 
                                         <div className="pt-2 text-center text-[10px] font-bold text-slate-500 uppercase flex items-center justify-center gap-1.5 italic">
                                             <Info size={12} className="text-slate-600 shrink-0" />
-                                            Redemption is permanent once confirmed.
+                                            {isDemoMode ? 'This is a simulated withdrawal for practice.' : 'Redemption is permanent once confirmed.'}
                                         </div>
 
                                         {error && (
@@ -326,7 +336,7 @@ export function WithdrawalModal({ isOpen, onClose }) {
                                     <div className="space-y-6">
                                         <div className="p-6 rounded-3xl bg-slate-950 border border-white/5 space-y-4">
                                             <div className="flex justify-between items-center pb-4 border-b border-white/5">
-                                                <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Redemption Total</span>
+                                                <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">{isDemoMode ? 'Practice Redemption' : 'Redemption Total'}</span>
                                                 <span className="text-lg font-mono font-black text-white italic">₦{numAmount.toLocaleString()}</span>
                                             </div>
                                             <div className="space-y-2">
@@ -347,7 +357,11 @@ export function WithdrawalModal({ isOpen, onClose }) {
 
                                         <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10">
                                             <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
-                                            <p className="text-[9px] text-amber-300/60 leading-relaxed font-bold uppercase">Critical: Verify account details. Incorrect hash inputs result in permanent capital loss. Transmission takes 24h.</p>
+                                            <p className="text-[9px] text-amber-300/60 leading-relaxed font-bold uppercase">
+                                                {isDemoMode 
+                                                    ? 'Practice Mode: This withdrawal will not affect your real-world bankroll. It is for simulation purposes only.' 
+                                                    : 'Critical: Verify account details. Incorrect hash inputs result in permanent capital loss. Transmission takes 24h.'}
+                                            </p>
                                         </div>
 
                                         <div className="flex gap-3">

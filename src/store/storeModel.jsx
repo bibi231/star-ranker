@@ -62,6 +62,20 @@ export const useStore = create((set, get) => ({
         }
     },
     setShowDemoConversion: (val) => set({ showDemoConversion: val }),
+    resetDemoBalance: async () => {
+        set({ demoBalance: 50000, demoStats: { stakesPlaced: 0, winsCount: 0, totalEarned: 0, winRate: 0 } });
+        if (get().user) {
+            try {
+                await apiPost('/api/demo/reset', {});
+                toast.success("Practice balance reset to ★50,000");
+            } catch (e) {
+                console.error("Failed to reset demo balance:", e);
+                toast.error("Failed to reset balance on server");
+            }
+        } else {
+            toast.success("Practice balance reset to ★50,000");
+        }
+    },
 
     // Currency System
     currency: 'USD',
@@ -97,11 +111,11 @@ export const useStore = create((set, get) => ({
     },
 
     formatValue: (val) => {
-        const { currency, currencySymbol, rates } = get();
+        const { currency, rates } = get();
         const num = Number(val) || 0;
         const converted = Math.max(0, num * (rates[currency] || 1));
         const decimals = currency === 'NGN' ? 0 : 2;
-        return `${currencySymbol}${converted.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+        return `★${converted.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
     },
 
     notifications: [],
