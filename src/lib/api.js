@@ -23,8 +23,9 @@ function resolveApiUrl() {
         const h = window.location.hostname;
         if (h === "localhost" || h === "127.0.0.1") return "http://localhost:3001";
     }
-    // Relative path for same-domain proxy (Vercel)
-    return "";
+    // Production fallback: API is hosted on Render. Set VITE_API_URL in Vercel
+    // env to override (e.g. when pointing at a staging Render service).
+    return "https://star-ranker.onrender.com";
 }
 
 export const API_URL = resolveApiUrl();

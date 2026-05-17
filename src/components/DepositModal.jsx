@@ -218,7 +218,8 @@ export function DepositModal({ isOpen, onClose }) {
                                                     <div className="flex gap-2 p-1 bg-slate-950 border border-white/5 rounded-2xl">
                                                         {[
                                                             { id: 'paystack', label: 'Paystack' },
-                                                            { id: 'flutterwave', label: 'Flutterwave' },
+                                                            // Flutterwave kept on backend but hidden until live key configured
+                                                            ...(FLUTTERWAVE_PUBLIC_KEY ? [{ id: 'flutterwave', label: 'Flutterwave' }] : []),
                                                         ].map((p) => (
                                                             <button
                                                                 key={p.id}
