@@ -3,20 +3,36 @@
     "buildCommand": "vite build",
     "outputDirectory": "dist",
     "framework": "vite",
+    "cleanUrls": true,
+    "trailingSlash": false,
     "rewrites": [
         {
-            "source": "/api/(.*)",
-            "destination": "/api/index.ts"
-        },
-        {
-            "source": "/(.*)",
+            "source": "/((?!api|assets|_next|favicon|robots|sitemap|og-image|logo-|icon-|apple-touch-icon|site\\.webmanifest).*)",
             "destination": "/index.html"
         }
     ],
-    "crons": [
+    "headers": [
         {
-            "path": "/api/sync",
-            "schedule": "*/5 * * * *"
+            "source": "/assets/(.*)",
+            "headers": [
+                { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+            ]
+        },
+        {
+            "source": "/(.*)\\.(png|jpg|jpeg|webp|svg|ico|woff2|woff|ttf)",
+            "headers": [
+                { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+            ]
+        },
+        {
+            "source": "/(.*)",
+            "headers": [
+                { "key": "X-Content-Type-Options", "value": "nosniff" },
+                { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+                { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+                { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+                { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
+            ]
         }
     ]
 }
