@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://star-ranker.vercel.app/sitemap.xml
+<!-- redeploy trigger 2026-05-18T06:12:08Z -->
