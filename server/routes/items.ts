@@ -75,8 +75,10 @@ async function listItemsByCategory(req: any, res: any) {
 // Two routes pointing at the same handler
 router.get("/", listItemsByCategory);
 router.get("/category/:slug", (req, res) => {
-    req.query.category = req.params.slug;
-    return listItemsByCategory(req, res);
+    // Express 5 made req.query immutable; pass a shallow proxy instead
+    const proxiedReq = Object.create(req);
+    proxiedReq.query = { ...req.query, category: req.params.slug };
+    return listItemsByCategory(proxiedReq, res);
 });
 
 // GET /api/items/movers?categoryId=X&type=gainers|losers|sleepers
