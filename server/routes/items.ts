@@ -75,10 +75,18 @@ async function listItemsByCategory(req: any, res: any) {
 // Two routes pointing at the same handler
 router.get("/", listItemsByCategory);
 router.get("/category/:slug", (req, res) => {
-    // Express 5 made req.query immutable; pass a shallow proxy instead
-    const proxiedReq = Object.create(req);
-    proxiedReq.query = { ...req.query, category: req.params.slug };
-    return listItemsByCategory(proxiedReq, res);
+    // Express 5 froze req.query (getter-only). Build a plain object that
+    // mimics the parts of req that listItemsByCategory reads, then delegate.
+    const fakeReq: any = {
+        query: { ...req.query, category: req.params.slug },
+        params: req.params,
+        headers: req.headers,
+        method: req.method,
+        url: req.url,
+        body: (req as any).body,
+        user: (req as any).user,
+    };
+    return listItemsByCategory(fakeReq, res);
 });
 
 // GET /api/items/movers?categoryId=X&type=gainers|losers|sleepers
