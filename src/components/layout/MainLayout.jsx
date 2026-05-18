@@ -131,8 +131,13 @@ export function MainLayout() {
                 isSidebarOpen ? "w-64" : "w-16"
             )}>
                 {/* Brand */}
-                <div className="h-24 flex items-center px-8 shrink-0 cursor-pointer" onClick={() => navigate('/')} data-tour="header-logo">
-                    <img src={isSidebarOpen ? "/assets/logo-horizontal.png" : "/assets/logo-horizontal.png"} alt="Star Ranker" className={cn("transition-all duration-300 drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]", isSidebarOpen ? "h-22 w-auto" : "h-14 w-auto")} />
+                <div className="h-16 flex items-center px-6 shrink-0 cursor-pointer" onClick={() => navigate('/')} data-tour="header-logo">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-[#0B0F1E] font-black text-lg shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                        ★
+                    </div>
+                    {isSidebarOpen && (
+                        <span className="ml-3 font-black text-white tracking-[0.2em] text-xs uppercase">Star Ranker</span>
+                    )}
                 </div>
 
                 {/* Sidebar Demo Toggle */}
@@ -263,18 +268,21 @@ export function MainLayout() {
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                             className="fixed top-0 left-0 bottom-0 w-72 z-[130] glass-panel border-r border-brand-accent/20 flex flex-col md:hidden"
                         >
-                            <div className="h-32 flex flex-col justify-center px-8 border-b border-white/5 bg-slate-950/20">
+                            <div className="px-6 py-4 border-b border-white/5 bg-slate-950/20 space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <img src="/assets/logo.png" alt="Star Ranker" className="h-16 w-auto drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
+                                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => { navigate('/'); setIsMobileMenuOpen(false); }}>
+                                        <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-[#0B0F1E] font-black text-lg shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                                            ★
+                                        </div>
+                                        <span className="font-black text-white tracking-[0.2em] text-xs uppercase">Star Ranker</span>
                                     </div>
                                     <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-500"><X size={24} /></button>
                                 </div>
-                                <div className="mt-2" data-tour="demo-toggle">
+                                <div data-tour="demo-toggle">
                                     <DemoModeToggle />
                                 </div>
                                 {/* Mobile Currency Switcher */}
-                                <div className="mt-3 flex items-center gap-2">
+                                <div className="flex items-center gap-2">
                                     <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] shrink-0">Currency</span>
                                     <div className="flex bg-slate-950 border border-[#1E3A5F]/30 rounded p-0.5 flex-1">
                                         {['USD', 'NGN', 'EUR', 'GBP'].map(code => (
