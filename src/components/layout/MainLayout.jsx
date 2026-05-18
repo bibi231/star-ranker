@@ -98,7 +98,7 @@ export function MainLayout() {
             className={({ isActive }) => cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative",
                 isActive
-                    ? "bg-[#1E3A5F]/50 text-brand-accent border border-brand-accent/20"
+                    ? "bg-brand-accent/10 text-brand-accent border border-brand-accent/20"
                     : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent",
                 compact && "justify-center px-0"
             )}
@@ -124,7 +124,7 @@ export function MainLayout() {
     );
 
     return (
-        <div className="flex h-screen bg-[#020617] noise-bg text-slate-200 overflow-hidden font-sans">
+        <div className="flex h-screen bg-[#0B0F1E] noise-bg text-slate-200 overflow-hidden font-sans">
             {/* Desktop Sidebar */}
             <aside className={cn(
                 "hidden md:flex flex-col glass-panel border-r border-[#1E3A5F]/30 transition-all duration-300 relative z-[110]",
@@ -242,7 +242,7 @@ export function MainLayout() {
                             {isSidebarOpen && <span className="text-[9px] font-bold uppercase tracking-widest">Sign Out</span>}
                         </button>
                     ) : (
-                        <button onClick={() => navigate('/signin')} className="w-full py-3 rounded-xl bg-brand-accent text-[#0D1B2A] font-black text-[10px] uppercase tracking-widest">
+                        <button onClick={() => navigate('/signin')} className="w-full py-3 rounded-xl bg-brand-accent text-white font-black text-[10px] uppercase tracking-widest">
                             Connect Identity
                         </button>
                     )}
@@ -378,7 +378,7 @@ export function MainLayout() {
                                         Disconnect
                                     </button>
                                 ) : (
-                                    <button onClick={() => { navigate('/signin'); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl bg-brand-accent text-[#0D1B2A] font-black uppercase text-xs tracking-widest">
+                                    <button onClick={() => { navigate('/signin'); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl bg-brand-accent text-white font-black uppercase text-xs tracking-widest">
                                         Connect Identity
                                     </button>
                                 )}
@@ -411,7 +411,7 @@ export function MainLayout() {
                                     if (location.pathname !== '/markets') navigate('/markets');
                                 }}
                                 placeholder="Search markets (Cmd+K)..."
-                                className="w-full bg-[#020617]/50 border border-[#1E3A5F]/50 rounded-xl pl-11 pr-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-accent/50 focus:bg-[#020617] transition-all font-medium tracking-wide"
+                                className="w-full bg-[#0B0F1E]/50 border border-slate-700/50 rounded-xl pl-11 pr-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-accent/50 focus:bg-[#0B0F1E] transition-all font-medium tracking-wide"
                             />
                         </div>
                         {/* Search icon button on md (opens search on click) */}

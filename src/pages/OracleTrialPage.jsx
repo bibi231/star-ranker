@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, Reorder, AnimatePresence } from 'framer-motion';
 import { Shield, Brain, Star, CheckCircle2, ChevronRight, Loader2, Sparkles, Trophy, RotateCcw } from 'lucide-react';
 import { apiGet, apiPost } from '../lib/api';
+import ItemImage from '../components/ItemImage';
 import toast from 'react-hot-toast';
 
 export function OracleTrialPage() {
@@ -57,7 +58,7 @@ export function OracleTrialPage() {
     }
 
     return (
-        <div className="min-h-full bg-[#020617] p-6 lg:p-12 max-w-4xl mx-auto space-y-12">
+        <div className="min-h-full bg-[#0B0F1E] p-6 lg:p-12 max-w-4xl mx-auto space-y-12">
              {/* Header */}
              <div className="text-center space-y-4">
                 <div className="inline-flex items-center gap-3 bg-brand-accent/5 border border-brand-accent/20 px-4 py-2 rounded-2xl">
@@ -88,12 +89,10 @@ export function OracleTrialPage() {
                         <Reorder.Item 
                             key={item.id} 
                             value={item}
-                            className="bg-[#0D1B2A] border border-[#1E3A5F]/30 p-5 rounded-3xl flex items-center justify-between group cursor-grab active:cursor-grabbing hover:border-brand-accent/50 transition-all"
+                            className="bg-[#111827] border border-slate-700/30 p-5 rounded-3xl flex items-center justify-between group cursor-grab active:cursor-grabbing hover:border-brand-accent/50 transition-all"
                         >
                             <div className="flex items-center gap-6">
-                                <div className="w-16 h-16 rounded-2xl overflow-hidden border border-white/5 bg-slate-900 group-hover:border-brand-accent transition-all shadow-xl">
-                                    <img src={item.imageUrl || '/assets/placeholder.png'} className="w-full h-full object-cover" alt="" />
-                                </div>
+                                <ItemImage src={item.imageUrl} name={item.name} size={64} rounded="rounded-2xl" className="group-hover:border-brand-accent transition-all shadow-xl" />
                                 <div className="space-y-1">
                                     <h3 className="text-lg font-black text-white uppercase group-hover:text-brand-accent transition-colors">{item.name}</h3>
                                     <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Unknown Market Value</span>
@@ -115,7 +114,7 @@ export function OracleTrialPage() {
                 <button 
                     onClick={handleSubmit}
                     disabled={submitting}
-                    className="group relative bg-brand-accent text-[#0D1B2A] px-12 py-5 rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(56,189,248,0.2)] hover:scale-105 active:scale-95 transition-all overflow-hidden"
+                    className="group relative bg-brand-accent text-white px-12 py-5 rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(139,92,246,0.2)] hover:scale-105 active:scale-95 transition-all overflow-hidden"
                 >
                     <div className="flex items-center gap-4 relative z-10">
                         {submitting ? <Loader2 size={18} className="animate-spin" /> : <Shield size={18} strokeWidth={3} />}
@@ -129,7 +128,7 @@ export function OracleTrialPage() {
 
 function TrialResults({ results, onReset }) {
     return (
-        <div className="min-h-full bg-[#020617] p-6 lg:p-12 max-w-4xl mx-auto space-y-12">
+        <div className="min-h-full bg-[#0B0F1E] p-6 lg:p-12 max-w-4xl mx-auto space-y-12">
             <header className="text-center space-y-4">
                  <motion.div 
                     initial={{ scale: 0.8, opacity: 0 }}

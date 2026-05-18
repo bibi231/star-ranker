@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Swords, Plus, Timer, Users, Trophy, ChevronRight, TrendingUp, Search, Loader2 } from 'lucide-react';
 import { apiGet, apiPost } from '../lib/api';
 import { useStore } from '../store/storeModel';
+import ItemImage from '../components/ItemImage';
 import toast from 'react-hot-toast';
 
 export function OracleBattles() {
@@ -37,9 +38,9 @@ export function OracleBattles() {
     };
 
     return (
-        <div className="min-h-full bg-[#020617] p-6 lg:p-12 space-y-12">
+        <div className="min-h-full bg-[#0B0F1E] p-6 lg:p-12 space-y-12">
             {/* Hero Section */}
-            <header className="relative py-12 px-8 rounded-3xl bg-gradient-to-br from-[#0D1B2A] to-[#020617] border border-[#1E3A5F]/30 overflow-hidden">
+            <header className="relative py-12 px-8 rounded-3xl bg-gradient-to-br from-[#111827] to-[#0B0F1E] border border-slate-700/30 overflow-hidden">
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-brand-accent/5 blur-[120px] pointer-events-none" />
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                     <div className="space-y-4">
@@ -57,7 +58,7 @@ export function OracleBattles() {
                     </div>
                     <button 
                         onClick={() => setShowCreateModal(true)}
-                        className="group flex items-center gap-4 bg-brand-accent text-[#0D1B2A] px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_rgba(56,189,248,0.2)]"
+                        className="group flex items-center gap-4 bg-brand-accent text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_rgba(139,92,246,0.2)]"
                     >
                         <Plus size={18} strokeWidth={3} /> Create Battle (100 Rep)
                     </button>
@@ -122,7 +123,7 @@ function BattleCard({ battle, onVote }) {
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="group relative bg-[#0D1B2A] border border-[#1E3A5F]/30 rounded-3xl p-6 overflow-hidden transition-all hover:border-brand-accent/30"
+            className="group relative bg-[#111827] border border-slate-700/30 rounded-3xl p-6 overflow-hidden transition-all hover:border-brand-accent/30"
         >
             <div className="flex justify-between items-start mb-8">
                 <div className="space-y-1">
@@ -148,7 +149,7 @@ function BattleCard({ battle, onVote }) {
             <div className="grid grid-cols-2 gap-4 relative">
                 {/* VS Overlay */}
                 <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center z-10 pointer-events-none">
-                    <div className="w-10 h-10 rounded-full bg-[#0D1B2A] border border-[#1E3A5F]/50 flex items-center justify-center shadow-xl">
+                    <div className="w-10 h-10 rounded-full bg-[#111827] border border-slate-700/50 flex items-center justify-center shadow-xl">
                         <span className="text-[10px] font-black text-brand-accent italic">VS</span>
                     </div>
                 </div>
@@ -156,7 +157,7 @@ function BattleCard({ battle, onVote }) {
                 {/* Item A */}
                 <div className="space-y-4">
                     <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/5 hover:border-brand-accent group-hover:shadow-[0_0_20px_rgba(56,189,248,0.1)] transition-all">
-                        <img src={battle.itemA?.imageUrl || '/assets/placeholder.png'} className="w-full h-full object-cover" alt="" />
+                        <ItemImage src={battle.itemA?.imageUrl} name={battle.itemA?.name || 'A'} size={200} rounded="rounded-none" className="!w-full !h-full !border-0" />
                         <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                             <div className="text-[10px] font-black text-white truncate">{battle.itemA?.name}</div>
                         </div>
@@ -172,7 +173,7 @@ function BattleCard({ battle, onVote }) {
                 {/* Item B */}
                 <div className="space-y-4">
                     <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/5 hover:border-brand-accent transition-all">
-                        <img src={battle.itemB?.imageUrl || '/assets/placeholder.png'} className="w-full h-full object-cover" alt="" />
+                        <ItemImage src={battle.itemB?.imageUrl} name={battle.itemB?.name || 'B'} size={200} rounded="rounded-none" className="!w-full !h-full !border-0" />
                         <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                             <div className="text-[10px] font-black text-white truncate">{battle.itemB?.name}</div>
                         </div>
@@ -231,12 +232,12 @@ function CreateBattleModal({ onClose, onCreated }) {
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 lg:p-12">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-[#020617]/95 backdrop-blur-xl" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-[#0B0F1E]/95 backdrop-blur-xl" />
             <motion.div 
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-2xl bg-[#0D1B2A] border border-[#1E3A5F]/50 rounded-[40px] p-10 overflow-hidden"
+                className="relative w-full max-w-2xl bg-[#111827] border border-slate-700/50 rounded-[40px] p-10 overflow-hidden"
             >
                 <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
                     <Swords size={200} />
@@ -249,17 +250,17 @@ function CreateBattleModal({ onClose, onCreated }) {
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-brand-accent uppercase tracking-widest">Duel Title</label>
-                            <input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. The AI Arms Race" className="w-full bg-[#020617] border border-[#1E3A5F]/30 rounded-2xl p-4 text-xs text-white focus:border-brand-accent outline-none" />
+                            <input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. The AI Arms Race" className="w-full bg-[#0B0F1E] border border-slate-700/30 rounded-2xl p-4 text-xs text-white focus:border-brand-accent outline-none" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-brand-accent uppercase tracking-widest">Arena Closing Date</label>
-                            <input type="date" value={endsAt} onChange={e => setEndsAt(e.target.value)} className="w-full bg-[#020617] border border-[#1E3A5F]/30 rounded-2xl p-4 text-xs text-white focus:border-brand-accent outline-none" />
+                            <input type="date" value={endsAt} onChange={e => setEndsAt(e.target.value)} className="w-full bg-[#0B0F1E] border border-slate-700/30 rounded-2xl p-4 text-xs text-white focus:border-brand-accent outline-none" />
                         </div>
                     </div>
 
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-brand-accent uppercase tracking-widest">The Deciding Question</label>
-                        <input value={question} onChange={e => setQuestion(e.target.value)} placeholder="Which oracle will dominate public sentiment by next week?" className="w-full bg-[#020617] border border-[#1E3A5F]/30 rounded-2xl p-4 text-xs text-white focus:border-brand-accent outline-none" />
+                        <input value={question} onChange={e => setQuestion(e.target.value)} placeholder="Which oracle will dominate public sentiment by next week?" className="w-full bg-[#0B0F1E] border border-slate-700/30 rounded-2xl p-4 text-xs text-white focus:border-brand-accent outline-none" />
                     </div>
 
                     <div className="grid grid-cols-2 gap-6 pb-4">
@@ -281,7 +282,7 @@ function CreateBattleModal({ onClose, onCreated }) {
 
                     <button 
                         disabled={loading}
-                        className="w-full h-16 rounded-2xl bg-brand-accent text-[#0D1B2A] font-black uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(56,189,248,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                        className="w-full h-16 rounded-2xl bg-brand-accent text-white font-black uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(139,92,246,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
                     >
                         {loading ? <Loader2 className="animate-spin mx-auto" /> : "Initiate Duel"}
                     </button>

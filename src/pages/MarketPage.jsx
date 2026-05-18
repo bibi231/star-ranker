@@ -54,7 +54,7 @@ export function MarketPage() {
     const activeCategory = categories.find(c => c.slug === currentCategorySlug) || categories[0];
 
     return (
-        <div className="min-h-screen bg-[#020617] flex flex-col pt-4">
+        <div className="min-h-screen bg-[#0B0F1E] flex flex-col pt-4">
             {/* Context Navigation */}
             <div className="px-8 mb-8">
                 <div className="flex flex-wrap items-center gap-2 mb-6 p-1 bg-slate-950 border border-slate-800 rounded-2xl w-fit">

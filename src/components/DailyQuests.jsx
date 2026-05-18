@@ -49,7 +49,7 @@ export function DailyQuests() {
     const allDone = quests.every(q => q.done);
 
     return (
-        <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-[#0D1B2A] to-[#020617] border border-[#1E3A5F]/30 shadow-2xl relative overflow-hidden group">
+        <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-[#111827] to-[#0B0F1E] border border-slate-700/30 shadow-2xl relative overflow-hidden group">
             {/* Background Glow */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/5 blur-3xl pointer-events-none group-hover:bg-brand-accent/10 transition-all duration-700" />
             

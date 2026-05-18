@@ -38,7 +38,7 @@ function applyTheme(actual) {
         meta.setAttribute('name', 'theme-color');
         document.head.appendChild(meta);
     }
-    meta.setAttribute('content', actual === 'light' ? '#FFFBEB' : '#020617');
+    meta.setAttribute('content', actual === 'light' ? '#FAFAF9' : '#0B0F1E');
 }
 
 export function useTheme() {

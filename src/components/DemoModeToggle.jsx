@@ -42,14 +42,14 @@ export const DemoModeToggle = () => {
                         </button>
                     </div>
                 </div>
-            ), { duration: 5000, style: { background: '#020617', border: '1px solid #1e293b' } });
+            ), { duration: 5000, style: { background: '#0B0F1E', border: '1px solid #1e293b' } });
         }
 
         setDemoMode(newMode);
         toast.success(newMode ? "Simulated Protocol: Practice Active" : "Operational Mode: Live Deployment", {
             icon: newMode ? <Cpu className="text-amber-500" /> : <Activity className="text-brand-accent" />,
             style: {
-                background: '#020617',
+                background: '#0B0F1E',
                 color: '#fff',
                 border: `1px solid ${newMode ? '#f59e0b' : '#38bdf8'}`,
                 fontSize: '11px',
