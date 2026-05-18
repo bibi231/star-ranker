@@ -4,9 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/png" href="/favicon.png" />
-  
   <link rel="apple-touch-icon" href="/favicon.png" />
-  <link rel="manifest" href="/site.webmanifest" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#020617" />
   <meta name="color-scheme" content="dark" />
@@ -15,8 +13,6 @@
   <title>Star Ranker | Real-Time Cultural Prediction Markets</title>
   <meta name="description"
     content="Vote, rank, and stake on prediction markets across crypto, music, sports, fashion, games, and more. Live oracle-verified rankings with Anomalous Velocity Detection protection." />
-  <meta name="keywords" content="prediction markets, cultural rankings, crypto rankings, oracle network, staking, polymarket alternative, kalshi alternative, decentralized prediction, Nigeria betting markets, paystack" />
-  <meta name="author" content="Star Ranker Technologies" />
   <meta name="robots" content="index,follow,max-image-preview:large" />
   <link rel="canonical" href="https://star-ranker.vercel.app/" />
 
@@ -24,75 +20,33 @@
   <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://www.googletagmanager.com" />
-  <link rel="dns-prefetch" href="https://api.coingecko.com" />
-  <link rel="dns-prefetch" href="https://api.paystack.co" />
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Star Ranker" />
   <meta property="og:title" content="Star Ranker | Real-Time Cultural Prediction Markets" />
   <meta property="og:description"
-    content="Vote, rank, and stake on prediction markets across crypto, music, sports, fashion, games, and more. Live oracle-verified rankings with AVD protection." />
+    content="Vote, rank, and stake on prediction markets across crypto, music, sports, fashion, games, and more." />
   <meta property="og:url" content="https://star-ranker.vercel.app/" />
   <meta property="og:image" content="https://star-ranker.vercel.app/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Star Ranker — Real-Time Cultural Prediction Markets" />
-  <meta property="og:locale" content="en_US" />
-
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Star Ranker | Real-Time Cultural Prediction Markets" />
-  <meta name="twitter:description"
-    content="Vote, rank, and stake on prediction markets across crypto, music, sports, fashion, games, and more." />
+  <meta name="twitter:title" content="Star Ranker" />
+  <meta name="twitter:description" content="Real-Time Cultural Prediction Markets" />
   <meta name="twitter:image" content="https://star-ranker.vercel.app/og-image.png" />
-  <meta name="twitter:image:alt" content="Star Ranker — Real-Time Cultural Prediction Markets" />
-
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        { "@type": "WebApplication", "@id": "https://star-ranker.vercel.app/#app",
-          "name": "Star Ranker", "url": "https://star-ranker.vercel.app",
-          "description": "Real-time cultural prediction market platform.",
-          "applicationCategory": "Entertainment", "applicationSubCategory": "Prediction Market",
-          "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } },
-        { "@type": "Organization", "@id": "https://star-ranker.vercel.app/#org",
-          "name": "Star Ranker Technologies", "url": "https://star-ranker.vercel.app",
-          "logo": "https://star-ranker.vercel.app/logo-stacked.png" },
-        { "@type": "WebSite", "@id": "https://star-ranker.vercel.app/#website",
-          "url": "https://star-ranker.vercel.app", "name": "Star Ranker",
-          "publisher": { "@id": "https://star-ranker.vercel.app/#org" },
-          "inLanguage": "en-US",
-          "potentialAction": { "@type": "SearchAction",
-            "target": "https://star-ranker.vercel.app/markets?q={search_term_string}",
-            "query-input": "required name=search_term_string" } }
-      ]
-    }
-  </script>
 
   <script>
     window.addEventListener('load', function () {
       (function (w, d, s, l, i) {
         w[l] = w[l] || [];
         w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-        var f = d.getElementsByTagName(s)[0],
-          j = d.createElement(s),
+        var f = d.getElementsByTagName(s)[0], j = d.createElement(s),
           dl = l != 'dataLayer' ? '&l=' + l : '';
-        j.async = true;
-        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+        j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
         f.parentNode.insertBefore(j, f);
       })(window, document, 'script', 'dataLayer', 'GTM-KXS5GBQL');
     });
   </script>
-
-  <style>
-    html, body { margin: 0; padding: 0; background: #020617; color: #e2e8f0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-    #root:empty::before {
-      content: ""; position: fixed; inset: 0;
-      background: radial-gradient(ellipse at center, #0b1a2f 0%, #020617 70%) center/cover, url('/logo-stacked.png') no-repeat center / 96px 96px;
-      opacity: 0.85; animation: sr-pulse 1.4s ease-in-out infinite alternate;
-    }
-    @keyframes sr-pulse { from { opacity: 0.55 } to { opacity: 1 } }
-  </style>
 </head>
 
 <body>

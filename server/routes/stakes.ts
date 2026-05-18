@@ -95,7 +95,7 @@ function generateOddsQuote(
 }
 
 // GET /api/stakes/odds — Get live odds quote
-router.get("/odds", [requireAuth, requireStakeAccess], async (req: AuthRequest, res: any) => {
+router.get("/odds", async (req: any, res: any) => {
     try {
         console.log("[STAKE_ODDS] Request Query:", req.query);
         const { itemDocId, amount, target, categorySlug, betType } = req.query;
@@ -151,16 +151,18 @@ router.get("/odds", [requireAuth, requireStakeAccess], async (req: AuthRequest, 
             parseFloat(amount as string)
         );
 
-        // Update quest progress
-        try {
-            await db.execute(sql`
-                INSERT INTO daily_quests (user_id, quest_date, staked_today)
-                VALUES (${req.uid}, CURRENT_DATE, true)
-                ON CONFLICT (user_id, quest_date)
-                DO UPDATE SET staked_today = true
-            `);
-        } catch (questErr) {
-            console.error("Stake quest update failed:", questErr);
+        // Update quest progress only if user is identified
+        if ((req as any).uid) {
+            try {
+                await db.execute(sql`
+                    INSERT INTO daily_quests (user_id, quest_date, staked_today)
+                    VALUES (${(req as any).uid}, CURRENT_DATE, true)
+                    ON CONFLICT (user_id, quest_date)
+                    DO UPDATE SET staked_today = true
+                `);
+            } catch (questErr) {
+                console.error("Stake quest update failed:", questErr);
+            }
         }
 
         res.json(quote);

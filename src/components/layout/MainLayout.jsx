@@ -47,7 +47,6 @@ import BottomNav from '../BottomNav';
 import MobileHeader from '../MobileHeader';
 import { Footer } from './Footer';
 import { DemoModeToggle } from '../DemoModeToggle';
-import ThemeToggle from '../ThemeToggle';
 import { OnboardingTour } from '../onboarding/OnboardingTour';
 import { DemoConversionModal } from '../DemoConversionModal';
 import { TierBadge } from '../TierBadge';
@@ -141,12 +140,7 @@ export function MainLayout() {
                     <DemoModeToggle />
                 </div>
 
-                {/* Theme toggle */}
-                {isSidebarOpen && (
-                    <div className="px-6 mb-3">
-                        <ThemeToggle />
-                    </div>
-                )}
+
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-4">
                     <NavSection title="TERMINAL" compact={!isSidebarOpen}>
