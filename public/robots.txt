@@ -3,3 +3,4 @@ Allow: /
 
 Sitemap: https://star-ranker.vercel.app/sitemap.xml
 <!-- redeploy trigger 2026-05-18T06:12:08Z -->
+<!-- redeploy after reconnect 2026-05-18T06:16:42Z -->
