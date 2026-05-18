@@ -1,23 +1,58 @@
 import { useState, useMemo } from 'react';
-import { Star } from 'lucide-react';
 
 /**
  * ItemImage — robust market-item avatar.
- * - Lazy-loads (loading="lazy", decoding="async")
- * - Falls back through: provided src → Google s2 favicon → Star icon
- * - Never shows a broken-image icon
+ *
+ * Fallback chain:
+ *   1. Provided src (with onError handling)
+ *   2. Google s2 favicon by guessed domain
+ *   3. Letter avatar — first character of name on a deterministic color
+ *
+ * Lazy-loaded, async-decoded, never shows a broken-image icon.
  *
  * Props:
  *   src       : preferred URL (string | null/undefined)
- *   name      : item display name (used for favicon-fallback domain guess + alt)
+ *   name      : item display name (used for favicon guess + letter avatar + alt)
  *   size      : px (default 40)
  *   rounded   : tailwind rounded class (default 'rounded-xl')
  *   className : extra wrapper classes
  */
-export default function ItemImage({ src, name = '', size = 40, rounded = 'rounded-xl', className = '' }) {
-    const [stage, setStage] = useState('primary'); // primary | fallback | icon
 
-    const fallbackUrl = useMemo(() => {
+const LETTER_PALETTE = [
+    { bg: '#1E293B', fg: '#FCD34D' }, // amber on slate
+    { bg: '#0F172A', fg: '#22D3EE' }, // cyan on dark
+    { bg: '#1E1B4B', fg: '#A78BFA' }, // violet on indigo
+    { bg: '#064E3B', fg: '#34D399' }, // emerald
+    { bg: '#7F1D1D', fg: '#FCA5A5' }, // rose
+    { bg: '#78350F', fg: '#FDBA74' }, // orange
+    { bg: '#164E63', fg: '#67E8F9' }, // sky
+    { bg: '#3B0764', fg: '#D8B4FE' }, // purple
+    { bg: '#365314', fg: '#BEF264' }, // lime
+    { bg: '#581C87', fg: '#F0ABFC' }, // fuchsia
+];
+
+function hashStr(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return Math.abs(h);
+}
+
+function pickPalette(name) {
+    if (!name) return LETTER_PALETTE[0];
+    return LETTER_PALETTE[hashStr(name) % LETTER_PALETTE.length];
+}
+
+function getInitial(name) {
+    if (!name) return '?';
+    // Pick the first alphanumeric character we find — supports unicode latin range
+    const m = String(name).trim().match(/[A-Za-z0-9]/);
+    return (m ? m[0] : String(name)[0] || '?').toUpperCase();
+}
+
+export default function ItemImage({ src, name = '', size = 40, rounded = 'rounded-xl', className = '' }) {
+    const [stage, setStage] = useState('primary'); // primary | favicon | letter
+
+    const cleanedDomain = useMemo(() => {
         const cleaned = (name || '')
             .toLowerCase()
             .replace(/&/g, 'and')
@@ -25,20 +60,24 @@ export default function ItemImage({ src, name = '', size = 40, rounded = 'rounde
             .replace(/\b(inc|llc|corp|corporation|company|co|ltd|limited|the)\b/g, '')
             .trim()
             .replace(/\s+/g, '');
-        if (!cleaned) return null;
-        return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(cleaned + '.com')}&sz=128`;
+        return cleaned || null;
     }, [name]);
 
+    const faviconUrl = cleanedDomain ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(cleanedDomain + '.com')}&sz=128` : null;
+
     const wrapperStyle = { width: size, height: size };
+    const { bg, fg } = pickPalette(name);
+    const initial = getInitial(name);
 
     let imgSrc = null;
     if (stage === 'primary' && src) imgSrc = src;
-    else if (stage === 'fallback' && fallbackUrl) imgSrc = fallbackUrl;
+    else if (stage === 'favicon' && faviconUrl) imgSrc = faviconUrl;
 
     return (
         <div
-            style={wrapperStyle}
-            className={`bg-slate-950 border border-slate-800 ${rounded} flex items-center justify-center overflow-hidden relative shrink-0 ${className}`}
+            style={{ ...wrapperStyle, ...(imgSrc ? {} : { background: bg }) }}
+            className={`${imgSrc ? 'bg-slate-950' : ''} border border-slate-800 ${rounded} flex items-center justify-center overflow-hidden relative shrink-0 ${className}`}
+            aria-label={name || ''}
         >
             {imgSrc ? (
                 <img
@@ -47,10 +86,15 @@ export default function ItemImage({ src, name = '', size = 40, rounded = 'rounde
                     loading="lazy"
                     decoding="async"
                     className="w-full h-full object-cover opacity-90"
-                    onError={() => setStage((s) => (s === 'primary' ? 'fallback' : 'icon'))}
+                    onError={() => setStage((s) => (s === 'primary' ? 'favicon' : 'letter'))}
                 />
             ) : (
-                <Star size={Math.round(size * 0.4)} className="text-slate-700" aria-hidden="true" />
+                <span
+                    aria-hidden="true"
+                    style={{ color: fg, fontSize: Math.round(size * 0.46), fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1, fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif' }}
+                >
+                    {initial}
+                </span>
             )}
         </div>
     );
