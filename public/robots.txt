@@ -1,6 +1,23 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /health
+Disallow: /dashboard
+Disallow: /portfolio
+Disallow: /settings
+Disallow: /profile/me
+Disallow: /notifications
+
+User-agent: GPTBot
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /portfolio
+
+User-agent: CCBot
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /portfolio
 
 Sitemap: https://star-ranker.vercel.app/sitemap.xml
-// freshly post-permission grant push 2026-05-18T06:58:41Z
-
+Host: https://star-ranker.vercel.app
