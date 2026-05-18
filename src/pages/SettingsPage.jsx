@@ -17,6 +17,8 @@ import {
     Save
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import ThemeToggle from '../components/ThemeToggle';
+import { Palette } from 'lucide-react';
 import { isSuperAdminEmail } from '../lib/superAdmins.js';
 
 export function SettingsPage() {
@@ -33,6 +35,7 @@ export function SettingsPage() {
 
     const sections = [
         { id: 'account', label: 'Identity & Profile', icon: <User size={16} /> },
+        { id: 'appearance', label: 'Appearance', icon: <Palette size={16} /> },
         { id: 'security', label: 'Security & Access', icon: <Lock size={16} /> },
         { id: 'notifications', label: 'Alert Protocols', icon: <Bell size={16} /> },
         { id: 'wallet', label: 'Capital Control', icon: <Wallet size={16} /> },
@@ -72,6 +75,9 @@ export function SettingsPage() {
 
                 {/* Main Content */}
                 <main className="lg:col-span-3 space-y-8">
+                    {activeSection === 'appearance' && (
+                        <AppearanceSettings />
+                    )}
                     {activeSection === 'account' && (
                         <AccountSettings
                             user={user}
@@ -427,6 +433,21 @@ function ToggleOption({ icon, title, desc, active, onChange }) {
                     active ? "left-7" : "left-1"
                 )} />
             </button>
+        </div>
+    );
+}
+
+function AppearanceSettings() {
+    return (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <SectionHeader title="Appearance" icon={<Palette size={18} />} desc="Choose how Star Ranker looks. Auto-detects system preference by default." />
+            <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 space-y-6">
+                <div className="space-y-2">
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Theme</p>
+                    <p className="text-xs text-slate-400">Light mode is in beta — some surfaces may still skew dark.</p>
+                </div>
+                <ThemeToggle />
+            </div>
         </div>
     );
 }

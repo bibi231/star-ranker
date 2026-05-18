@@ -20,6 +20,10 @@ import { RankingTable } from '../components/RankingTable';
 import { LiveTicker } from '../components/LiveTicker';
 import { MarketComments } from '../components/MarketComments';
 import { SignalIntelligence } from '../components/SignalIntelligence';
+import ItemImage from '../components/ItemImage';
+import { Sparkline } from '../components/Sparkline';
+import MarketStatsBar from '../components/MarketStatsBar';
+import ShareButton from '../components/ShareButton';
 import toast from 'react-hot-toast';
 
 export function MarketDetailPage() {
@@ -66,7 +70,8 @@ export function MarketDetailPage() {
 
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                     <div className="space-y-2">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
+                            <ItemImage src={market?.imageUrl} name={market?.name} size={64} rounded="rounded-2xl" />
                             <h1 className="text-4xl font-black text-white tracking-tighter uppercase">{market?.name || 'Loading...'}</h1>
                             <div className="px-2 py-0.5 rounded bg-brand-accent/10 border border-brand-accent/20 text-[10px] font-black text-brand-accent uppercase">Verified Market</div>
                         </div>
@@ -76,12 +81,13 @@ export function MarketDetailPage() {
                         </p>
                     </div>
 
-                    <div className="flex gap-4">
-                        <StatBox label="Total Volume" value={`${(market.totalVotes || stats.totalVotes).toLocaleString()} STARS`} />
-                        <StatBox label="Active Score" value={market.score?.toLocaleString()} color="text-brand-accent" />
-                        <StatBox label="Settlement" value="LIVE" color="text-emerald-400" />
+                    <div className="flex items-center gap-2">
+                        <ShareButton title={market?.name ? `${market.name} on Star Ranker` : 'Star Ranker'} text="Vote and stake on this market" />
                     </div>
                 </div>
+
+                {/* Polymarket-style KPI strip */}
+                <MarketStatsBar market={{ ...market, totalVotes: market.totalVotes || stats.totalVotes }} />
             </div>
 
             {/* Desktop Tabs */}

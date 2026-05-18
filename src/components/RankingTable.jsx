@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Star, Zap, ChevronUp, ChevronDown, ShieldAlert, Loader2, Bookmark, BookmarkCheck } from 'lucide-react';
+import ItemImage from './ItemImage';
 import { cn } from '../lib/utils';
 import { useStore } from '../store/storeModel';
 import { useNavigate } from 'react-router-dom';
@@ -55,13 +56,9 @@ const RankingRow = React.memo(({
 
                 {/* Oracle Context */}
                 <div className="flex-1 flex items-center gap-4 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center group-hover:border-brand-accent/30 transition-all overflow-hidden relative shrink-0">
-                        {item.imageUrl ? (
-                            <img src={item.imageUrl} alt="" className="w-full h-full object-cover opacity-80" />
-                        ) : (
-                            <Star size={16} className="text-slate-700" />
-                        )}
-                        {index === 0 && <div className="absolute top-0 right-0 w-3 h-3 bg-amber-400 rounded-bl flex items-center justify-center"><Star size={6} fill="black" /></div>}
+                    <div className="relative shrink-0">
+                        <ItemImage src={item.imageUrl} name={item.name} size={40} className="group-hover:border-brand-accent/30 transition-all" />
+                        {index === 0 && <div className="absolute top-0 right-0 w-3 h-3 bg-amber-400 rounded-bl flex items-center justify-center z-10"><Star size={6} fill="black" /></div>}
                     </div>
                     <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-1.5 min-w-0">

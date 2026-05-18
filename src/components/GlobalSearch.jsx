@@ -1,173 +1,245 @@
 /**
- * GlobalSearch Component � CMD+K global search overlay
+ * GlobalSearch — ⌘K-style global search overlay
+ * Polymarket-inspired: items, oracles, categories grouped, debounced
  */
-
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApi } from '../lib/api';
+import { Search, Hash, User, X, ArrowRight, Loader2, TrendingUp } from 'lucide-react';
+import { apiGet } from '../lib/api';
+import ItemImage from './ItemImage';
 
 export default function GlobalSearch({ open, onClose }) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState({ items: [], users: [], categories: [] });
-  const [trending, setTrending] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const inputRef = useRef(null);
-  const navigate = useNavigate();
-  const api = useApi();
+    const [query, setQuery] = useState('');
+    const [results, setResults] = useState({ items: [], users: [], categories: [] });
+    const [trending, setTrending] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [activeIdx, setActiveIdx] = useState(0);
+    const inputRef = useRef(null);
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    if (open) {
-      inputRef.current?.focus();
-      // Fetch trending when opening
-      api.get('/api/search/trending')
-        .then(setTrending)
-        .catch(() => {});
-    } else {
-      setQuery('');
-      setResults({ items: [], users: [], categories: [] });
-    }
-  }, [open, api]);
+    // Focus + fetch trending when opened
+    useEffect(() => {
+        if (!open) {
+            setQuery('');
+            setResults({ items: [], users: [], categories: [] });
+            setActiveIdx(0);
+            return;
+        }
+        const t = setTimeout(() => inputRef.current?.focus(), 30);
+        apiGet('/api/search/trending').then((data) => {
+            if (Array.isArray(data)) setTrending(data.slice(0, 8));
+        }).catch(() => {});
+        return () => clearTimeout(t);
+    }, [open]);
 
-  useEffect(() => {
-    if (!query.trim()) return;
+    // Debounced search
+    useEffect(() => {
+        if (!query.trim()) return;
+        const timeout = setTimeout(async () => {
+            setLoading(true);
+            try {
+                const data = await apiGet(`/api/search?q=${encodeURIComponent(query)}`);
+                setResults({
+                    items: Array.isArray(data?.items) ? data.items : [],
+                    users: Array.isArray(data?.users) ? data.users : [],
+                    categories: Array.isArray(data?.categories) ? data.categories : [],
+                });
+            } catch (err) {
+                console.error('[GlobalSearch]', err);
+            } finally {
+                setLoading(false);
+            }
+        }, 250);
+        return () => clearTimeout(timeout);
+    }, [query]);
 
-    const timeout = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const data = await api.get(
-          `/api/search?q=${encodeURIComponent(query)}`
-        );
-        setResults(data);
-      } catch (error) {
-        console.error('[GlobalSearch] Error:', error);
-      } finally {
-        setLoading(false);
-      }
-    }, 300);
+    if (!open) return null;
 
-    return () => clearTimeout(timeout);
-  }, [query, api]);
+    const flatList = [
+        ...(query ? results.items : trending).map((x) => ({ kind: 'item', id: x.id || x.docId, ...x })),
+        ...results.users.map((x) => ({ kind: 'user', id: x.id, ...x })),
+        ...results.categories.map((x) => ({ kind: 'category', id: x.id || x.slug, ...x })),
+    ];
 
-  if (!open) return null;
+    const go = (entry) => {
+        if (!entry) return;
+        if (entry.kind === 'item') navigate(`/market/${entry.docId || entry.id}`);
+        else if (entry.kind === 'user') navigate(`/profile/${entry.oracleHandle || entry.username}`);
+        else if (entry.kind === 'category') navigate(`/category/${entry.slug}`);
+        onClose?.();
+    };
 
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4"
-      onClick={onClose}
-    >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+    const onKeyDown = (e) => {
+        if (e.key === 'Escape') return onClose?.();
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setActiveIdx((i) => Math.min(i + 1, Math.max(0, flatList.length - 1)));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActiveIdx((i) => Math.max(0, i - 1));
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            go(flatList[activeIdx]);
+        }
+    };
 
-      {/* Search panel */}
-      <div
-        className="relative w-full max-w-xl bg-[#0D1B2A] rounded-2xl border border-[#C9A84C]/30 shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Input */}
-        <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
-          <span className="text-gray-400 text-xl">??</span>
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Escape' && onClose()}
-            placeholder="Search markets, items, Oracles..."
-            className="flex-1 bg-transparent text-white placeholder-gray-500 text-lg outline-none"
-          />
-          <kbd className="text-gray-600 text-xs bg-white/5 px-2 py-1 rounded">
-            ESC
-          </kbd>
-        </div>
-
-        {/* Results */}
-        <div className="max-h-[60vh] overflow-y-auto">
-          {!query && trending.length > 0 && (
-            <div className="p-4">
-              <p className="text-gray-500 text-xs font-bold uppercase mb-3">
-                Trending
-              </p>
-              {trending.map((item) => (
-                <button
-                  key={item.id}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-white/5 flex items-center gap-3 transition-colors"
-                  onClick={() => {
-                    navigate(`/market/${item.id}`);
-                    onClose();
-                  }}
-                >
-                  <span className="text-[#C9A84C] font-black text-sm w-6">
-                    #{item.rank}
-                  </span>
-                  <span className="text-white text-sm">{item.name}</span>
-                  <span className="text-gray-500 text-xs ml-auto">
-                    {item.categorySlug}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {query && !loading && (
-            <div className="p-4 space-y-4">
-              {results.items.length > 0 && (
-                <div>
-                  <p className="text-gray-500 text-xs font-bold uppercase mb-2">
-                    Items
-                  </p>
-                  {results.items.map((item) => (
+    return (
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[12vh] px-4" onClick={onClose}>
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+            <div
+                className="relative w-full max-w-2xl bg-[#0D1B2A] rounded-2xl border border-amber-500/30 shadow-2xl overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Input */}
+                <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
+                    <Search size={18} className="text-amber-400" />
+                    <input
+                        ref={inputRef}
+                        value={query}
+                        onChange={(e) => { setQuery(e.target.value); setActiveIdx(0); }}
+                        onKeyDown={onKeyDown}
+                        placeholder="Search markets, oracles, categories…"
+                        aria-label="Search"
+                        className="flex-1 bg-transparent text-white placeholder-gray-500 text-base outline-none"
+                    />
+                    {loading && <Loader2 size={16} className="animate-spin text-amber-400" />}
                     <button
-                      key={item.id}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-white/5 flex items-center gap-3 transition-colors"
-                      onClick={() => {
-                        navigate(`/market/${item.id}`);
-                        onClose();
-                      }}
+                        onClick={onClose}
+                        className="min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg hover:bg-white/5"
+                        aria-label="Close search"
                     >
-                      <span className="text-[#C9A84C] text-sm w-6">
-                        #{item.rank}
-                      </span>
-                      <span className="text-white text-sm">{item.name}</span>
-                      <span className="text-gray-500 text-xs ml-auto">
-                        {item.categorySlug}
-                      </span>
+                        <X size={16} className="text-slate-400" />
                     </button>
-                  ))}
                 </div>
-              )}
-              {results.users.length > 0 && (
-                <div>
-                  <p className="text-gray-500 text-xs font-bold uppercase mb-2">
-                    Oracles
-                  </p>
-                  {results.users.map((user) => (
-                    <button
-                      key={user.id}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-white/5 flex items-center gap-3 transition-colors"
-                      onClick={() => {
-                        navigate(`/oracle/${user.oracleHandle}`);
-                        onClose();
-                      }}
-                    >
-                      <span className="text-xl">??</span>
-                      <span className="text-white text-sm">
-                        @{user.oracleHandle}
-                      </span>
-                      <span className="text-[#C9A84C] text-xs ml-auto">
-                        {user.reputation} rep
-                      </span>
-                    </button>
-                  ))}
+
+                {/* Results */}
+                <div className="max-h-[60vh] overflow-y-auto">
+                    {/* Trending when no query */}
+                    {!query && trending.length > 0 && (
+                        <Section title="Trending" icon={<TrendingUp size={12} />}>
+                            {trending.map((item, i) => (
+                                <Row
+                                    key={item.id || item.docId}
+                                    active={activeIdx === i}
+                                    onClick={() => go({ kind: 'item', ...item })}
+                                >
+                                    <ItemImage src={item.imageUrl} name={item.name} size={32} rounded="rounded-lg" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-white text-sm truncate">{item.name}</p>
+                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest">{item.categorySlug || item.category}</p>
+                                    </div>
+                                    <span className="text-amber-400 font-black text-xs">#{item.rank}</span>
+                                    <ArrowRight size={14} className="text-slate-600" />
+                                </Row>
+                            ))}
+                        </Section>
+                    )}
+
+                    {/* Item results */}
+                    {query && results.items.length > 0 && (
+                        <Section title="Markets" icon={<Hash size={12} />}>
+                            {results.items.map((item, i) => (
+                                <Row
+                                    key={item.id || item.docId}
+                                    active={activeIdx === i}
+                                    onClick={() => go({ kind: 'item', ...item })}
+                                >
+                                    <ItemImage src={item.imageUrl} name={item.name} size={32} rounded="rounded-lg" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-white text-sm truncate">{item.name}</p>
+                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest">{item.categorySlug || item.category}</p>
+                                    </div>
+                                    <span className="text-amber-400 font-black text-xs">#{item.rank}</span>
+                                </Row>
+                            ))}
+                        </Section>
+                    )}
+
+                    {/* User / Oracle results */}
+                    {query && results.users.length > 0 && (
+                        <Section title="Oracles" icon={<User size={12} />}>
+                            {results.users.map((u, i) => {
+                                const idx = results.items.length + i;
+                                return (
+                                    <Row
+                                        key={u.id}
+                                        active={activeIdx === idx}
+                                        onClick={() => go({ kind: 'user', ...u })}
+                                    >
+                                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">
+                                            <User size={14} className="text-amber-400" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-white text-sm truncate">@{u.oracleHandle || u.username}</p>
+                                            <p className="text-[10px] text-slate-500 uppercase tracking-widest">{u.tier || 'Bronze'}</p>
+                                        </div>
+                                        <span className="text-emerald-400 font-black text-xs">{u.reputation || 0} REP</span>
+                                    </Row>
+                                );
+                            })}
+                        </Section>
+                    )}
+
+                    {/* Category results */}
+                    {query && results.categories.length > 0 && (
+                        <Section title="Categories" icon={<Hash size={12} />}>
+                            {results.categories.map((c, i) => {
+                                const idx = results.items.length + results.users.length + i;
+                                return (
+                                    <Row
+                                        key={c.id || c.slug}
+                                        active={activeIdx === idx}
+                                        onClick={() => go({ kind: 'category', ...c })}
+                                    >
+                                        <Hash size={14} className="text-amber-400 shrink-0" />
+                                        <p className="flex-1 text-white text-sm">{c.title || c.name}</p>
+                                    </Row>
+                                );
+                            })}
+                        </Section>
+                    )}
+
+                    {query && !loading && flatList.length === 0 && (
+                        <p className="text-slate-500 text-sm text-center py-12">No results for &ldquo;{query}&rdquo;</p>
+                    )}
                 </div>
-              )}
-              {results.items.length === 0 && results.users.length === 0 && (
-                <p className="text-gray-500 text-sm text-center py-8">
-                  No results for "{query}"
-                </p>
-              )}
+
+                {/* Footer hint */}
+                <div className="px-4 py-2 border-t border-white/10 flex items-center justify-between text-[10px] text-slate-500">
+                    <span><Kbd>↑</Kbd> <Kbd>↓</Kbd> navigate</span>
+                    <span><Kbd>↵</Kbd> open</span>
+                    <span><Kbd>esc</Kbd> close</span>
+                </div>
             </div>
-          )}
         </div>
-      </div>
-    </div>
-  );
+    );
+}
+
+function Section({ title, icon, children }) {
+    return (
+        <div className="px-4 py-3">
+            <div className="flex items-center gap-2 mb-2 text-slate-500 text-[10px] font-black uppercase tracking-widest">
+                {icon} {title}
+            </div>
+            <div className="space-y-1">{children}</div>
+        </div>
+    );
+}
+
+function Row({ active, onClick, children }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-3 transition-colors ${
+                active ? 'bg-amber-500/10 border border-amber-500/30' : 'hover:bg-white/5 border border-transparent'
+            }`}
+        >
+            {children}
+        </button>
+    );
+}
+
+function Kbd({ children }) {
+    return <kbd className="bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-[9px] font-bold mr-1">{children}</kbd>;
 }

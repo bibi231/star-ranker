@@ -47,15 +47,34 @@ import BottomNav from '../BottomNav';
 import MobileHeader from '../MobileHeader';
 import { Footer } from './Footer';
 import { DemoModeToggle } from '../DemoModeToggle';
+import ThemeToggle from '../ThemeToggle';
 import { OnboardingTour } from '../onboarding/OnboardingTour';
 import { DemoConversionModal } from '../DemoConversionModal';
 import { TierBadge } from '../TierBadge';
+import GlobalSearch from '../GlobalSearch';
+import { Search } from 'lucide-react';
 
 export function MainLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserMenuOpen, setUserMenuOpen] = useState(false);
     const [isNotifOpen, setNotifOpen] = useState(false);
+    const [isSearchOpen, setSearchOpen] = useState(false);
+
+    // CMD/CTRL+K to open global search
+    useEffect(() => {
+        const onKey = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                setSearchOpen((v) => !v);
+            } else if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                setSearchOpen(true);
+            }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, []);
 
     const {
         user, login, logout, balance, reputation, tier,
@@ -122,6 +141,13 @@ export function MainLayout() {
                 <div className="px-6 mb-4" data-tour="demo-toggle">
                     <DemoModeToggle />
                 </div>
+
+                {/* Theme toggle */}
+                {isSidebarOpen && (
+                    <div className="px-6 mb-3">
+                        <ThemeToggle />
+                    </div>
+                )}
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-4">
                     <NavSection title="TERMINAL" compact={!isSidebarOpen}>
@@ -498,6 +524,7 @@ export function MainLayout() {
             <WithdrawalModal isOpen={isWithdrawalOpen} onClose={() => setWithdrawalOpen(false)} />
             
             {/* Onboarding & Demo Overlays */}
+            <GlobalSearch open={isSearchOpen} onClose={() => setSearchOpen(false)} />
             <OnboardingTour />
             <DemoConversionModal />
             

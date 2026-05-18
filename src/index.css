@@ -316,3 +316,85 @@ textarea {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* ============================================================
+   Light mode overrides
+   Activated by `.light` class on <html> (set by useTheme).
+   This is a surgical pass over the most-used dark surfaces so
+   the app remains readable in light mode. Component-specific
+   tweaks can still ship later.
+   ============================================================ */
+html.light {
+  color-scheme: light;
+}
+html.light body {
+  background: #FFFBEB;
+  color: #1F2937;
+}
+/* Brand surfaces */
+html.light .bg-brand-bg,
+html.light [class*="bg-slate-950"],
+html.light [class*="bg-slate-900"] {
+  background-color: #FFFBEB !important;
+  color: #1F2937;
+}
+html.light [class*="bg-slate-800"] { background-color: #FEF3C7 !important; }
+html.light [class*="bg-slate-700"] { background-color: #FDE68A !important; }
+html.light .bg-brand-surface { background-color: #FEF3C7 !important; }
+
+/* Text remapping */
+html.light .text-white,
+html.light .text-slate-50,
+html.light .text-slate-100,
+html.light .text-slate-200 { color: #1F2937 !important; }
+html.light .text-slate-300 { color: #374151 !important; }
+html.light .text-slate-400 { color: #4B5563 !important; }
+html.light .text-slate-500 { color: #6B7280 !important; }
+
+/* Borders */
+html.light [class*="border-white/5"],
+html.light [class*="border-white/10"],
+html.light [class*="border-white/20"] {
+  border-color: rgba(146, 64, 14, 0.15) !important;
+}
+html.light [class*="border-slate-800"],
+html.light [class*="border-slate-700"] {
+  border-color: rgba(146, 64, 14, 0.2) !important;
+}
+
+/* Glass / backdrop panels */
+html.light [class*="bg-slate-900/60"],
+html.light [class*="bg-slate-900/80"],
+html.light [class*="bg-slate-950/60"],
+html.light [class*="bg-slate-950/80"] {
+  background-color: rgba(255, 251, 235, 0.85) !important;
+  backdrop-filter: blur(12px);
+  color: #1F2937;
+}
+
+/* Inputs / pickers */
+html.light input,
+html.light textarea,
+html.light select {
+  background-color: #FFFBEB;
+  color: #1F2937;
+  border-color: rgba(146, 64, 14, 0.25);
+}
+html.light input::placeholder,
+html.light textarea::placeholder { color: #9CA3AF; }
+
+/* Amber accent (Stars / Practice mode) stays vibrant */
+html.light .text-amber-400,
+html.light .text-amber-500 { color: #B45309 !important; }
+html.light .bg-amber-500\/20 { background-color: rgba(245, 158, 11, 0.18) !important; }
+html.light .border-amber-500\/40 { border-color: rgba(245, 158, 11, 0.5) !important; }
+
+/* Status colors keep semantic meaning */
+html.light .text-green-400,
+html.light .text-emerald-400 { color: #047857 !important; }
+html.light .text-red-400,
+html.light .text-rose-400 { color: #B91C1C !important; }
+
+/* Scrollbar */
+html.light ::-webkit-scrollbar-track { background: #FEF3C7; }
+html.light ::-webkit-scrollbar-thumb { background: #FCD34D; }
