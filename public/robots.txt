@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://star-ranker.vercel.app/sitemap.xml
+// freshly post-permission grant push 2026-05-18T06:58:41Z
