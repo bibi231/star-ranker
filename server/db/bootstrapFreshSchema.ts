@@ -239,8 +239,41 @@ const statements: string[] = [
     )`,
     `CREATE INDEX IF NOT EXISTS comments_item_idx ON comments (item_doc_id)`,
 
-    // Column added after initial deploys (idempotent)
+    // ============================================================
+    // Idempotent column migrations for the `users` table.
+    // Runs on every API boot. Safe to repeat. Adds anything Drizzle
+    // expects that an older deploy may be missing.
+    // ============================================================
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS play_balance REAL DEFAULT 10000`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS vote_weight INTEGER DEFAULT 1`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS max_stake_per_epoch INTEGER DEFAULT 5000`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS daily_streak INTEGER DEFAULT 0`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS longest_streak INTEGER DEFAULT 0`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS last_active_date TIMESTAMP`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS demo_balance INTEGER DEFAULT 50000`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS demo_total_won INTEGER DEFAULT 0`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS demo_total_staked INTEGER DEFAULT 0`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS demo_stakes_count INTEGER DEFAULT 0`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS demo_wins_count INTEGER DEFAULT 0`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS is_demo_mode BOOLEAN DEFAULT true`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS has_completed_tour BOOLEAN DEFAULT false`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS has_deposited BOOLEAN DEFAULT false`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS demo_conversion_shown BOOLEAN DEFAULT false`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb`,
+
+    // Items / categories — defensive backfill if older schema drifted
+    `ALTER TABLE items ADD COLUMN IF NOT EXISTS image_url TEXT`,
+    `ALTER TABLE items ADD COLUMN IF NOT EXISTS metadata_source TEXT`,
+    `ALTER TABLE items ADD COLUMN IF NOT EXISTS momentum REAL DEFAULT 0`,
+    `ALTER TABLE items ADD COLUMN IF NOT EXISTS volatility REAL DEFAULT 5`,
+    `ALTER TABLE items ADD COLUMN IF NOT EXISTS velocity REAL DEFAULT 0`,
+    `ALTER TABLE items ADD COLUMN IF NOT EXISTS trend JSONB DEFAULT '[]'::jsonb`,
+    `ALTER TABLE items ADD COLUMN IF NOT EXISTS is_dampened BOOLEAN DEFAULT false`,
+
+    // Stakes — demo + play-mode flags added later (idempotent)
+    `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS is_demo BOOLEAN DEFAULT false`,
+    `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS is_play_mode BOOLEAN DEFAULT false`,
 ];
 
 export async function bootstrapFreshSchema(): Promise<void> {

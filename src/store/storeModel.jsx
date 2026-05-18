@@ -401,7 +401,7 @@ export const useStore = create((set, get) => ({
                 // We reuse the existing fetch logic but without starting a new interval
                 const fetchItems = async () => {
                     try {
-                        const data = await apiGet(`/api/items/category/${currentCategorySlug}`);
+                        const data = await apiGet("/api/items", { category: currentCategorySlug });
                         if (data?.items) set({ items: data.items, lastRefresh: Date.now() });
                     } catch (e) { console.error("[Sync] Items failed", e); }
                 };

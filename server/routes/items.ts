@@ -10,6 +10,13 @@ const router = Router();
 
 // GET /api/items?category=crypto — Fetch items by category slug with odds
 // When category is omitted, returns a lightweight list of all items (for battle modal, search, etc.)
+// Defensive alias: GET /api/items/category/:slug -> rewrites to ?category=slug
+// (older frontend builds use the path form)
+router.get("/category/:slug", async (req, res, next) => {
+    req.query.category = req.params.slug;
+    return (router as any).handle({ ...req, url: '/', method: 'GET' } as any, res, next);
+});
+
 router.get("/", async (req, res) => {
     try {
         const category = req.query.category as string;
