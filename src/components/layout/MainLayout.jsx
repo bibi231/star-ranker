@@ -52,7 +52,6 @@ import { OnboardingTour } from '../onboarding/OnboardingTour';
 import { DemoConversionModal } from '../DemoConversionModal';
 import { TierBadge } from '../TierBadge';
 import GlobalSearch from '../GlobalSearch';
-import { Search } from 'lucide-react';
 
 export function MainLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
