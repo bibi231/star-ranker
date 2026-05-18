@@ -737,15 +737,56 @@ export const useStore = create((set, get) => ({
             return data;
         } catch (error) {
             console.error("[getLiveOdds] error:", error?.message || error);
-            // Return a sensible local fallback so the UI never gets stuck on "--"
-            const p = 0.15;
-            const mult = Math.min(8, 1 / p);
+            // ── Dynamic local fallback (mirrors server calculateBaseProbability) ──
+            const item = get().items.find(i => i.docId === itemId);
+            const currentRank = item?.rank ?? 50;
+            const momentum = item?.momentum ?? 0;
+            const velocity = item?.velocity ?? 0;
+            const volatility = item?.volatility ?? 5;
+
+            let targetRankValue = 50;
+            if (betType === 'exact') {
+                targetRankValue = typeof targetRank === 'number' ? targetRank : Number(targetRank) || 50;
+            } else if (betType === 'range') {
+                const t = typeof targetRank === 'object' ? targetRank : {};
+                targetRankValue = ((t.min || 0) + (t.max || 100)) / 2;
+            } else if (betType === 'directional') {
+                const t = typeof targetRank === 'object' ? targetRank : {};
+                targetRankValue = t.dir === 'up' ? currentRank - (t.k || 1) : currentRank + (t.k || 1);
+            }
+
+            const rankDelta = Math.abs(targetRankValue - currentRank);
+
+            let pBase;
+            if (betType === 'exact') {
+                pBase = Math.max(0.01, 0.5 * Math.exp(-rankDelta * 0.15));
+            } else if (betType === 'range') {
+                pBase = Math.max(0.05, 0.7 * Math.exp(-rankDelta * 0.08));
+            } else {
+                // directional
+                const t = typeof targetRank === 'object' ? targetRank : {};
+                const movingRight = (t.dir === 'up' && velocity < 0) || (t.dir === 'down' && velocity > 0);
+                pBase = movingRight
+                    ? Math.min(0.85, 0.5 + Math.abs(velocity) * 0.02 + momentum * 0.01)
+                    : Math.max(0.05, 0.3 - Math.abs(velocity) * 0.01);
+            }
+
+            // Volatility adjustment
+            pBase *= (1 + volatility * 0.01);
+            pBase = Math.min(0.95, Math.max(0.01, pBase));
+
+            const mult = Math.min(8, 1 / pBase);
+            // Slippage scales with stake size vs a $5k liquidity floor
+            const slippage = Math.min(0.15, (amount || 10) / 5000);
+            const effectiveMultiplier = Math.min(8, Math.max(1.05, mult * (1 - slippage) * 0.96));
+
             return {
-                probability: p,
+                probability: pBase,
                 multiplier: mult,
-                effectiveMultiplier: mult * 0.95,
-                slippage: 0.02,
-                error: error?.message || 'odds unavailable',
+                effectiveMultiplier,
+                slippage,
+                potentialPayout: (amount || 10) * effectiveMultiplier,
+                error: error?.message || 'local fallback',
             };
         }
     },
