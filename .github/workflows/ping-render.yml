@@ -1,0 +1,21 @@
+name: Keep Render API awake
+
+on:
+  schedule:
+    # Every 13 minutes — Render free tier sleeps after 15 min idle
+    - cron: '*/13 * * * *'
+  workflow_dispatch: # manual trigger button in Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API health
+        run: |
+          for url in \
+            "https://star-ranker.onrender.com/api/items?category=crypto" \
+            "https://star-ranker.onrender.com/api/categories"
+          do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$url")
+            echo "$code  $url"
+          done

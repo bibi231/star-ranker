@@ -15,7 +15,7 @@ function resolveActual(pref) {
         if (typeof window !== 'undefined' && window.matchMedia) {
             return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
         }
-        return 'dark';
+        return 'light';
     }
     return pref;
 }

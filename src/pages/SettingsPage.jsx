@@ -440,11 +440,11 @@ function ToggleOption({ icon, title, desc, active, onChange }) {
 function AppearanceSettings() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <SectionHeader title="Appearance" icon={<Palette size={18} />} desc="Choose how Star Ranker looks. Auto-detects system preference by default." />
+            <SectionHeader title="Appearance" icon={<Palette size={18} />} desc="System matches your OS preference and is the default. Light and Dark force the look regardless of OS." />
             <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 space-y-6">
                 <div className="space-y-2">
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Theme</p>
-                    <p className="text-xs text-slate-400">Light mode is in beta — some surfaces may still skew dark.</p>
+                    <p className="text-xs text-slate-400">System is the recommended default — it follows your operating system's light/dark preference automatically.</p>
                 </div>
                 <ThemeToggle />
             </div>
