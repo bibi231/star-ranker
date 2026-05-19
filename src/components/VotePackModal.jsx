@@ -6,7 +6,7 @@ import { apiGet, apiPost } from '../lib/api';
 import { cn } from '../lib/utils';
 
 export function VotePackModal({ isOpen, onClose }) {
-    const { balance, formatValue, refreshUser } = useStore();
+    const { balance, formatValue, fetchUserProfile } = useStore();
     const [packs, setPacks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isPurchasing, setIsPurchasing] = useState(false);

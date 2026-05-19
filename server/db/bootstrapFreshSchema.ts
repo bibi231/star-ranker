@@ -285,6 +285,16 @@ const statements: string[] = [
     `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS platform_fee REAL DEFAULT 0`,
     `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS outcome TEXT`,
     `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS is_settled BOOLEAN DEFAULT false`,
+
+    // Seed default vote packs if table is empty (idempotent)
+    `INSERT INTO vote_packs (name, votes, price_ngn, active)
+     SELECT * FROM (VALUES
+        ('Starter Pack',   5,   1500,  true),
+        ('Influencer Pack', 15,  4000,  true),
+        ('Power Pack',     50,  10000, true),
+        ('Oracle Pack',   200,  35000, true)
+     ) AS v(name, votes, price_ngn, active)
+     WHERE NOT EXISTS (SELECT 1 FROM vote_packs)`,
 ];
 
 export async function bootstrapFreshSchema(): Promise<void> {
