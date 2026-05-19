@@ -446,7 +446,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
                 </button>
                 <button
                     onClick={handleStake}
-                    disabled={isProcessing || isLocked || !amount || useStore.getState().parseLocalToUSD(amount) > balance || loadingQuote}
+                    disabled={isProcessing || isLocked || !amount || (isDemoMode ? parseFloat(amount) > demoBalance : useStore.getState().parseLocalToUSD(amount) > balance) || loadingQuote}
                     className={cn(
                         "flex-[2.5] min-h-[56px] py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none",
                         isLocked
