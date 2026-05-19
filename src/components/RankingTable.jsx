@@ -232,11 +232,11 @@ export function RankingTable() {
                     </div>
                 </div>
 
-                {user?.powerVotes > 0 && (
+                {(user && (isDemoMode ? (user.demoPowerVotes || 0) : (user.powerVotes || 0)) > 0) && (
                     <div className="flex items-center justify-between px-4 py-3 bg-slate-800/40 rounded-xl border border-amber-500/20 mb-1 shrink-0">
                         <div className="flex items-center gap-2">
                             <Zap size={14} className="text-amber-500 fill-amber-500 animate-pulse" />
-                            <span className="text-[10px] font-black text-amber-500 uppercase tracking-tighter">{user.powerVotes} P-VOTES</span>
+                            <span className="text-[10px] font-black text-amber-500 uppercase tracking-tighter">{isDemoMode ? user.demoPowerVotes : user.powerVotes} P-VOTES</span>
                         </div>
                         <button
                             onClick={() => togglePowerVote()}
@@ -328,11 +328,11 @@ export function RankingTable() {
             </div>
 
             {/* Power Vote Global Toggle */}
-            {user?.powerVotes > 0 && (
+            {(user && (isDemoMode ? (user.demoPowerVotes || 0) : (user.powerVotes || 0)) > 0) && (
                 <div className="flex items-center justify-end px-6 py-2 bg-slate-900/80 border-b border-slate-800 gap-3 shrink-0">
                     <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 shadow-sm">
                         <Zap size={10} className="text-amber-500 fill-amber-500 animate-pulse" />
-                        <span className="text-[9px] font-black text-amber-500 tracking-tighter uppercase">{user.powerVotes} Power Votes available</span>
+                        <span className="text-[9px] font-black text-amber-500 tracking-tighter uppercase">{isDemoMode ? user.demoPowerVotes : user.powerVotes} Power Votes available</span>
                     </div>
                     <button
                         onClick={() => togglePowerVote()}
@@ -396,7 +396,7 @@ export function RankingTable() {
                                     toggleWatchlist={toggleWatchlist}
                                     openModal={openModal}
                                     navigate={navigate}
-                                    userPowerVotes={user?.powerVotes}
+                                    userPowerVotes={isDemoMode ? user?.demoPowerVotes : user?.powerVotes}
                                 />
                             </div>
                         );
@@ -489,7 +489,7 @@ function MobileItemCard({ item, index, isTracked, toggleWatchlist, totalScore })
                     >
                         <ChevronDown size={20} strokeWidth={3} />
                     </button>
-                    {user?.powerVotes > 0 && (
+                    {(user && (isDemoMode ? (user.demoPowerVotes || 0) : (user.powerVotes || 0)) > 0) && (
                         <div className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-4 h-4 rounded-full bg-slate-950 border border-amber-500/50 flex items-center justify-center shadow-lg">
                             <Zap size={8} className="text-amber-500 fill-amber-500 animate-pulse" />
                         </div>

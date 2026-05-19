@@ -261,6 +261,7 @@ const statements: string[] = [
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS has_deposited BOOLEAN DEFAULT false`,
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS demo_conversion_shown BOOLEAN DEFAULT false`,
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS demo_power_votes INTEGER DEFAULT 50`,
 
     // Items / categories — defensive backfill if older schema drifted
     `ALTER TABLE items ADD COLUMN IF NOT EXISTS image_url TEXT`,

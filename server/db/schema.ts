@@ -172,6 +172,7 @@ export const users = pgTable("users", {
     hasCompletedTour: boolean('has_completed_tour').default(false),
     hasDeposited: boolean('has_deposited').default(false),
     demoConversionShown: boolean('demo_conversion_shown').default(false),
+    demoPowerVotes: integer('demo_power_votes').default(50), // Practice power votes — separate pool from real powerVotes
     settings: jsonb("settings").default({}),
     createdAt: timestamp("created_at").defaultNow(),
 });

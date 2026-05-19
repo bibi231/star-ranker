@@ -46,23 +46,34 @@ router.post("/", optionalAuth, async (req: AuthRequest, res) => {
         let scoreDelta = direction - previousDirection;
         let powerVoteDeducted = false;
 
-        // Power votes are auth-only
+        // Power votes are auth-only. Use demoPowerVotes when user is in demo mode.
+        let powerVoteSource: 'demo' | 'live' | null = null;
         if (isAuthenticated && usePowerVote && direction !== 0) {
             const userRec = await db.query.users.findFirst({
                 where: eq(users.firebaseUid, userId)
             });
-            if (userRec && (userRec.powerVotes || 0) > 0) {
-                // Resulting contribution should be direction * 3
-                scoreDelta = (direction * 3) - previousDirection;
-                powerVoteDeducted = true;
+            if (userRec) {
+                const usingDemo = userRec.isDemoMode === true;
+                const pool = usingDemo ? (userRec.demoPowerVotes || 0) : (userRec.powerVotes || 0);
+                if (pool > 0) {
+                    scoreDelta = (direction * 3) - previousDirection;
+                    powerVoteDeducted = true;
+                    powerVoteSource = usingDemo ? 'demo' : 'live';
+                }
             }
         }
 
         await db.transaction(async (tx) => {
             if (powerVoteDeducted) {
-                await tx.update(users)
-                    .set({ powerVotes: sql`${users.powerVotes} - 1` })
-                    .where(eq(users.firebaseUid, userId));
+                if (powerVoteSource === 'demo') {
+                    await tx.update(users)
+                        .set({ demoPowerVotes: sql`${users.demoPowerVotes} - 1` })
+                        .where(eq(users.firebaseUid, userId));
+                } else {
+                    await tx.update(users)
+                        .set({ powerVotes: sql`${users.powerVotes} - 1` })
+                        .where(eq(users.firebaseUid, userId));
+                }
             }
 
             // Update item score
@@ -129,12 +140,14 @@ router.post("/", optionalAuth, async (req: AuthRequest, res) => {
 
         // Get updated power vote count if one was used
         let newPowerVotes: number | undefined;
+        let newDemoPowerVotes: number | undefined;
         if (powerVoteDeducted) {
-            const updatedUser = await db.select({ powerVotes: users.powerVotes })
+            const updatedUser = await db.select({ powerVotes: users.powerVotes, demoPowerVotes: users.demoPowerVotes })
                 .from(users)
                 .where(eq(users.firebaseUid, userId))
                 .limit(1);
             newPowerVotes = updatedUser[0]?.powerVotes ?? 0;
+            newDemoPowerVotes = updatedUser[0]?.demoPowerVotes ?? 0;
         }
 
         // Check for achievements asynchronously (auth'd users only)
@@ -149,7 +162,7 @@ router.post("/", optionalAuth, async (req: AuthRequest, res) => {
         const { reifyCategoryRankings } = await import("../engine/rankingEngine");
         reifyCategoryRankings(categorySlug).catch(err => console.error("[Votes] Background ranking update failed:", err));
 
-        res.json({ success: true, newScore: updated[0]?.score ?? 0, powerVoteUsed: powerVoteDeducted, newPowerVotes, anonymous: !isAuthenticated });
+        res.json({ success: true, newScore: updated[0]?.score ?? 0, powerVoteUsed: powerVoteDeducted, powerVoteSource, newPowerVotes, newDemoPowerVotes, anonymous: !isAuthenticated });
     } catch (error: any) {
         console.error("Vote error:", error);
         res.status(500).json({ error: error.message });

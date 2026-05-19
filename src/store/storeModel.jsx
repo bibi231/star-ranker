@@ -603,9 +603,13 @@ export const useStore = create((set, get) => ({
                 usePowerVote: get().usePowerVote
             });
             
-            if (response?.newPowerVotes !== undefined) {
+            if (response?.newPowerVotes !== undefined || response?.newDemoPowerVotes !== undefined) {
                 set(state => ({
-                    user: { ...state.user, powerVotes: response.newPowerVotes }
+                    user: {
+                        ...state.user,
+                        ...(response.newPowerVotes !== undefined ? { powerVotes: response.newPowerVotes } : {}),
+                        ...(response.newDemoPowerVotes !== undefined ? { demoPowerVotes: response.newDemoPowerVotes } : {}),
+                    }
                 }));
             }
             
