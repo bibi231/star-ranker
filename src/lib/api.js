@@ -63,7 +63,9 @@ async function fetchWithRetry(url, options = {}, fetchConfig = {}) {
                     throw new Error("Rate limit exceeded. Please wait a moment.");
                 }
                 const error = await res.json().catch(() => ({ error: res.statusText }));
-                throw new Error(error.error || `API error: ${res.status}`);
+                const detailStr = error.details ? ` (${JSON.stringify(error.details)})` : '';
+                const msg = (error.error || `API error: ${res.status}`) + detailStr;
+                throw new Error(msg);
             }
             return res.json();
         } catch (err) {

@@ -719,8 +719,8 @@ export const useStore = create((set, get) => ({
                 return false;
             }
         } catch (err) {
-            console.error("Stake error:", err);
-            toast.error("Failed to place stake");
+            console.error("[placeStake] error:", err?.message, err?.details, err);
+            toast.error(err?.message ? `Stake failed: ${err.message}` : "Failed to place stake");
             return false;
         }
     },
