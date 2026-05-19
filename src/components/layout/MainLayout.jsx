@@ -131,13 +131,15 @@ export function MainLayout() {
                 isSidebarOpen ? "w-64" : "w-16"
             )}>
                 {/* Brand */}
-                <div className="h-16 flex items-center px-6 shrink-0 cursor-pointer" onClick={() => navigate('/')} data-tour="header-logo">
-                    <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-[#0B0F1E] font-black text-lg shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                        ★
-                    </div>
-                    {isSidebarOpen && (
-                        <span className="ml-3 font-black text-white tracking-[0.2em] text-xs uppercase">Star Ranker</span>
-                    )}
+                <div className="h-16 flex items-center px-4 shrink-0 cursor-pointer" onClick={() => navigate('/')} data-tour="header-logo">
+                    <img
+                        src={isSidebarOpen ? "/assets/logo-horizontal.png" : "/assets/logo-stacked.png"}
+                        alt="Star Ranker"
+                        className={cn(
+                            "transition-all duration-300 drop-shadow-[0_0_20px_rgba(245,158,11,0.25)] object-contain",
+                            isSidebarOpen ? "h-12 w-auto max-w-full" : "h-10 w-auto mx-auto"
+                        )}
+                    />
                 </div>
 
                 {/* Sidebar Demo Toggle */}
@@ -271,10 +273,7 @@ export function MainLayout() {
                             <div className="px-6 py-4 border-b border-white/5 bg-slate-950/20 space-y-3">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => { navigate('/'); setIsMobileMenuOpen(false); }}>
-                                        <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-[#0B0F1E] font-black text-lg shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                                            ★
-                                        </div>
-                                        <span className="font-black text-white tracking-[0.2em] text-xs uppercase">Star Ranker</span>
+                                        <img src="/assets/logo-horizontal.png" alt="Star Ranker" className="h-10 w-auto object-contain drop-shadow-[0_0_15px_rgba(245,158,11,0.25)]" />
                                     </div>
                                     <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-500"><X size={24} /></button>
                                 </div>
