@@ -162,6 +162,7 @@ export function RankingTable() {
         openModal,
         isSyncing,
         user,
+        isDemoMode,
         usePowerVote,
         togglePowerVote,
         activeFilter,
@@ -418,7 +419,7 @@ export function RankingTable() {
 
 function MobileItemCard({ item, index, isTracked, toggleWatchlist, totalScore }) {
     const navigate = useNavigate();
-    const { vote, userVotes, openModal, user, formatValue } = useStore();
+    const { vote, userVotes, openModal, user, formatValue, isDemoMode } = useStore();
     const currentVote = userVotes[item.docId];
 
     return (
