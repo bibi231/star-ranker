@@ -35,10 +35,14 @@ export function AdminPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
     const [actionResult, setActionResult] = useState(null);
+    const [dataMode, setDataMode] = useState('live'); // 'live' | 'demo' | 'all'
 
-    // Fetch system stats on mount
+    // Fetch system stats on mount + whenever mode changes
     useEffect(() => {
         fetchSystemStats();
+    }, [dataMode]);
+
+    useEffect(() => {
         fetchAuditLogs();
     }, []);
 
@@ -47,7 +51,7 @@ export function AdminPage() {
             // Fetch both stats and revenue
             const [basicStats, revenueStats] = await Promise.all([
                 apiGet("/api/admin/stats"),
-                apiGet("/api/admin/revenue")
+                apiGet(`/api/admin/revenue?mode=${dataMode}`)
             ]);
             setStats({ ...basicStats, ...revenueStats });
         } catch (error) {
@@ -193,11 +197,33 @@ export function AdminPage() {
                 </div>
             )}
 
+            {/* Data Mode Toggle: Live | Demo | All */}
+            <div className="flex items-center gap-2 mb-2">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Data view</span>
+                <div className="flex gap-1 p-1 bg-slate-950 border border-white/5 rounded-xl">
+                    {['live', 'demo', 'all'].map(m => (
+                        <button
+                            key={m}
+                            onClick={() => setDataMode(m)}
+                            className={cn(
+                                'px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
+                                dataMode === m
+                                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                                    : 'text-slate-400 hover:text-slate-200'
+                            )}
+                        >
+                            {m === 'live' ? 'Live $' : m === 'demo' ? '★ Practice' : 'All Combined'}
+                        </button>
+                    ))}
+                </div>
+                {isLoading && <span className="text-[9px] text-slate-500 ml-2">Loading…</span>}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* System Stats */}
                 <div className="lg:col-span-1 space-y-4">
                     <AdminStat
-                        label="Platform Revenue"
+                        label={dataMode === "demo" ? "Platform Revenue (Demo: $0)" : "Platform Revenue"}
                         value={isLoading ? "..." : formatValue(stats?.platformRevenue || 0)}
                         icon={<DollarSign size={14} />}
                         color="text-brand-accent"
@@ -215,7 +241,7 @@ export function AdminPage() {
                         color="text-rose-400"
                     />
                     <AdminStat
-                        label="User Balances"
+                        label={dataMode === "demo" ? "Total Demo Credits" : "User Balances"}
                         value={isLoading ? "..." : formatValue(stats?.totalBalances || 0)}
                         icon={<Database size={14} />}
                         color="text-slate-300"

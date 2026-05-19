@@ -220,34 +220,52 @@ router.post("/test-email", requireAuth, async (req: AuthRequest, res) => {
 router.get("/revenue", requireAuth, async (req: AuthRequest, res) => {
     try {
         if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
-        // Aggregate platformRevenue from marketMeta
-        const metaResult = await db.select({
-            totalRevenue: sql<number>`SUM(${marketMeta.platformRevenue})`
-        }).from(marketMeta);
 
-        // Aggregate referralEarnings from users
-        const refResult = await db.select({
-            totalReferralPaid: sql<number>`SUM(${users.referralEarnings})`
-        }).from(users);
+        // Mode filter: 'live' (default) | 'demo' | 'all'
+        const mode: 'live' | 'demo' | 'all' =
+            req.query.mode === 'demo' ? 'demo'
+            : req.query.mode === 'all' ? 'all'
+            : 'live';
 
-        // Aggregate total deposits (proxy via user balances)
-        const balanceResult = await db.select({
-            totalBalances: sql<number>`SUM(${users.balance})`
-        }).from(users);
+        const stakesWhere = mode === 'demo' ? sql`WHERE is_demo = true`
+            : mode === 'live' ? sql`WHERE (is_demo = false OR is_demo IS NULL)`
+            : sql``;
 
-        // Per-category revenue + volume for chart (live data)
-        const categoryBreakdown = await db.select({
-            name: marketMeta.categorySlug,
-            revenue: marketMeta.platformRevenue,
-            volume: marketMeta.totalStaked,
-        }).from(marketMeta);
+        // Platform revenue + referral earnings are real-money only.
+        const metaResult = mode === 'demo' ? [{ totalRevenue: 0 }] :
+            await db.select({ totalRevenue: sql<number>`SUM(${marketMeta.platformRevenue})` }).from(marketMeta);
 
-        // Total stakes count and total staked amount
-        const stakingStats = await db.select({
-            totalStakes: sql<number>`COUNT(*)`,
-            totalVolume: sql<number>`COALESCE(SUM(${stakes.amount}), 0)`,
-            activeStakes: sql<number>`COUNT(*) FILTER (WHERE ${stakes.isSettled} = false)`,
-        }).from(stakes);
+        const refResult = mode === 'demo' ? [{ totalReferralPaid: 0 }] :
+            await db.select({ totalReferralPaid: sql<number>`SUM(${users.referralEarnings})` }).from(users);
+
+        const balanceResult = mode === 'demo'
+            ? await db.select({ totalBalances: sql<number>`SUM(COALESCE(${users.demoBalance}, 0))` }).from(users)
+            : await db.select({ totalBalances: sql<number>`SUM(${users.balance})` }).from(users);
+
+        // Category breakdown: live uses marketMeta; demo derives from stakes
+        const categoryBreakdown: any = mode === 'demo'
+            ? (await db.execute(sql`
+                SELECT category_slug AS name, 0 AS revenue, COALESCE(SUM(amount), 0) AS volume
+                FROM stakes WHERE is_demo = true GROUP BY category_slug
+            `)).rows ?? []
+            : await db.select({
+                name: marketMeta.categorySlug,
+                revenue: marketMeta.platformRevenue,
+                volume: marketMeta.totalStaked,
+            }).from(marketMeta);
+
+        // Stakes stats filtered by mode
+        const stakingStatsRaw: any = (await db.execute(sql`
+            SELECT COUNT(*) AS "totalStakes",
+                   COALESCE(SUM(amount), 0) AS "totalVolume",
+                   COUNT(*) FILTER (WHERE is_settled = false) AS "activeStakes"
+            FROM stakes ${stakesWhere}
+        `)).rows ?? [];
+        const stakingStats = [{
+            totalStakes: Number(stakingStatsRaw[0]?.totalStakes || 0),
+            totalVolume: Number(stakingStatsRaw[0]?.totalVolume || 0),
+            activeStakes: Number(stakingStatsRaw[0]?.activeStakes || 0),
+        }];
 
         // Total user count
         const userCount = await db.select({
@@ -255,6 +273,7 @@ router.get("/revenue", requireAuth, async (req: AuthRequest, res) => {
         }).from(users);
 
         res.json({
+            mode,
             platformRevenue: metaResult[0]?.totalRevenue || 0,
             referralEarnings: refResult[0]?.totalReferralPaid || 0,
             totalBalances: balanceResult[0]?.totalBalances || 0,
