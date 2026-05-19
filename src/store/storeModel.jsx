@@ -700,7 +700,7 @@ export const useStore = create((set, get) => ({
                 target,
                 betType,
                 isDemo: isDemoMode
-            });
+            }, { timeoutMs: 30000, retries: 0 });
 
             if (res && res.success) {
                 toast.success(isDemoMode ? "Demo stake placed! (Practice)" : "Stake placed successfully!");
