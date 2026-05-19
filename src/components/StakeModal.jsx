@@ -112,7 +112,7 @@ export function StakeModal({ isOpen, onClose, itemId, itemName }) {
             const target = betType === 'exact' ? parseInt(targetRank) : betType === 'range' ? { min: parseInt(rangeMin), max: parseInt(rangeMax) } : { dir: direction, k: parseInt(kPositions) };
             
             // Note: store's placeStake already uses isDemoMode internally
-            const success = await placeStake(itemId, itemName, useStore.getState().currentCategorySlug, parseFloat(amount), target, betType);
+            const success = await placeStake(String(itemId), itemName, useStore.getState().currentCategorySlug, parseFloat(amount), target, betType);
 
             if (success) {
                 if (isDemoMode) triggerTourAction('stake-placed');
