@@ -29,15 +29,15 @@ export default function AdminZMGPage() {
     const loadData = async () => {
         setLoading(true);
         setError(null);
-
         try {
-            // ZMG endpoints will be added to Express API later
-            // For now, show placeholder data
-            setStats({ totalRuns: 0, successRate: 0, lastRun: null, activeMarkets: 0 });
-            setRuns([]);
+            const data = await apiGet('/api/admin/zmg/status');
+            setStats(data?.stats || { totalRuns: 0, successRate: 0, lastRun: null, activeMarkets: 0 });
+            setRuns(Array.isArray(data?.runs) ? data.runs : []);
         } catch (err) {
             console.error("Failed to load ZMG data:", err);
-            setError("Failed to load ZMG data. Make sure the API server is running.");
+            setError(err?.message || "Failed to load ZMG data");
+            setStats({ totalRuns: 0, successRate: 0, lastRun: null, activeMarkets: 0 });
+            setRuns([]);
         } finally {
             setLoading(false);
         }
@@ -46,7 +46,14 @@ export default function AdminZMGPage() {
     const triggerZMG = async (marketId) => {
         setTriggering(true);
         setError(null);
-
+        try {
+            await apiPost('/api/admin/zmg/trigger', { marketId }, { timeoutMs: 60000, retries: 0 });
+            await loadData();
+            setTriggering(false);
+            return;
+        } catch (e) {
+            console.warn("ZMG trigger failed, falling through to legacy path:", e);
+        }
         try {
             // ZMG trigger will be added to Express API later
             console.log("ZMG trigger for:", marketId);

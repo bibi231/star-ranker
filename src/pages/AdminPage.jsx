@@ -74,9 +74,8 @@ export function AdminPage() {
         setActionLoading(`ingestor-${ingestorType}`);
         setActionResult(null);
         try {
-            // Ingestor endpoints will be added to Express API later
-            console.log("Trigger ingestor:", ingestorType);
-            setActionResult({ success: true, message: `${ingestorType} ingestor triggered` });
+            const result = await apiPost(`/api/admin/ingestor/${ingestorType}`, {}, { timeoutMs: 60000, retries: 0 });
+            setActionResult({ success: true, message: `${ingestorType} ingestor ran — ${typeof result?.result === 'string' ? result.result : 'done'}` });
         } catch (error) {
             setActionResult({ success: false, message: error.message });
         } finally {
@@ -88,9 +87,8 @@ export function AdminPage() {
         setActionLoading(`snapshot-${categorySlug}`);
         setActionResult(null);
         try {
-            // Snapshot endpoints will be added to Express API later
-            console.log("Trigger snapshot:", categorySlug);
-            setActionResult({ success: true, message: `Snapshot triggered for ${categorySlug}` });
+            await apiPost(`/api/admin/snapshot/${categorySlug}`, {}, { timeoutMs: 30000, retries: 0 });
+            setActionResult({ success: true, message: `Snapshot taken for ${categorySlug}` });
         } catch (error) {
             setActionResult({ success: false, message: error.message });
         } finally {
@@ -102,8 +100,7 @@ export function AdminPage() {
         setActionLoading(`freeze-${categorySlug}`);
         setActionResult(null);
         try {
-            // Freeze market will be added to Express API later
-            console.log("Freeze market:", categorySlug, freeze);
+            await apiPost('/api/admin/freeze-market', { slug: categorySlug, freeze }, { timeoutMs: 15000, retries: 0 });
             setActionResult({ success: true, message: `${categorySlug} ${freeze ? 'frozen' : 'unfrozen'}` });
         } catch (error) {
             setActionResult({ success: false, message: error.message });

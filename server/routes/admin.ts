@@ -372,4 +372,97 @@ router.post("/rescue-deposit", requireAuth, async (req: AuthRequest, res) => {
     }
 });
 
+
+
+// POST /api/admin/ingestor/:type — trigger a one-shot data ingestor (crypto, zeitgeist, etc.)
+router.post("/ingestor/:type", requireAuth, async (req: AuthRequest, res) => {
+    try {
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+        const { type } = req.params;
+        let result: any = null;
+        if (type === 'crypto' || type === 'coingecko') {
+            const { updateCryptoPrices } = await import("../engine/coinGecko.js");
+            result = await updateCryptoPrices();
+        } else if (type === 'zeitgeist') {
+            const { runZeitgeistDiscovery } = await import("../engine/zeitgeist.js");
+            result = await runZeitgeistDiscovery();
+        } else {
+            return res.status(400).json({ error: `Unknown ingestor type: ${type}. Use 'crypto' or 'zeitgeist'.` });
+        }
+        res.json({ success: true, type, result: result || 'ok' });
+    } catch (error: any) {
+        console.error("[Admin] Ingestor error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/admin/snapshot/:slug — force a category ranking reification
+router.post("/snapshot/:slug", requireAuth, async (req: AuthRequest, res) => {
+    try {
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+        const { slug } = req.params;
+        const { reifyCategoryRankings } = await import("../engine/rankingEngine.js");
+        await reifyCategoryRankings(slug);
+        res.json({ success: true, slug, message: `Snapshot taken for ${slug}` });
+    } catch (error: any) {
+        console.error("[Admin] Snapshot error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/admin/freeze-market — freeze/unfreeze a category
+router.post("/freeze-market", requireAuth, async (req: AuthRequest, res) => {
+    try {
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+        const { slug, freeze } = req.body;
+        if (!slug || typeof freeze !== 'boolean') {
+            return res.status(400).json({ error: "Expecting { slug: string, freeze: boolean }" });
+        }
+        await db.update(categories).set({ isFrozen: freeze }).where(eq(categories.slug, slug));
+        res.json({ success: true, slug, frozen: freeze });
+    } catch (error: any) {
+        console.error("[Admin] Freeze error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET /api/admin/zmg/status — Zeitgeist Market Generator status overview
+router.get("/zmg/status", requireAuth, async (req: AuthRequest, res) => {
+    try {
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+        const allItems = await db.select({ id: items.id, name: items.name, categorySlug: items.categorySlug, createdAt: items.createdAt, score: items.score, rank: items.rank }).from(items);
+        const totalItems = allItems.length;
+        const activeMarkets = totalItems;
+        const lastItem = allItems.sort((a: any, b: any) => new Date(b.createdAt as any).getTime() - new Date(a.createdAt as any).getTime())[0];
+        const runs = await db.select().from(marketActivity).where(eq(marketActivity.type, 'zmg_run')).orderBy(desc(marketActivity.createdAt)).limit(20);
+        res.json({
+            stats: {
+                totalItems,
+                activeMarkets,
+                totalRuns: runs.length,
+                successRate: runs.length > 0 ? 100 : 0,
+                lastRun: lastItem?.createdAt || null,
+            },
+            runs,
+        });
+    } catch (error: any) {
+        console.error("[Admin] ZMG status error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/admin/zmg/trigger — trigger ZMG discovery on demand
+router.post("/zmg/trigger", requireAuth, async (req: AuthRequest, res) => {
+    try {
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+        const { runZeitgeistDiscovery } = await import("../engine/zeitgeist.js");
+        const result = await runZeitgeistDiscovery();
+        res.json({ success: true, result: result || 'queued' });
+    } catch (error: any) {
+        console.error("[Admin] ZMG trigger error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 export default router;
