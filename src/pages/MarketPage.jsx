@@ -133,7 +133,7 @@ export function MarketPage() {
                     <StakeModal
                         isOpen={true}
                         onClose={closeModal}
-                        itemId={selectedItem.id}
+                        itemId={selectedItem.docId || String(selectedItem.id)}
                         itemName={selectedItem.name}
                     />
                 )}
