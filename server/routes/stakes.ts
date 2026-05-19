@@ -115,9 +115,22 @@ router.get("/odds", async (req: any, res: any) => {
         const meta = metaResult[0] || { totalStaked: 0, itemExposure: {} };
         const itemOI = ((meta.itemExposure as any) || {})[itemDocId as string] || 0;
 
-        // Fetch epoch
-        const epochResult = await db.select().from(epochs).where(eq(epochs.isActive, true)).limit(1);
-        if (epochResult.length === 0) return res.status(400).json({ error: "No active epoch" });
+        // Fetch epoch; self-heal if none
+        let epochResult = await db.select().from(epochs).where(eq(epochs.isActive, true)).limit(1);
+        if (epochResult.length === 0) {
+            const now = new Date();
+            const utcMins = now.getUTCMinutes();
+            const startTime = new Date(now);
+            startTime.setUTCHours(now.getUTCHours(), utcMins < 30 ? 0 : 30, 0, 0);
+            const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
+            const lastEpoch = await db.select().from(epochs).orderBy(sql`epoch_number DESC`).limit(1);
+            const nextNum = lastEpoch.length > 0 ? lastEpoch[0].epochNumber + 1 : 1;
+            const inserted = await db.insert(epochs).values({
+                epochNumber: nextNum, isActive: true, startTime, endTime, duration: 30 * 60 * 1000,
+            }).returning();
+            epochResult = inserted;
+            console.log(`[Stake] Self-healed epoch #${nextNum} for real-money stake`);
+        }
         const timeRemaining = epochResult[0].endTime.getTime() - Date.now();
 
         let parsedTarget: any = target;
@@ -222,10 +235,25 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
                 });
             }
 
-            // Fetch current epoch for demo stake
+            // Fetch current epoch for demo stake; self-heal if none
+            let demoEpoch: any;
             const demoEpochResult = await db.select().from(epochs).where(eq(epochs.isActive, true)).limit(1);
-            if (demoEpochResult.length === 0) return res.status(400).json({ error: "No active epoch" });
-            const demoEpoch = demoEpochResult[0];
+            if (demoEpochResult.length > 0) {
+                demoEpoch = demoEpochResult[0];
+            } else {
+                const now = new Date();
+                const utcMins = now.getUTCMinutes();
+                const startTime = new Date(now);
+                startTime.setUTCHours(now.getUTCHours(), utcMins < 30 ? 0 : 30, 0, 0);
+                const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
+                const lastEpoch = await db.select().from(epochs).orderBy(sql`epoch_number DESC`).limit(1);
+                const nextNum = lastEpoch.length > 0 ? lastEpoch[0].epochNumber + 1 : 1;
+                const inserted = await db.insert(epochs).values({
+                    epochNumber: nextNum, isActive: true, startTime, endTime, duration: 30 * 60 * 1000,
+                }).returning();
+                demoEpoch = inserted[0];
+                console.log(`[Stake] Self-healed epoch #${nextNum} for demo stake`);
+            }
 
             // Deduct from demo balance
             await db.update(users)
@@ -282,9 +310,22 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
             });
         }
 
-        // Fetch epoch
-        const epochResult = await db.select().from(epochs).where(eq(epochs.isActive, true)).limit(1);
-        if (epochResult.length === 0) return res.status(400).json({ error: "No active epoch" });
+        // Fetch epoch; self-heal if none
+        let epochResult = await db.select().from(epochs).where(eq(epochs.isActive, true)).limit(1);
+        if (epochResult.length === 0) {
+            const now = new Date();
+            const utcMins = now.getUTCMinutes();
+            const startTime = new Date(now);
+            startTime.setUTCHours(now.getUTCHours(), utcMins < 30 ? 0 : 30, 0, 0);
+            const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
+            const lastEpoch = await db.select().from(epochs).orderBy(sql`epoch_number DESC`).limit(1);
+            const nextNum = lastEpoch.length > 0 ? lastEpoch[0].epochNumber + 1 : 1;
+            const inserted = await db.insert(epochs).values({
+                epochNumber: nextNum, isActive: true, startTime, endTime, duration: 30 * 60 * 1000,
+            }).returning();
+            epochResult = inserted;
+            console.log(`[Stake] Self-healed epoch #${nextNum} for real-money stake`);
+        }
         const epoch = epochResult[0];
 
         // 120s lockout (server-enforced)

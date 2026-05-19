@@ -130,15 +130,48 @@ router.get("/current", async (_req, res) => {
             });
         }
 
-        // Virtual Epoch Fallback (GMT aligned)
+        // Self-heal: no active epoch found. Create one now (GMT aligned).
+        // This covers the case where the epoch scheduler hasn't run yet
+        // (e.g. Render cold start, probe failure on boot).
         const utcMins = now.getUTCMinutes();
         const startTime = new Date(now);
         startTime.setUTCHours(now.getUTCHours(), utcMins < 30 ? 0 : 30, 0, 0);
         const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
 
+        // Determine next epoch number based on highest existing
+        const { desc } = await import("drizzle-orm");
+        const lastEpoch = await db.select().from(epochs).orderBy(desc(epochs.epochNumber)).limit(1);
+        const nextNum = lastEpoch.length > 0 ? lastEpoch[0].epochNumber + 1 : 1;
+
+        let createdEpoch: any = null;
+        try {
+            const inserted = await db.insert(epochs).values({
+                epochNumber: nextNum,
+                isActive: true,
+                startTime,
+                endTime,
+                duration: 30 * 60 * 1000,
+            }).returning();
+            createdEpoch = inserted[0];
+            console.log(`[Epoch] Self-healed: created epoch #${nextNum}`);
+        } catch (err) {
+            console.error('[Epoch] Self-heal insert failed:', err);
+        }
+
+        if (createdEpoch) {
+            return res.json({
+                ...createdEpoch,
+                epochId: createdEpoch.epochNumber,
+                startTime: new Date(createdEpoch.startTime).getTime(),
+                endTime: new Date(createdEpoch.endTime).getTime(),
+                serverTime,
+            });
+        }
+
+        // Last resort virtual (only if DB insert truly failed)
         res.json({
-            epochNumber: 0, // Placeholder for virtual
-            epochId: 0,
+            epochNumber: nextNum,
+            epochId: nextNum,
             isActive: true,
             startTime: startTime.getTime(),
             endTime: endTime.getTime(),
