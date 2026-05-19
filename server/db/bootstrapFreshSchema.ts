@@ -271,9 +271,19 @@ const statements: string[] = [
     `ALTER TABLE items ADD COLUMN IF NOT EXISTS trend JSONB DEFAULT '[]'::jsonb`,
     `ALTER TABLE items ADD COLUMN IF NOT EXISTS is_dampened BOOLEAN DEFAULT false`,
 
-    // Stakes — demo + play-mode flags added later (idempotent)
+    // Stakes — backfill every column Drizzle expects (idempotent)
     `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS is_demo BOOLEAN DEFAULT false`,
     `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS is_play_mode BOOLEAN DEFAULT false`,
+    `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS exit_value REAL`,
+    `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS exit_at TIMESTAMP`,
+    `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS implied_probability REAL`,
+    `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS effective_multiplier REAL`,
+    `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS multiplier_used REAL`,
+    `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS slippage_applied REAL`,
+    `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS payout REAL`,
+    `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS platform_fee REAL DEFAULT 0`,
+    `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS outcome TEXT`,
+    `ALTER TABLE stakes ADD COLUMN IF NOT EXISTS is_settled BOOLEAN DEFAULT false`,
 ];
 
 export async function bootstrapFreshSchema(): Promise<void> {
