@@ -61,12 +61,22 @@ export async function settleBets(epochId?: number) {
     for (const row of unsettled) {
         const { stake } = row;
 
-        // Use snapshot if epochId is provided, otherwise fallback to live items
-        const rankSource = epochId ? 
-            await db.select({ rank: epochSnapshots.rank }).from(epochSnapshots).where(and(eq(epochSnapshots.epochId, epochId), eq(epochSnapshots.itemId, stake.itemDocId))).limit(1) :
-            await db.select({ rank: items.rank }).from(items).where(eq(items.docId, stake.itemDocId)).limit(1);
-
-        if (rankSource.length === 0) continue;
+        // Try snapshot first; fall back to live items.rank if snapshot missing.
+        let rankSource: any[] = [];
+        if (epochId) {
+            rankSource = await db.select({ rank: epochSnapshots.rank })
+                .from(epochSnapshots)
+                .where(and(eq(epochSnapshots.epochId, epochId), eq(epochSnapshots.itemId, stake.itemDocId)))
+                .limit(1);
+        }
+        if (rankSource.length === 0) {
+            rankSource = await db.select({ rank: items.rank }).from(items).where(eq(items.docId, stake.itemDocId)).limit(1);
+        }
+        if (rankSource.length === 0) {
+            // Item missing — mark lost to avoid stuck rows
+            await db.update(stakes).set({ status: 'lost', isSettled: true }).where(eq(stakes.id, stake.id));
+            continue;
+        }
 
         const actualRank = rankSource[0].rank ?? 999;
         let isWin = false;

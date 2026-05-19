@@ -412,26 +412,19 @@ export function MainLayout() {
                             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-accent transition-colors" />
                             <input
                                 type="text"
-                                value={searchQuery}
-                                onChange={(e) => {
-                                    setSearchQuery(e.target.value);
-                                    if (location.pathname !== '/markets') navigate('/markets');
-                                }}
-                                placeholder="Search markets (Cmd+K)..."
-                                className="w-full bg-[#0B0F1E]/50 border border-slate-700/50 rounded-xl pl-11 pr-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-accent/50 focus:bg-[#0B0F1E] transition-all font-medium tracking-wide"
+                                readOnly
+                                onClick={() => setSearchOpen(true)}
+                                onFocus={() => setSearchOpen(true)}
+                                placeholder="Search markets, oracles, categories  (Cmd+K)"
+                                className="w-full bg-[#0B0F1E]/50 border border-slate-700/50 rounded-xl pl-11 pr-4 py-2 text-xs text-slate-300 placeholder:text-slate-500 focus:outline-none focus:border-brand-accent/50 focus:bg-[#0B0F1E] transition-all font-medium tracking-wide cursor-pointer hover:border-brand-accent/30"
                             />
                         </div>
                         {/* Search icon button on md (opens search on click) */}
                         <button
                             className="lg:hidden p-2 rounded-lg hover:bg-white/5 text-slate-500 hover:text-white transition-all"
-                            onClick={() => {
-                                const q = prompt('Search markets...');
-                                if (q) {
-                                    setSearchQuery(q);
-                                    if (location.pathname !== '/markets') navigate('/markets');
-                                }
-                            }}
+                            onClick={() => setSearchOpen(true)}
                             title="Search"
+                            aria-label="Open search"
                         >
                             <Search size={16} />
                         </button>
