@@ -242,12 +242,24 @@ export async function settleBets(epochId?: number) {
     const { checkAndRefillDemoBalance, checkAndShowConversionPrompt } = await import("../services/demoMode");
 
     for (const demoStake of demoStakesToSettle) {
-        // Fetch current rank for the demo item
-        const rankSource = currentEpochId > 0 ? 
-            await db.select({ rank: epochSnapshots.rank }).from(epochSnapshots).where(and(eq(epochSnapshots.epochId, currentEpochId), eq(epochSnapshots.itemId, demoStake.itemDocId))).limit(1) :
-            await db.select({ rank: items.rank }).from(items).where(eq(items.docId, demoStake.itemDocId)).limit(1);
-
-        if (rankSource.length === 0) continue;
+        // Fetch closing rank for the demo item.
+        // Prefer epoch snapshot (authoritative closing rank); fall back to live items.rank.
+        let rankSource: any[] = [];
+        if (currentEpochId > 0) {
+            rankSource = await db.select({ rank: epochSnapshots.rank })
+                .from(epochSnapshots)
+                .where(and(eq(epochSnapshots.epochId, currentEpochId), eq(epochSnapshots.itemId, demoStake.itemDocId)))
+                .limit(1);
+        }
+        if (rankSource.length === 0) {
+            // Snapshot missing — read live rank from items table
+            rankSource = await db.select({ rank: items.rank }).from(items).where(eq(items.docId, demoStake.itemDocId)).limit(1);
+        }
+        if (rankSource.length === 0) {
+            // Item itself is gone — mark stake lost to avoid limbo
+            await db.update(stakes).set({ status: 'lost', isSettled: true }).where(eq(stakes.id, demoStake.id));
+            continue;
+        }
         const finalRank = rankSource[0].rank ?? 999;
 
         const target: any = demoStake.target;
@@ -265,7 +277,15 @@ export async function settleBets(epochId?: number) {
 
         if (won) {
             // Virtual payout calculation
-            const demoPayout = Math.floor(demoStake.amount * (demoStake.effectiveMultiplier || 2));
+            // effectiveMultiplier might be null on legacy demo stakes — use a sensible default
+            // based on implied probability if available, else 1.8x.
+            let multiplier = demoStake.effectiveMultiplier;
+            if (!multiplier || multiplier <= 0) {
+                multiplier = demoStake.impliedProbability && demoStake.impliedProbability > 0
+                    ? Math.min(8, (1 / demoStake.impliedProbability) * 0.95)
+                    : 1.8;
+            }
+            const demoPayout = Math.floor(demoStake.amount * multiplier);
             
             await db.update(stakes)
                 .set({ status: 'won', payout: demoPayout, isSettled: true })

@@ -268,6 +268,20 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
             const itemResult = await db.select().from(items).where(eq(items.docId, itemDocId)).limit(1);
             const currentRank = itemResult[0]?.rank || 50;
 
+            // Compute a multiplier for the demo stake at placement time
+            // (mirrors the real-money quote so settlement pays correctly)
+            const demoPhysics = {
+                momentum: itemResult[0]?.momentum ?? 0,
+                velocity: itemResult[0]?.velocity ?? 0,
+                volatility: itemResult[0]?.volatility ?? 5,
+                currentRank: currentRank,
+            };
+            const demoTimeRemaining = (demoEpoch.endTime as any).getTime
+                ? (demoEpoch.endTime as any).getTime() - Date.now()
+                : new Date(demoEpoch.endTime as any).getTime() - Date.now();
+            const demoPBase = calculateBaseProbability(demoPhysics, target as any, betType as string, demoTimeRemaining);
+            const demoMultiplier = Math.min(8, (1 / demoPBase) * 0.95);
+
             // Insert stake marked as demo
             const [newDemoStake] = await db.insert(stakes).values({
                 userId,
@@ -278,11 +292,14 @@ router.post("/", requireAuth, requireStakeAccess, async (req: AuthRequest, res: 
                 platformFee,
                 target: target as any,
                 betType,
-                initialRank: currentRank, 
+                initialRank: currentRank,
+                impliedProbability: demoPBase,
+                effectiveMultiplier: demoMultiplier,
+                multiplierUsed: demoMultiplier,
                 status: 'active',
                 epochId: demoEpoch.epochNumber,
                 isDemo: true,
-                isPlayMode: true, 
+                isPlayMode: true,
             }).returning();
 
             // Log to Market Activity for Practice Mode visibility
