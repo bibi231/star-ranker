@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import { bootstrapTheme } from './hooks/useTheme'
 import { Web3Provider } from './components/providers/Web3Provider.jsx'
+import RenderWakeup from './components/RenderWakeup.jsx'
 
 if (import.meta.env.VITE_SENTRY_DSN) {
   Sentry.init({
@@ -24,8 +25,10 @@ window.addEventListener('unhandledrejection', (event) => {
 bootstrapTheme();
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <Web3Provider>
-      <App />
-    </Web3Provider>
+    <RenderWakeup>
+      <Web3Provider>
+        <App />
+      </Web3Provider>
+    </RenderWakeup>
   </StrictMode>,
 )

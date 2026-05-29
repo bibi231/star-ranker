@@ -9,6 +9,12 @@ import { cacheGet, cacheSet } from "../services/cache.js";
 
 const router = Router();
 
+// Fast wakeup ping — NO DB query so Render cold-start returns ASAP.
+// Used by UptimeRobot / keepalive pingers and the frontend warmup splash.
+router.get("/", (_req, res) => {
+    res.json({ status: "ok", ts: Date.now(), uptime: process.uptime() });
+});
+
 router.get("/diagnostics", async (_req, res) => {
     const start = Date.now();
     const stats: any = {

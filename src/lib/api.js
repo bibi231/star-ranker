@@ -48,7 +48,7 @@ async function getAuthHeaders() {
 async function fetchWithRetry(url, options = {}, fetchConfig = {}) {
     const retries = fetchConfig.retries ?? 2;
     const backoff = fetchConfig.backoff ?? 500;
-    const timeoutMs = fetchConfig.timeoutMs ?? 10000;
+    const timeoutMs = fetchConfig.timeoutMs ?? 35000;
 
     for (let attempt = 0; attempt <= retries; attempt++) {
         const controller = new AbortController();
@@ -153,7 +153,7 @@ export async function apiGet(path, params = {}) {
  */
 export async function apiPost(path, body = {}, opts = {}) {
     const headers = await getAuthHeaders();
-    const timeoutMs = opts.timeoutMs ?? 10000;
+    const timeoutMs = opts.timeoutMs ?? 35000;
     const retries = opts.retries ?? 1;
 
     return fetchWithRetry(`${API_URL}${path}`, {
@@ -170,7 +170,7 @@ export async function apiPatch(path, body = {}) {
         method: "PATCH",
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify(body),
-    }, { retries: 1, timeoutMs: 10000 });
+    }, { retries: 1, timeoutMs: 35000 });
 }
 
 export async function apiDelete(path, params = {}) {
@@ -181,5 +181,5 @@ export async function apiDelete(path, params = {}) {
     return fetchWithRetry(url, {
         method: "DELETE",
         headers: { ...headers, "Content-Type": "application/json" },
-    }, { retries: 1, timeoutMs: 10000 });
+    }, { retries: 1, timeoutMs: 35000 });
 }
