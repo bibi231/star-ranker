@@ -465,4 +465,45 @@ router.post("/zmg/trigger", requireAuth, async (req: AuthRequest, res) => {
 });
 
 
+// POST /api/admin/lock-item — Lock a single item from further voting/staking (reversible)
+router.post("/lock-item", requireAuth, async (req: AuthRequest, res) => {
+    try {
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+        const { itemId, lock = true } = req.body;
+        if (!itemId) return res.status(400).json({ error: "Expecting { itemId: string }" });
+        const newStatus = lock ? "locked" : "active";
+        const updated = await db.update(items).set({ status: newStatus }).where(eq(items.docId, itemId)).returning({ docId: items.docId });
+        if (updated.length === 0) return res.status(404).json({ error: "Item not found" });
+        await db.insert(marketActivity).values({
+            type: "admin_action",
+            description: `Item ${itemId} ${lock ? "LOCKED" : "unlocked"} by ${req.userEmail}`,
+            metadata: { action: "lockItem", itemId, lock },
+        });
+        res.json({ success: true, itemId, status: newStatus });
+    } catch (error: any) {
+        console.error("[Admin] lock-item error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/admin/delist-item — Soft-remove an item from rankings (reversible: status flag only)
+router.post("/delist-item", requireAuth, async (req: AuthRequest, res) => {
+    try {
+        if (!isSuperAdminEmail(req.userEmail)) return res.status(403).json({ error: "Unauthorized" });
+        const { itemId } = req.body;
+        if (!itemId) return res.status(400).json({ error: "Expecting { itemId: string }" });
+        const updated = await db.update(items).set({ status: "delisted" }).where(eq(items.docId, itemId)).returning({ docId: items.docId });
+        if (updated.length === 0) return res.status(404).json({ error: "Item not found" });
+        await db.insert(marketActivity).values({
+            type: "admin_action",
+            description: `Item ${itemId} DELISTED by ${req.userEmail}`,
+            metadata: { action: "delistItem", itemId },
+        });
+        res.json({ success: true, itemId, status: "delisted" });
+    } catch (error: any) {
+        console.error("[Admin] delist-item error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;

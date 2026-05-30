@@ -1,12 +1,17 @@
 /**
  * Settlement Oracle — Pool-Based Payout System
- * 
+ *
  * REVENUE MODEL:
  * 1. Platform takes 5% fee on every stake placement (already deducted)
  * 2. Losers' stakes form the "payout pool"
  * 3. Winners split the loser pool proportional to their (stake × multiplier)
  * 4. If the pool can't cover all payouts, payouts are scaled down (never from platform pocket)
  * 5. Any leftover pool goes to platform as additional revenue
+ *
+ * DEMO vs LIVE:
+ * - Real-money stakes (isDemo=false) credit `users.balance` and feed platform revenue.
+ * - Demo stakes (isDemo=true) credit `users.demoBalance` ONLY and never touch revenue.
+ * These two streams are settled in fully separate passes so they can never cross-contaminate.
  */
 
 import { db } from "../db/index.js";
@@ -15,6 +20,41 @@ import { eq, and, sql } from "drizzle-orm";
 import { sendEmail, templates } from "../lib/email.js";
 import { checkAndAwardAchievements } from "../services/achievements.js";
 import { cacheDelPattern } from "../services/cache.js";
+
+/**
+ * Resolve the closing rank for an item at settlement time.
+ * Prefer the authoritative epoch snapshot; fall back to the live items.rank.
+ * Returns null if the item itself can't be found (caller marks the stake lost).
+ */
+async function resolveClosingRank(epochId: number | undefined, itemDocId: string): Promise<number | null> {
+    if (epochId && epochId > 0) {
+        const snap = await db.select({ rank: epochSnapshots.rank })
+            .from(epochSnapshots)
+            .where(and(eq(epochSnapshots.epochId, epochId), eq(epochSnapshots.itemId, itemDocId)))
+            .limit(1);
+        if (snap.length > 0 && snap[0].rank != null) return snap[0].rank;
+    }
+    const live = await db.select({ rank: items.rank }).from(items).where(eq(items.docId, itemDocId)).limit(1);
+    if (live.length === 0) return null;
+    return live[0].rank ?? 999;
+}
+
+/** Evaluate whether a stake won given the closing rank. Shared by demo + live. */
+function evaluateWin(betType: string | null, target: any, actualRank: number, initialRank: number | null): boolean {
+    if (betType === "exact") {
+        const targetVal = typeof target === "number" ? target : parseInt(target);
+        return actualRank === targetVal;
+    }
+    if (betType === "range") {
+        return actualRank >= target.min && actualRank <= target.max;
+    }
+    if (betType === "directional") {
+        const initial = initialRank || 50;
+        const k = target.k || 1;
+        return target.dir === "up" ? actualRank <= (initial - k) : actualRank >= (initial + k);
+    }
+    return false;
+}
 
 export async function settleBets(epochId?: number) {
     if (epochId) {
@@ -30,9 +70,9 @@ export async function settleBets(epochId?: number) {
         }
     }
 
-    console.log(`[Settlement] Starting pool-based settlement for epoch #${epochId || 'LIVE'}...`);
+    console.log(`[Settlement] Starting pool-based settlement for epoch #${epochId || 'ALL'}...`);
 
-    // Find all unsettled stakes for THIS epoch (or all unsettled if no epochId given)
+    // ===== PHASE 1: Collect REAL-MONEY stakes only (isDemo = false) =====
     const unsettled = await db
         .select({
             stake: stakes,
@@ -43,12 +83,12 @@ export async function settleBets(epochId?: number) {
         .where(and(
             eq(stakes.isSettled, false),
             eq(stakes.status, "active"),
+            eq(stakes.isDemo, false),
             epochId ? eq(stakes.epochId, epochId) : sql`TRUE`
         ));
 
     if (unsettled.length === 0) {
-        console.log("[Settlement] No stakes to settle.");
-        // We still check for demo stakes below...
+        console.log("[Settlement] No real-money stakes to settle. (Demo stakes handled separately below.)");
     }
 
     const results: Array<{
@@ -61,49 +101,17 @@ export async function settleBets(epochId?: number) {
     for (const row of unsettled) {
         const { stake } = row;
 
-        // Try snapshot first; fall back to live items.rank if snapshot missing.
-        let rankSource: any[] = [];
-        if (epochId) {
-            rankSource = await db.select({ rank: epochSnapshots.rank })
-                .from(epochSnapshots)
-                .where(and(eq(epochSnapshots.epochId, epochId), eq(epochSnapshots.itemId, stake.itemDocId)))
-                .limit(1);
-        }
-        if (rankSource.length === 0) {
-            rankSource = await db.select({ rank: items.rank }).from(items).where(eq(items.docId, stake.itemDocId)).limit(1);
-        }
-        if (rankSource.length === 0) {
+        const actualRank = await resolveClosingRank(epochId, stake.itemDocId);
+        if (actualRank === null) {
             // Item missing — mark lost to avoid stuck rows
             await db.update(stakes).set({ status: 'lost', isSettled: true }).where(eq(stakes.id, stake.id));
             continue;
         }
 
-        const actualRank = rankSource[0].rank ?? 999;
-        let isWin = false;
-        const target: any = stake.target;
-
-        if (stake.betType === "exact") {
-            const targetVal = typeof target === 'number' ? target : parseInt(target);
-            isWin = actualRank === targetVal;
-        } else if (stake.betType === "range") {
-            isWin = actualRank >= target.min && actualRank <= target.max;
-        } else if (stake.betType === "directional") {
-            const initial = stake.initialRank || 50;
-            if (target.dir === 'up') {
-                isWin = actualRank <= (initial - target.k);
-            } else {
-                isWin = actualRank >= (initial + target.k);
-            }
-        }
-
+        const isWin = evaluateWin(stake.betType, stake.target, actualRank, stake.initialRank);
         const targetPayout = isWin ? stake.amount * (stake.effectiveMultiplier || 2) : 0;
 
-        results.push({
-            stake,
-            userEmail: row.userEmail,
-            isWin,
-            targetPayout,
-        });
+        results.push({ stake, userEmail: row.userEmail, isWin, targetPayout });
     }
 
     // ===== PHASE 2: Calculate pool economics =====
@@ -120,7 +128,7 @@ export async function settleBets(epochId?: number) {
         ? Math.min(1, loserPool / totalTargetPayouts)
         : 0;
 
-    // ===== PHASE 3: Settle each stake =====
+    // ===== PHASE 3: Settle each real-money stake =====
     let totalGrossStaked = 0;
     let totalPaidOut = 0;
     let totalFees = 0;
@@ -156,7 +164,7 @@ export async function settleBets(epochId?: number) {
                 metadata: { outcome: isWin ? "win" : "loss", stakeId: stake.id }
             });
 
-            // 3. Credit winner's balance (payout + original stake back) or deduct reputaton
+            // 3. Credit winner's REAL balance (payout + original stake back) or deduct reputation
             if (isWin && actualPayout >= 0) {
                 const totalCredit = actualPayout + stake.amount;
                 await tx.update(users).set({
@@ -180,7 +188,7 @@ export async function settleBets(epochId?: number) {
                 type: isWin ? "win" : "loss"
             });
         });
-        
+
         // After transaction and notification creation, check achievements non-blockingly
         checkAndAwardAchievements(stake.userId).catch(err => console.error("[Settlement] achievements check failed:", err));
 
@@ -200,11 +208,11 @@ export async function settleBets(epochId?: number) {
 
     // ===== PHASE 4: Platform Revenue Logging =====
     const netProfit = totalGrossStaked - totalPaidOut;
-    const currentEpochId = results[0]?.stake.epochId || 0;
+    const revenueEpochId = epochId || results[0]?.stake.epochId || 0;
 
-    if (currentEpochId > 0) {
+    if (revenueEpochId > 0 && settledCount > 0) {
         await db.insert(platformRevenue).values({
-            epochId: currentEpochId,
+            epochId: revenueEpochId,
             grossStakedUsd: totalGrossStaked,
             totalFeesUsd: totalFees,
             totalWinningsUsd: totalPaidOut,
@@ -223,14 +231,14 @@ export async function settleBets(epochId?: number) {
         // Log to Market Activity
         await db.insert(marketActivity).values({
             type: "settlement",
-            description: `Epoch #${currentEpochId} settlement complete. Staked: ${totalGrossStaked.toFixed(2)}, Paid: ${totalPaidOut.toFixed(2)}, Platform Net: ${netProfit.toFixed(2)}`,
+            description: `Epoch #${revenueEpochId} settlement complete. Staked: ${totalGrossStaked.toFixed(2)}, Paid: ${totalPaidOut.toFixed(2)}, Platform Net: ${netProfit.toFixed(2)}`,
             amount: totalGrossStaked,
-            metadata: { epochId: currentEpochId, staked: totalGrossStaked, paid: totalPaidOut, net: netProfit }
+            metadata: { epochId: revenueEpochId, staked: totalGrossStaked, paid: totalPaidOut, net: netProfit }
         });
     }
 
     console.log(`[Settlement] === EPOCH SUMMARY ===`);
-    console.log(`  Epoch ID:       ${currentEpochId}`);
+    console.log(`  Epoch ID:       ${revenueEpochId}`);
     console.log(`  Stakes settled: ${settledCount}`);
     console.log(`  Total Stake:    ${totalGrossStaked.toFixed(2)}`);
     console.log(`  Total paid out: ${totalPaidOut.toFixed(2)}`);
@@ -242,53 +250,33 @@ export async function settleBets(epochId?: number) {
     await cacheDelPattern("leaderboard_public");
     await cacheDelPattern("stats_public");
 
-    // ===== PHASE 5: Demo Settlement (Parallel Stream) =====
+    // ===== PHASE 5: Demo Settlement (fully independent stream) =====
+    // Mirror the real-money selection: this epoch if given, else ALL active demo stakes.
+    // Never gated on whether real-money stakes existed.
     const demoStakesToSettle = await db.select().from(stakes).where(and(
-        eq(stakes.epochId, currentEpochId),
         eq(stakes.isDemo, true),
-        eq(stakes.status, 'active')
+        eq(stakes.isSettled, false),
+        eq(stakes.status, 'active'),
+        epochId ? eq(stakes.epochId, epochId) : sql`TRUE`
     ));
 
     const { checkAndRefillDemoBalance, checkAndShowConversionPrompt } = await import("../services/demoMode");
 
+    let demoSettledCount = 0;
     for (const demoStake of demoStakesToSettle) {
-        // Fetch closing rank for the demo item.
-        // Prefer epoch snapshot (authoritative closing rank); fall back to live items.rank.
-        let rankSource: any[] = [];
-        if (currentEpochId > 0) {
-            rankSource = await db.select({ rank: epochSnapshots.rank })
-                .from(epochSnapshots)
-                .where(and(eq(epochSnapshots.epochId, currentEpochId), eq(epochSnapshots.itemId, demoStake.itemDocId)))
-                .limit(1);
-        }
-        if (rankSource.length === 0) {
-            // Snapshot missing — read live rank from items table
-            rankSource = await db.select({ rank: items.rank }).from(items).where(eq(items.docId, demoStake.itemDocId)).limit(1);
-        }
-        if (rankSource.length === 0) {
+        // Use the demo stake's OWN epoch for snapshot lookup (admin settle-all may span epochs).
+        const finalRank = await resolveClosingRank(epochId || demoStake.epochId, demoStake.itemDocId);
+        if (finalRank === null) {
             // Item itself is gone — mark stake lost to avoid limbo
             await db.update(stakes).set({ status: 'lost', isSettled: true }).where(eq(stakes.id, demoStake.id));
             continue;
         }
-        const finalRank = rankSource[0].rank ?? 999;
 
-        const target: any = demoStake.target;
-        let won = false;
-        
-        if (demoStake.betType === "exact") {
-            won = finalRank === (typeof target === 'number' ? target : parseInt(target));
-        } else if (demoStake.betType === "range") {
-            won = finalRank >= target.min && finalRank <= target.max;
-        } else if (demoStake.betType === "directional") {
-            const initial = demoStake.initialRank || 50;
-            if (target.dir === 'up') won = finalRank <= (initial - (target.k || 1));
-            else won = finalRank >= (initial + (target.k || 1));
-        }
+        const won = evaluateWin(demoStake.betType, demoStake.target, finalRank, demoStake.initialRank);
 
         if (won) {
-            // Virtual payout calculation
-            // effectiveMultiplier might be null on legacy demo stakes — use a sensible default
-            // based on implied probability if available, else 1.8x.
+            // Virtual payout. effectiveMultiplier may be null on legacy demo stakes —
+            // derive from implied probability, else default 1.8x.
             let multiplier = demoStake.effectiveMultiplier;
             if (!multiplier || multiplier <= 0) {
                 multiplier = demoStake.impliedProbability && demoStake.impliedProbability > 0
@@ -296,12 +284,12 @@ export async function settleBets(epochId?: number) {
                     : 1.8;
             }
             const demoPayout = Math.floor(demoStake.amount * multiplier);
-            
+
             await db.update(stakes)
                 .set({ status: 'won', payout: demoPayout, isSettled: true })
                 .where(eq(stakes.id, demoStake.id));
-            
-            // Credit demo balance
+
+            // Credit DEMO balance only (payout + original stake back)
             await db.update(users)
                 .set({
                     demoBalance: sql`${users.demoBalance} + ${demoPayout + demoStake.amount}`,
@@ -309,8 +297,7 @@ export async function settleBets(epochId?: number) {
                     demoWinsCount: sql`${users.demoWinsCount} + 1`,
                 })
                 .where(eq(users.firebaseUid, demoStake.userId));
-            
-            // Create victory notification
+
             await db.insert(notifications).values({
                 userId: demoStake.userId,
                 type: 'demo_win',
@@ -322,7 +309,7 @@ export async function settleBets(epochId?: number) {
             await checkAndShowConversionPrompt(demoStake.userId);
         } else {
             await db.update(stakes).set({ status: 'lost', isSettled: true }).where(eq(stakes.id, demoStake.id));
-            
+
             // Refill credits if they ran dry
             await checkAndRefillDemoBalance(demoStake.userId);
 
@@ -333,7 +320,12 @@ export async function settleBets(epochId?: number) {
                 message: "This one didn't go your way — but it's only practice! Try again with your remaining credits.",
             });
         }
+        demoSettledCount++;
     }
 
-    return { settled: settledCount, poolSize: totalGrossStaked, totalPaid: totalPaidOut, netProfit };
+    if (demoSettledCount > 0) {
+        console.log(`[Settlement] Demo stakes settled: ${demoSettledCount}`);
+    }
+
+    return { settled: settledCount, demoSettled: demoSettledCount, poolSize: totalGrossStaked, totalPaid: totalPaidOut, netProfit };
 }

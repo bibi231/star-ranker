@@ -248,18 +248,42 @@ export const useStore = create((set, get) => ({
                     }
                     return res || { success: false, error: 'Unknown error' };
                 }
-                case 'forceEpochRollover':
+                case 'forceEpochRollover': {
+                    // Real rollover: settle the current epoch + reify rankings server-side,
+                    // then advance the local epoch clock so the UI reflects the new window.
+                    const res = await apiPost('/api/admin/settle');
                     if (currentEpoch) {
-                        const newEpochId = currentEpoch.epochId + 1;
                         set({
                             currentEpoch: {
-                                epochId: newEpochId,
+                                epochId: currentEpoch.epochId + 1,
                                 startTime: Date.now(),
-                                endTime: Date.now() + 1800000
+                                endTime: Date.now() + 1800000,
                             }
                         });
                     }
-                    return { success: true };
+                    return res && res.error ? { success: false, error: res.error } : { success: true, result: res };
+                }
+                case 'recalculateSettlement': {
+                    // Re-run settlement (idempotent per epoch) to correct a failed/incorrect settle.
+                    const res = await apiPost('/api/admin/settle');
+                    return res && res.error ? { success: false, error: res.error } : { success: true, result: res };
+                }
+                case 'freezeMarket': {
+                    const slug = args.slug || args.marketId;
+                    if (!slug) return { success: false, error: 'No market specified' };
+                    const res = await apiPost('/api/admin/freeze-market', { slug, freeze: args.freeze ?? true });
+                    return res && res.success ? { success: true, result: res } : (res || { success: false, error: 'Unknown error' });
+                }
+                case 'lockItem': {
+                    if (!args.itemId) return { success: false, error: 'No item specified' };
+                    const res = await apiPost('/api/admin/lock-item', { itemId: args.itemId, lock: args.lock ?? true });
+                    return res && res.success ? { success: true, result: res } : (res || { success: false, error: 'Unknown error' });
+                }
+                case 'delistItem': {
+                    if (!args.itemId) return { success: false, error: 'No item specified' };
+                    const res = await apiPost('/api/admin/delist-item', { itemId: args.itemId });
+                    return res && res.success ? { success: true, result: res } : (res || { success: false, error: 'Unknown error' });
+                }
                 default:
                     console.warn("Unknown admin function:", func);
                     return { success: false, error: "Unknown function" };

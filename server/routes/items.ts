@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
 import { items, epochs, epochSnapshots } from "../db/schema.js";
-import { eq, desc, and, lte, gte } from "drizzle-orm";
+import { eq, desc, and, lte, gte, sql } from "drizzle-orm";
 import { calculateMultipleOdds } from "../engine/oddsCalculator.js";
 import { MetadataService } from "../services/metadataService.js";
 import { cacheGet, cacheSet } from "../services/cache.js";
@@ -47,7 +47,7 @@ async function listItemsByCategory(req: any, res: any) {
         const result = await db
             .select()
             .from(items)
-            .where(eq(items.categorySlug, category))
+            .where(and(eq(items.categorySlug, category), sql`${items.status} IS DISTINCT FROM 'delisted'`))
             .orderBy(desc(items.rank));
 
         // Use bulk odds calculation — wrapped in try/catch so items always return
